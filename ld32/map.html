@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<script type="text/javascript" src="UFX.js"></script>
+<canvas id=canvas></canvas>
+<script type="text/javascript">
+var tau = 2 * Math.PI
+function clamp(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
+window.onerror = function (error, url, line) {
+	document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
+}
+var canvas = document.getElementById("canvas")
+canvas.width = 900 ; canvas.height = 600
+var context = canvas.getContext("2d")
+UFX.draw.setcontext(context)
+UFX.mouse.init(canvas)
+UFX.key.init()
+
+var sx = 512, sy = 512
+var seed = 100
+
+
+// terrain height
+var ndata0 = UFX.noise.wrapslice([sx, sy], seed)
+UFX.noise.fractalize(ndata0, [sx, sy], 3)
+// border shifts
+var dxdata = UFX.noise.wrapslice([sx, sy], seed + 17)
+UFX.noise.fractalize(dxdata, [sx, sy], 3)
+var dydata = UFX.noise.wrapslice([sx, sy], seed + 29)
+UFX.noise.fractalize(dydata, [sx, sy], 3)
+
+var above = []
+var tdata = []
+
+var colors = []
+while (colors.length < 10) {
+	colors.push([UFX.random.rand(256), UFX.random.rand(256), UFX.random.rand(256)])
+}
+
+var centers = []
+
+function maketdata() {
+	above = []
+	tdata = []
+	for (var y = 0, k = 0 ; y < sy ; ++y) {
+		for (var x = 0 ; x < sx; ++x, ++k) {
+			var v = ndata0[k]
+			v += 2 - ((x - sx/2) * (x - sx/2) + (y - sy/2) * (y - sy/2)) / (200 * 200)
+			above[k] = v > 0
+			tdata[k] = v
+		}
+	}
+}
+
+var icanvas = document.createElement("canvas")
+icanvas.width = sx ; icanvas.height = sy
+var icontext = icanvas.getContext("2d")
+
+function makeicanvas() {
+	var idata = icontext.createImageData(sx, sy), data = idata.data
+	for (var y = 0, j = 0, k = 0 ; y < sy ; ++y) {
+		for (var x = 0 ; x < sx; ++x, j += 4, ++k) {
+			val1 = clamp(100 * tdata[k], 0, 255)
+			data[j] = data[j+1] = data[j+2] = val1
+			data[j+3] = 255
+		}
+	}
+	icontext.putImageData(idata, 0, 0)
+}
+
+var bcanvas = document.createElement("canvas")
+bcanvas.width = sx ; bcanvas.height = sy
+var bcontext = bcanvas.getContext("2d")
+
+function makebcanvas() {
+	if (!centers.length) return
+	var idata = bcontext.createImageData(sx, sy), data = idata.data
+	for (var y = 0, j = 0, k = 0 ; y < sy ; ++y) {
+		for (var x = 0 ; x < sx; ++x, j += 4, ++k) {
+			if (above[k]) {
+				var px = x + 60 * dxdata[k]
+				var py = y + 60 * dydata[k]
+				var ds = centers.map(function (center) {
+					var dx = px - center[0][0], dy = py - center[0][1]
+					return dx * dx + dy * dy
+				})
+				var index = ds.indexOf(Math.min.apply(Math, ds))
+				var color = colors[centers[index][1]]
+				data[j] = color[0]
+				data[j+1] = color[1]
+				data[j+2] = color[2]
+				data[j+3] = 255
+			} else {
+				data[j] = data[j+1] = data[j+2] = data[j+3] = 0
+			}
+		}
+	}
+	bcontext.putImageData(idata, 0, 0)
+}
+
+maketdata()
+makeicanvas()
+makebcanvas()
+
+function think(dt) {
+	var kstate = UFX.key.state()
+	for (var j = 0 ; j < 10 ; ++j) {
+		if (kstate.down[j]) {
+			centers.push([UFX.mouse.pos, j])
+			makebcanvas()
+		}
+	}
+	UFX.draw("fs black f0 drawimage0", icanvas)
+	UFX.draw("[ alpha 0.2 drawimage0", bcanvas, "]")
+	centers.forEach(function (center) {
+		var color = colors[center[1]]
+		color = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")"
+		UFX.draw("fs", color, "b o", center[0], "4 f")
+		context.fillText("" + center[1], center[0][0], center[0][1] - 10)
+	})
+}
+UFX.ticker.init(think)
+
+</script>
+
+
