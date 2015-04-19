@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <script type="text/javascript" src="UFX.js"></script>
+<script type="text/javascript" src="level.js"></script>
 <script type="text/javascript" src="play.js"></script>
 <canvas id=canvas></canvas>
 <script type="text/javascript">
@@ -52,7 +53,11 @@ UFX.scenes.load = {
 
 UFX.scene.init({ ups: 120, maxupf: 20 })
 UFX.scene.push("load")
-UFX.resource.loadwebfonts("Viga", "UnifrakturCook:700", "EB Garamond", "Freckle Face")
+UFX.resource.loadwebfonts("Viga", "UnifrakturCook:700", "EB Garamond", "Freckle Face", "Piedra",
+	"Oregano", "Joti One", "Special Elite", "IM Fell English SC", "Bubblegum Sans")
+UFX.resource.load({
+	map0: "maps/0.png",
+})
 UFX.resource.onloading = function (f) {
 	UFX.scenes.load.f = f
 }

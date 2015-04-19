@@ -19,8 +19,18 @@ var seed = 100
 
 
 // terrain height
-var ndata0 = UFX.noise.wrapslice([sx, sy], seed)
-UFX.noise.fractalize(ndata0, [sx, sy], 3)
+var ndata0 = UFX.noise.wrapslice([sx, sy], seed, [8, 8, 256])
+var ndata1 = UFX.noise.wrapslice([sx, sy], seed, [16, 16, 256])
+var ndata2 = UFX.noise.wrapslice([sx, sy], seed, [32, 32, 256])
+var ndata3 = UFX.noise.wrapslice([sx, sy], seed, [64, 64, 256])
+var ndata4 = UFX.noise.wrapslice([sx, sy], seed, [128, 128, 256])
+
+var hdata = [], dhdata = []
+var f = 0.72, df = 0.5
+for (var j = 0 ; j < ndata0.length ; ++j) {
+	hdata[j] = ndata0[j] + f * (ndata1[j] + f * (ndata2[j] + f * (ndata3[j] + f * ndata4[j])))
+	dhdata[j] = ndata0[j] + df * (ndata1[j] + df * (ndata2[j] + df * (ndata3[j] + df * ndata4[j])))
+}
 // border shifts
 var dxdata = UFX.noise.wrapslice([sx, sy], seed + 17)
 UFX.noise.fractalize(dxdata, [sx, sy], 3)
@@ -28,24 +38,37 @@ var dydata = UFX.noise.wrapslice([sx, sy], seed + 29)
 UFX.noise.fractalize(dydata, [sx, sy], 3)
 
 var above = []
-var tdata = []
+var tdata = [], dtdata = []
 
-var colors = []
-while (colors.length < 10) {
-	colors.push([UFX.random.rand(256), UFX.random.rand(256), UFX.random.rand(256)])
-}
+var colors = [
+	[255, 0, 0],
+	[0, 255, 0],
+	[255, 255, 0],
+	[255, 128, 0],
+	[255, 255, 255],
+	[255, 0, 255],
+	[128, 128, 128],
+]
 
 var centers = []
+
+var peaks = [
+]
 
 function maketdata() {
 	above = []
 	tdata = []
+	dtdata = []
 	for (var y = 0, k = 0 ; y < sy ; ++y) {
 		for (var x = 0 ; x < sx; ++x, ++k) {
-			var v = ndata0[k]
-			v += 2 - ((x - sx/2) * (x - sx/2) + (y - sy/2) * (y - sy/2)) / (200 * 200)
-			above[k] = v > 0
-			tdata[k] = v
+			var v = -2
+			peaks.forEach(function (peak) {
+				var px = peak[0] - x, py = peak[1] - y, h = peak[2], w = peak[3]
+				v += h * Math.exp(-(px * px + py * py) / (w * w))
+			})
+			tdata[k] = v + hdata[k]
+			above[k] = tdata[k] > 0
+			dtdata[k] = v + dhdata[k]
 		}
 	}
 }
@@ -58,9 +81,16 @@ function makeicanvas() {
 	var idata = icontext.createImageData(sx, sy), data = idata.data
 	for (var y = 0, j = 0, k = 0 ; y < sy ; ++y) {
 		for (var x = 0 ; x < sx; ++x, j += 4, ++k) {
-			val1 = clamp(100 * tdata[k], 0, 255)
-			data[j] = data[j+1] = data[j+2] = val1
-			data[j+3] = 255
+			if (!above[k]) {
+				v = clamp(tdata[k] + 1, 0, 1)
+				data[j] = data[j+1] = 20 * v
+				data[j+2] = 40 + 40 * v
+				data[j+3] = 255
+			} else {
+				v = dtdata[k] - dtdata[k + sx + 1]
+				data[j] = data[j+1] = data[j+2] = 128 - 400 * v
+				data[j+3] = 255
+			}
 		}
 	}
 	icontext.putImageData(idata, 0, 0)
@@ -108,13 +138,33 @@ function think(dt) {
 			makebcanvas()
 		}
 	}
+	if (kstate.down.space) {
+		peaks.push([UFX.mouse.pos[0], UFX.mouse.pos[1], 1, 60])
+	}
+	if (kstate.down.F12) {
+		var pcanvas = document.createElement("canvas")
+		pcanvas.width = sx ; pcanvas.height = sy
+		var pcontext = pcanvas.getContext("2d")
+		pcontext.drawImage(icanvas, 0, 0)
+		pcontext.globalAlpha = 0.3
+		pcontext.drawImage(bcanvas, 0, 0)
+		window.open(pcanvas.toDataURL())
+	}
+	if (kstate.down.enter) {
+		maketdata()
+		makeicanvas()
+		makebcanvas()
+	}
 	UFX.draw("fs black f0 drawimage0", icanvas)
-	UFX.draw("[ alpha 0.2 drawimage0", bcanvas, "]")
+	UFX.draw("[ alpha 0.3 drawimage0", bcanvas, "]")
 	centers.forEach(function (center) {
 		var color = colors[center[1]]
 		color = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")"
 		UFX.draw("fs", color, "b o", center[0], "4 f")
 		context.fillText("" + center[1], center[0][0], center[0][1] - 10)
+	})
+	peaks.forEach(function (peak) {
+		UFX.draw("ss", UFX.random.color(), "b o", peak[0], peak[1], "4 s")
 	})
 }
 UFX.ticker.init(think)
