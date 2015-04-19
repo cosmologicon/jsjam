@@ -26,7 +26,7 @@ var ndata3 = UFX.noise.wrapslice([sx, sy], seed, [64, 64, 256])
 var ndata4 = UFX.noise.wrapslice([sx, sy], seed, [128, 128, 256])
 
 var hdata = [], dhdata = []
-var f = 0.72, df = 0.5
+var f = 0.72, df = 0.3
 for (var j = 0 ; j < ndata0.length ; ++j) {
 	hdata[j] = ndata0[j] + f * (ndata1[j] + f * (ndata2[j] + f * (ndata3[j] + f * ndata4[j])))
 	dhdata[j] = ndata0[j] + df * (ndata1[j] + df * (ndata2[j] + df * (ndata3[j] + df * ndata4[j])))
@@ -41,12 +41,12 @@ var above = []
 var tdata = [], dtdata = []
 
 var colors = [
-	[255, 0, 0],
-	[0, 255, 0],
+	[255, 255, 255],
+	[255, 128, 128],
+	[128, 255, 128],
 	[255, 255, 0],
 	[255, 128, 0],
-	[255, 255, 255],
-	[255, 0, 255],
+	[196, 128, 255],
 	[128, 128, 128],
 ]
 
@@ -82,13 +82,13 @@ function makeicanvas() {
 	for (var y = 0, j = 0, k = 0 ; y < sy ; ++y) {
 		for (var x = 0 ; x < sx; ++x, j += 4, ++k) {
 			if (!above[k]) {
-				v = clamp(tdata[k] + 1, 0, 1)
+				v = clamp(tdata[k]*0.6 + 1, 0, 1)
 				data[j] = data[j+1] = 20 * v
 				data[j+2] = 40 + 40 * v
 				data[j+3] = 255
 			} else {
 				v = dtdata[k] - dtdata[k + sx + 1]
-				data[j] = data[j+1] = data[j+2] = 128 - 400 * v
+				data[j] = data[j+1] = data[j+2] = 128 - 1400 * v
 				data[j+3] = 255
 			}
 		}
@@ -99,6 +99,7 @@ function makeicanvas() {
 var bcanvas = document.createElement("canvas")
 bcanvas.width = sx ; bcanvas.height = sy
 var bcontext = bcanvas.getContext("2d")
+var bdata = []
 
 function makebcanvas() {
 	if (!centers.length) return
@@ -113,22 +114,62 @@ function makebcanvas() {
 					return dx * dx + dy * dy
 				})
 				var index = ds.indexOf(Math.min.apply(Math, ds))
+				bdata[k] = centers[index][1]
 				var color = colors[centers[index][1]]
-				data[j] = color[0]
-				data[j+1] = color[1]
-				data[j+2] = color[2]
+
+				var s = dtdata[k] - dtdata[k + sx + 1]
+				s = 0.5 - 3 * s
+
+				data[j] = color[0] * s
+				data[j+1] = color[1] * s
+				data[j+2] = color[2] * s
 				data[j+3] = 255
 			} else {
 				data[j] = data[j+1] = data[j+2] = data[j+3] = 0
+				bdata[k] = -1
 			}
 		}
 	}
 	bcontext.putImageData(idata, 0, 0)
 }
 
+var xcanvas = document.createElement("canvas")
+xcanvas.width = sx ; xcanvas.height = sy
+var xcontext = xcanvas.getContext("2d")
+
+function makexcanvas() {
+	if (!centers.length) return
+	var idata = xcontext.createImageData(sx, sy), data = idata.data
+	for (var y = 0, j = 0, k = 0 ; y < sy ; ++y) {
+		for (var x = 0 ; x < sx; ++x, j += 4, ++k) {
+			if (bdata[k] == -1) {
+				data[j] = data[j+1] = data[j+2] = data[j+3] = 0
+			} else {
+				bdata0 = bdata[k]
+				var a = [-1, 1, -sx, sx].every(function (dk) {
+					var k2 = k + dk
+					if (k2 < 0 || k2 >= sx * sy) return true
+					return bdata[k2] == -1 || bdata[k2] == bdata0
+				})
+				if (a) {
+					data[j] = data[j+1] = data[j+2] = data[j+3] = 0
+				} else {
+					data[j] = data[j+1] = data[j+2] = 0
+					data[j+3] = 255
+				}
+			}
+		}
+	}
+	xcontext.putImageData(idata, 0, 0)
+}
+
 maketdata()
 makeicanvas()
 makebcanvas()
+
+var capitals = []
+var links = []
+var link0 = null
 
 function think(dt) {
 	var kstate = UFX.key.state()
@@ -136,6 +177,7 @@ function think(dt) {
 		if (kstate.down[j]) {
 			centers.push([UFX.mouse.pos, j])
 			makebcanvas()
+			makexcanvas()
 		}
 	}
 	if (kstate.down.space) {
@@ -146,17 +188,37 @@ function think(dt) {
 		pcanvas.width = sx ; pcanvas.height = sy
 		var pcontext = pcanvas.getContext("2d")
 		pcontext.drawImage(icanvas, 0, 0)
-		pcontext.globalAlpha = 0.3
+		pcontext.globalAlpha = 1
 		pcontext.drawImage(bcanvas, 0, 0)
+		pcontext.drawImage(xcanvas, 0, 0)
 		window.open(pcanvas.toDataURL())
 	}
-	if (kstate.down.enter) {
+	if (kstate.down.tab) {
 		maketdata()
 		makeicanvas()
 		makebcanvas()
+		makexcanvas()
+	}
+	if (kstate.down.enter) {
+		capitals.push(UFX.mouse.pos)
+	}
+	if (kstate.down.A && capitals.length) {
+		var ds = capitals.map(function (p) {
+			var dx = p[0] - UFX.mouse.pos[0], dy = p[1] - UFX.mouse.pos[1]
+			return dx * dx + dy * dy
+		})
+		var index = ds.indexOf(Math.min.apply(Math, ds))
+		if (link0 === null) {
+			link0 = index
+		} else {
+			links.push([link0, index])
+			link0 = null
+			console.log(JSON.stringify({capitals: capitals, links: links}))
+		}
 	}
 	UFX.draw("fs black f0 drawimage0", icanvas)
-	UFX.draw("[ alpha 0.3 drawimage0", bcanvas, "]")
+	UFX.draw("[ alpha 1 drawimage0", bcanvas, "]")
+	UFX.draw("[ alpha 1 drawimage0", xcanvas, "]")
 	centers.forEach(function (center) {
 		var color = colors[center[1]]
 		color = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")"
@@ -165,6 +227,12 @@ function think(dt) {
 	})
 	peaks.forEach(function (peak) {
 		UFX.draw("ss", UFX.random.color(), "b o", peak[0], peak[1], "4 s")
+	})
+	capitals.forEach(function (capital) {
+		UFX.draw("fs black fr", capital, 4, 4)
+	})
+	links.forEach(function (link) {
+		UFX.draw("ss black lw 2 b m", capitals[link[0]], "l", capitals[link[1]], "s")
 	})
 }
 UFX.ticker.init(think)
