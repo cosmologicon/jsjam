@@ -15,16 +15,39 @@ var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 UFX.maximize.fill(canvas, "none")
 UFX.mouse.init(canvas)
+UFX.key.init()
 
 UFX.scenes.load = {
 	start: function () {
 		this.f = 0
 	},
 	think: function (dt) {
+		UFX.key.active = true
+		var kstate = UFX.key.state()
+		for (var j = 1 ; j <= 6 ; ++j) {
+			if (kstate.down[j]) {
+				localStorage.LD32save = j
+			}
+		}
 		var mstate = UFX.mouse.state()
-		if (mstate.left.down) UFX.scene.swap("play")
+		if (this.f == 1 && localStorage.LD32save < 7 && mstate.left.down) {
+			UFX.key.active = false
+			UFX.scene.push("play")
+		}
 	},
 	draw: function () {
+		var unlocked = +(localStorage.LD32save || 1)
+
+		var headline1 = "U.~N.~Convention~on~All"
+		var headline2 = "Weapons"
+		var headline3 = "United~Nations~will~vote~on~whether"
+		var headline4 = "to~make~all~weapons~illegal"
+		if (unlocked > 6) {
+			headline1 = "U.~N.~Convention~on~All"
+			headline2 = "Weapons~DEFEATED"
+			headline3 = "Council~of~Supervillains~praise"
+			headline4 = "democratic~process~in~action"
+		}
 		UFX.draw("fs lg~900~0~0~600~0~#008~1~#33A f0")
 		UFX.draw("[ t 600 300 r -0.2")
 		UFX.draw("fs #554 fr -280 40 540 1000")
@@ -33,10 +56,10 @@ UFX.scenes.load = {
 		UFX.draw("fs black textalign center textbaseline top")
 		UFX.draw("font 40px~'UnifrakturCook' ft The~Supervillain~Times 0 30")
 		UFX.draw("font 15px~'EB~Garamond' ft Two~Evilbucks 180 69")
-		UFX.draw("font 50px~bold~'EB~Garamond' ft U.~N.~Convention~on~All 0 90")
-		UFX.draw("ft Weapons 0 130")
-		UFX.draw("font 30px~'EB~Garamond' ft United~Nations~will~vote~on~whether 0 194")
-		UFX.draw("ft to~make~all~weapons~illegal 0 224")
+		UFX.draw("font 50px~bold~'EB~Garamond' ft", headline1, "0 90")
+		UFX.draw("ft", headline2, "0 130")
+		UFX.draw("font 30px~'EB~Garamond' ft", headline3, "0 194")
+		UFX.draw("ft", headline4, "0 224")
 		UFX.draw("font 14px~'EB~Garamond'")
 		UFX.draw("ft Evil~weather~p.33 180 280")
 		UFX.draw("ft Evil~TV~listings~p.34 180 300")
@@ -45,9 +68,30 @@ UFX.scenes.load = {
 
 		UFX.draw("fs lg~0~0~0~70~0~yellow~1~orange font 90px~'Freckle~Face'")
 		UFX.draw("[ t 40 40 textalign left textbaseline top shadow black 4 4 0",
-			"ft0 Aggressive~Lobbying ]")
+			"ft0 Negotiation~Tactics ]")
 		UFX.draw("[ fs #BBB font 20px~'Viga' textalign left textbaseline top",
 			"shadow black 2 2 0 ft by~Christopher~Night 600 150 ]")
+
+		var text =
+			this.f < 1 ? "Loading... " + Math.round(this.f * 100) + "%" :
+			unlocked == 1 ? "Click anywhere to begin." :
+			unlocked < 7 ? "Click anywhere to continue." :
+			"Thank you for playing."
+		UFX.draw("[ t 500 220 tab center middle fs white shadow black 4 4 0",
+			"font 40px~'Bubblegum~Sans'")
+		context.fillText(text, 0, 0)
+		UFX.draw("]")
+
+		for (var j = 1 ; j <= 6 ; ++j) {
+			UFX.draw("[ t", 150, 200 + 42 * j, "tab center top font 32px~'Special~Elite'")
+			UFX.draw("fs", (j <= unlocked ? "black" : "rgba(0,0,0,0.3)"))
+			context.fillText(leveldata[j].name, 0, 0)
+			if (j < unlocked) {
+				var dx = leveldata[j].name.length * 10 + 18, dy = 7 * Math.sin(2.5 * j)
+				UFX.draw("b m", -dx, 15-dy, "l", dx, 15+dy, "ss #500 lw 4 s")
+			}
+			UFX.draw("]")
+		}
 	},
 }
 
@@ -57,7 +101,12 @@ UFX.resource.loadwebfonts("Viga", "UnifrakturCook:700", "EB Garamond", "Freckle 
 	"Oregano", "Joti One", "Special Elite", "IM Fell English SC", "Bubblegum Sans")
 UFX.resource.load({
 	map0: "maps/0.png",
-	mapcallisto: "maps/callisto.png",
+	callisto: "maps/callisto.png",
+	neotopia: "maps/neotopia.png",
+	nesia: "maps/nesia.png",
+	ryo: "maps/ryo.png",
+	stines: "maps/stines.png",
+	triply: "maps/triply.png",
 })
 UFX.resource.onloading = function (f) {
 	UFX.scenes.load.f = f

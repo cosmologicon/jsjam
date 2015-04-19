@@ -2,7 +2,7 @@
 
 var acosts = {
 	bribe: 20,
-	coup: 10,
+	coup: 5,
 	blackmail: 5,
 	shutdown: 15,
 	scandal: 20,
@@ -44,8 +44,9 @@ function drawcapital(color, theta) {
 
 UFX.scenes.play = {
 	start: function () {
-		this.level = 1
+		this.level = +(localStorage.LD32save || 1)
 		var ldata = leveldata[this.level]
+		this.mapname = ldata.mapname
 		this.buttons = ldata.actions.map(function (action, j) {
 			return { index: j, name: action }
 		})
@@ -137,7 +138,10 @@ UFX.scenes.play = {
 		})
 
 		this.timer -= dday
-		if (this.vote > 0) {
+		if (this.timer <= 0) {
+			UFX.scene.swap("win")
+			playsound("win")
+		} else if (this.vote > 0) {
 			UFX.scene.swap("lose")
 			playsound("lose")
 		}
@@ -254,7 +258,7 @@ UFX.scenes.play = {
 		var sx = canvas.width, sy = canvas.height
 		// Map
 		UFX.draw("fs #AAF fr", 344-12, 44-12, 512+24, 512+24)
-		UFX.draw("drawimage", UFX.resource.images.mapcallisto, 344, 44)
+		UFX.draw("drawimage", UFX.resource.images[this.mapname], 344, 44)
 		UFX.draw("[ ss #AAF lw 1 alpha 0.4 b")
 		for (var x = 53 ; x < 512 ; x += 103) {
 			UFX.draw("m", 344 + x, 44, "l", 344 + x, 44+512)
@@ -366,6 +370,32 @@ UFX.scenes.play = {
 
 
 UFX.scenes.lose = {
+	start: function () {
+		this.t = 0
+	},
+	think: function (dt) {
+		this.t += dt
+		if (this.t > 0.5 && UFX.mouse.state().left.down) {
+			UFX.scene.pop()
+		}
+	},
+	draw: function () {
+		UFX.scenes.play.draw()
+		UFX.draw("fs rgba(0,0,0,0.8) f0")
+	},
+}
+
+UFX.scenes.win = {
+	start: function () {
+		localStorage.LD32save = +(localStorage.LD32save || 1) + 1
+		this.t = 0
+	},
+	think: function (dt) {
+		this.t += dt
+		if (this.t > 0.5 && UFX.mouse.state().left.down) {
+			UFX.scene.pop()
+		}
+	},
 	draw: function () {
 		UFX.scenes.play.draw()
 		UFX.draw("fs rgba(0,0,0,0.8) f0")
