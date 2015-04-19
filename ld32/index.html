@@ -19,19 +19,45 @@ UFX.scenes.load = {
 	start: function () {
 		this.f = 0
 	},
+	think: function (dt) {
+		var mstate = UFX.mouse.state()
+		if (mstate.left.down) UFX.scene.swap("play")
+	},
 	draw: function () {
-		UFX.draw("fs blue f0")
+		UFX.draw("fs lg~900~0~0~600~0~#008~1~#33A f0")
+		UFX.draw("[ t 600 300 r -0.2")
+		UFX.draw("fs #554 fr -280 40 540 1000")
+		UFX.draw("fs #776 fr -275 20 540 1000")
+		UFX.draw("fs #AA9 fr -270 0 540 1000")
+		UFX.draw("fs black textalign center textbaseline top")
+		UFX.draw("font 40px~'UnifrakturCook' ft The~Supervillain~Times 0 30")
+		UFX.draw("font 15px~'EB~Garamond' ft Two~Evilbucks 180 69")
+		UFX.draw("font 50px~bold~'EB~Garamond' ft U.~N.~Convention~on~All 0 90")
+		UFX.draw("ft Weapons 0 130")
+		UFX.draw("font 30px~'EB~Garamond' ft United~Nations~will~vote~on~whether 0 194")
+		UFX.draw("ft to~make~all~weapons~illegal 0 224")
+		UFX.draw("font 14px~'EB~Garamond'")
+		UFX.draw("ft Evil~weather~p.33 180 280")
+		UFX.draw("ft Evil~TV~listings~p.34 180 300")
+		UFX.draw("ft Obituaries~pp.35-102 180 320")
+		UFX.draw("]")
+
+		UFX.draw("fs lg~0~0~0~70~0~yellow~1~orange font 90px~'Freckle~Face'")
+		UFX.draw("[ t 40 40 textalign left textbaseline top shadow black 4 4 0",
+			"ft0 Aggressive~Lobbying ]")
+		UFX.draw("[ fs #BBB font 20px~'Viga' textalign left textbaseline top",
+			"shadow black 2 2 0 ft by~Christopher~Night 600 150 ]")
 	},
 }
 
 UFX.scene.init({ ups: 120, maxupf: 20 })
 UFX.scene.push("load")
-UFX.resource.loadwebfonts("Viga")
+UFX.resource.loadwebfonts("Viga", "UnifrakturCook:700", "EB Garamond", "Freckle Face")
 UFX.resource.onloading = function (f) {
 	UFX.scenes.load.f = f
 }
 UFX.resource.onload = function (f) {
-	UFX.scene.swap("play")
+//	UFX.scene.swap("play")
 }
 function playsound (sname) {
 	console.log("missing sound", sname)
