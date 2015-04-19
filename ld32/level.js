@@ -7,16 +7,13 @@ var mapdata = {
 
 var leveldata = {
 	1: {
-		name: "Macronesia",
-		bank: 50,
-		time: 20,
-		actions: ["bribe", "blackmail"],
-		capitals: {
-			Impala: { pos: [0, 0] },
-			Laika: { pos: [1, 2] },
-		},
+		name: "Callisto",
+		bank: 100,
+		time: 75,
+		actions: ["bribe", "blackmail", "shutdown", "coup", "scandal", "propaganda", "collapse"],
+		"capitals":[[381,447],[381,330],[467,264],[459,145],[364,72],[280,72],[103,135],[293,332],[347,215],[258,212],[178,275],[204,378],[84,428],[95,344]],
+		"links":[[12,13],[13,11],[11,10],[10,13],[10,9],[9,7],[7,10],[11,7],[7,1],[1,8],[8,7],[9,8],[1,0],[1,2],[2,8],[8,3],[3,2],[5,4]],
 	},
-
 }
 
 
