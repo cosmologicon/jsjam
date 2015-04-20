@@ -45,6 +45,7 @@ function drawcapital(color, theta) {
 UFX.scenes.play = {
 	start: function () {
 		this.level = +(localStorage.LD32save || 1)
+		playmusic(this.level % 2 ? "music2" : "music1")
 		var ldata = leveldata[this.level]
 		this.mapname = ldata.mapname
 		this.buttons = ldata.actions.map(function (action, j) {
@@ -366,7 +367,7 @@ UFX.scenes.play = {
 			if (!acosts[button.name]) UFX.draw("tb middle")
 			UFX.draw("fs white ft", button.name, x + w/2, y + h/2)
 			if (acosts[button.name]) {
-				UFX.draw("textbaseline top ft $" + acosts[button.name], x + w/2, y + h/2)
+				UFX.draw("textbaseline top ft $" + acosts[button.name] + "b", x + w/2, y + h/2)
 			}
 			if (acolors[button.name]) {
 				var color0 = acolors[button.name][0], color1 = acolors[button.name][1]
@@ -382,7 +383,7 @@ UFX.scenes.play = {
 		// Bank
 		UFX.draw("[ fs white shadow black 2 2 0 font 40px~'Special~Elite'",
 			"tab left bottom")
-		context.fillText("Funds: $" + this.bank, 20, sy-20)
+		context.fillText("Funds: $" + this.bank + "b", 20, sy-20)
 		UFX.draw("]")
 		// Clock
 		UFX.draw("[ fs white ss black tab center top",

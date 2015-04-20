@@ -22,6 +22,7 @@ UFX.scenes.load = {
 		this.f = 0
 	},
 	think: function (dt) {
+		playmusic()
 		UFX.key.active = true
 		var kstate = UFX.key.state()
 		for (var j = 1 ; j <= 6 ; ++j) {
@@ -60,6 +61,9 @@ UFX.scenes.load = {
 		UFX.draw("ft", headline2, "0 130")
 		UFX.draw("font 30px~'EB~Garamond' ft", headline3, "0 194")
 		UFX.draw("ft", headline4, "0 224")
+		UFX.draw("font 20px~'EB~Garamond'")
+		UFX.draw("ft Supervillain~lobbyists 20 280")
+		UFX.draw("ft are~expected~to~appeal 20 300")
 		UFX.draw("font 14px~'EB~Garamond'")
 		UFX.draw("ft Evil~weather~p.33 180 280")
 		UFX.draw("ft Evil~TV~listings~p.34 180 300")
@@ -84,7 +88,7 @@ UFX.scenes.load = {
 
 		for (var j = 1 ; j <= 6 ; ++j) {
 			UFX.draw("[ t", 150, 200 + 42 * j, "tab center top font 32px~'Special~Elite'")
-			UFX.draw("fs", (j <= unlocked ? "black" : "rgba(0,0,0,0.3)"))
+			UFX.draw("fs", (j <= unlocked ? "black" : "rgba(0,0,0,0.15)"))
 			context.fillText(leveldata[j].name, 0, 0)
 			if (j < unlocked) {
 				var dx = leveldata[j].name.length * 10 + 18, dy = 7 * Math.sin(2.5 * j)
@@ -98,7 +102,7 @@ UFX.scenes.load = {
 UFX.scene.init({ ups: 120, maxupf: 20 })
 UFX.scene.push("load")
 UFX.resource.loadwebfonts("Viga", "UnifrakturCook:700", "EB Garamond", "Freckle Face", "Piedra",
-	"Oregano", "Joti One", "Special Elite", "IM Fell English SC", "Bubblegum Sans")
+	"Oregano", "Special Elite", "IM Fell English SC", "Bubblegum Sans")
 UFX.resource.load({
 	map0: "maps/0.png",
 	callisto: "maps/callisto.png",
@@ -112,6 +116,8 @@ UFX.resource.load({
 	lose: "sfx/lose.ogg",
 	win: "sfx/win.ogg",
 	money: "sfx/money.ogg",
+	music1: "music/vertex.ogg",
+	music2: "music/black.ogg",
 })
 UFX.resource.onloading = function (f) {
 	UFX.scenes.load.f = f
@@ -126,6 +132,22 @@ function playsound (sname) {
 		console.log("missing sound", sname)
 	}
 }
+var music = null
+function playmusic(musicname) {
+	if (musicname == music) return
+	if (music) {
+		UFX.resource.sounds[music].pause()
+	}
+	var m = UFX.resource.sounds[musicname]
+	if (m) {
+		m.volume = 0.25
+		m.loop = true
+		m.currentTime = 0
+		m.play()
+	}
+	music = musicname
+}
+
 
 </script>
 
