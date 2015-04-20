@@ -25,13 +25,13 @@ UFX.scenes.load = {
 		UFX.key.active = true
 		var kstate = UFX.key.state()
 		for (var j = 1 ; j <= 6 ; ++j) {
-			if (kstate.down[j]) {
+			if (kstate.down["F" + j]) {
 				localStorage.LD32save = j
 			}
 		}
 		var mstate = UFX.mouse.state()
-		if (this.f == 1 && localStorage.LD32save < 7 && mstate.left.down) {
-			UFX.key.active = false
+		if (this.f >= 1 && localStorage.LD32save < 7 && mstate.left.down) {
+			//UFX.key.active = false
 			UFX.scene.push("play")
 		}
 	},
@@ -107,6 +107,11 @@ UFX.resource.load({
 	ryo: "maps/ryo.png",
 	stines: "maps/stines.png",
 	triply: "maps/triply.png",
+	wrong: "sfx/wrong.ogg",
+	click: "sfx/click.ogg",
+	lose: "sfx/lose.ogg",
+	win: "sfx/win.ogg",
+	money: "sfx/money.ogg",
 })
 UFX.resource.onloading = function (f) {
 	UFX.scenes.load.f = f
@@ -115,7 +120,11 @@ UFX.resource.onload = function (f) {
 //	UFX.scene.swap("play")
 }
 function playsound (sname) {
-	console.log("missing sound", sname)
+	if (UFX.resource.sounds[sname]) {
+		UFX.resource.sounds[sname].play()
+	} else {
+		console.log("missing sound", sname)
+	}
 }
 
 </script>

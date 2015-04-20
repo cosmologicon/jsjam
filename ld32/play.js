@@ -6,7 +6,7 @@ var acosts = {
 	blackmail: 5,
 	shutdown: 15,
 	scandal: 20,
-	propaganda: 5,
+	propaganda: 30,
 	collapse: 60,
 }
 var adescriptions = {
@@ -70,6 +70,18 @@ UFX.scenes.play = {
 		this.waves = []
 	},
 	think: function (dt) {
+		var kstate = UFX.key.state()
+		if (kstate.down.esc) {
+			UFX.scene.push("pause")
+			return
+		}
+		if (kstate.down.F9) {
+			this.bank += 100
+			playsound("money")
+		}
+		if (kstate.down.F10) {
+			this.timer = 0
+		}
 		var mstate = UFX.mouse.state()
 		var sx = canvas.width, sy = canvas.height
 		this.buttonboxes = this.buttons.map(function (button) {
@@ -150,6 +162,7 @@ UFX.scenes.play = {
 		var index = this.buttonat(mpos)
 		if (index > -1) {
 			var clicked = this.buttons[index].name
+			if (clicked) playsound("click")
 			if (clicked == "help") return
 			this.selected = clicked == this.selected ? null : clicked
 			return
@@ -183,17 +196,30 @@ UFX.scenes.play = {
 		if (attacktype == "bribe") {
 			this.capitals[index].vote -= 20
 			this.capitals[index].black = false
+			playsound("click")
+			return
 		}
 		if (attacktype == "blackmail") {
+			if (this.capitals[index].black) {
+				playsound("wrong")
+				this.bank += acosts.blackmail
+				return
+			}
 			this.capitals[index].black = true
+			playsound("money")
+			return
 		}
 		if (attacktype == "shutdown") {
 			this.capitals[index].shut = 20
 			this.capitals[index].black = false
+			playsound("click")
+			return
 		}
 		if (attacktype == "propaganda") {
 			this.capitals[index].prop = 20
 			this.capitals[index].black = false
+			playsound("click")
+			return
 		}
 		if (attacktype == "coup") {
 			this.capitals[index].vote = -30
@@ -213,6 +239,8 @@ UFX.scenes.play = {
 				}
 			}
 			this.capitals[index].black = false
+			playsound("click")
+			return
 		}
 		if (attacktype == "scandal") {
 			this.capitals[index].vote = 30
@@ -232,6 +260,8 @@ UFX.scenes.play = {
 				}
 			}
 			this.capitals[index].black = false
+			playsound("click")
+			return
 		}
 		if (attacktype == "collapse") {
 			this.capitals[index].vote -= 30
@@ -251,6 +281,8 @@ UFX.scenes.play = {
 				}
 			}
 			this.capitals[index].black = false
+			playsound("click")
+			return
 		}
 	},
 	draw: function () {
@@ -359,7 +391,7 @@ UFX.scenes.play = {
 			"lw 2 font 18px~'Bubblegum~Sans' sft regional~vote", sx-50, 80,
 			"]")
 		// Votes
-		UFX.draw("[ font 54px~'Joti~One' tab right bottom ss black lw 9",
+		UFX.draw("[ font 54px~'Bubblegum~Sans' tab right bottom ss black lw 9",
 			"fs white sft Total~votes:", sx-180, sy-10,
 			"fs #F77 sft -" + this.downvote, sx-100, sy-10,
 			"fs #77F sft +" + this.upvote, sx-20, sy-10
@@ -368,10 +400,39 @@ UFX.scenes.play = {
 	},
 }
 
+UFX.scenes.pause = {
+	start: function () {
+		this.t = 0
+		UFX.scenes.play.draw()
+		UFX.draw("fs rgba(0,0,0,0.8) f0")
+		UFX.draw("[ t", 900/2, 0)
+		UFX.draw("tab center top font 100px~'Piedra' fs white ft Paused 0 160")
+		UFX.draw("font 50px~'Bubblegum~Sans' fs gray ft Esc~to~resume 0 300")
+		UFX.draw("font 50px~'Bubblegum~Sans' fs gray ft Enter~to~quit 0 360")
+		UFX.draw("]")
+	},
+	think: function (dt) {
+		var kstate = UFX.key.state()
+		if (kstate.down.esc) UFX.scene.pop()
+		if (kstate.down.enter) {
+			UFX.scene.pop()
+			UFX.scene.pop()
+		}
+	},
+	draw: function () {
+	},
+}
 
 UFX.scenes.lose = {
 	start: function () {
 		this.t = 0
+		UFX.scenes.play.draw()
+		UFX.draw("fs rgba(0,0,0,0.8) f0")
+		UFX.draw("[ t", 900/2, 0)
+		UFX.draw("tab center top font 100px~'Piedra' fs blue ft Failure 0 160")
+		UFX.draw("font 50px~'Bubblegum~Sans' fs gray ft The~number~of~positive~votes 0 300")
+		UFX.draw("font 50px~'Bubblegum~Sans' fs gray ft exceeded~the~number~of~negative~votes 0 360")
+		UFX.draw("]")
 	},
 	think: function (dt) {
 		this.t += dt
@@ -380,8 +441,6 @@ UFX.scenes.lose = {
 		}
 	},
 	draw: function () {
-		UFX.scenes.play.draw()
-		UFX.draw("fs rgba(0,0,0,0.8) f0")
 	},
 }
 
@@ -389,6 +448,13 @@ UFX.scenes.win = {
 	start: function () {
 		localStorage.LD32save = +(localStorage.LD32save || 1) + 1
 		this.t = 0
+		UFX.scenes.play.draw()
+		UFX.draw("fs rgba(0,0,0,0.8) f0")
+		UFX.draw("[ t", 900/2, 0)
+		UFX.draw("tab center top font 100px~'Piedra' fs red ft Success 0 160")
+		UFX.draw("font 50px~'Bubblegum~Sans' fs gray ft This~region~will~not~vote 0 300")
+		UFX.draw("font 50px~'Bubblegum~Sans' fs gray ft to~ban~all~weapons 0 360")
+		UFX.draw("]")
 	},
 	think: function (dt) {
 		this.t += dt
@@ -397,8 +463,6 @@ UFX.scenes.win = {
 		}
 	},
 	draw: function () {
-		UFX.scenes.play.draw()
-		UFX.draw("fs rgba(0,0,0,0.8) f0")
 	},
 }
 

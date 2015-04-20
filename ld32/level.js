@@ -16,7 +16,7 @@ var leveldata = {
 		"links":[[4,4]],
 	},
 	2: {
-		name: "Neotopia",
+		name: "Terragnita",
 		mapname: "neotopia",
 		bank: 100,
 		time: 43,
@@ -25,7 +25,7 @@ var leveldata = {
 		"links":[[4,1],[1,0],[1,2],[2,4],[2,3]],
 	},
 	3: {
-		name: "Ryo",
+		name: "Mu",
 		mapname: "ryo",
 		bank: 10,
 		time: 40,
@@ -34,7 +34,7 @@ var leveldata = {
 		"links":[[9,7],[7,8],[8,9],[8,6],[6,7],[1,0],[0,3],[3,2],[2,0],[1,2],[2,5],[5,4],[4,3],[4,2]],
 	},
 	4: {
-		name: "Triply",
+		name: "Shambhala",
 		mapname: "triply",
 		bank: 100,
 		time: 40,
@@ -43,7 +43,7 @@ var leveldata = {
 		"links":[[7,6],[6,3],[3,4],[4,5],[4,2],[2,3],[2,1],[1,0]],
 	},
 	5: {
-		name: "The Stanleys",
+		name: "Buyan",
 		mapname: "stines",
 		bank: 120,
 		time: 50,
@@ -52,7 +52,7 @@ var leveldata = {
 		"links":[[5,0],[0,1],[1,2],[2,3],[3,4],[4,2],[4,5],[5,3]],
 	},
 	6: {
-		name: "Callisto",
+		name: "Lemuria",
 		mapname: "callisto",
 		bank: 100,
 		time: 75,
