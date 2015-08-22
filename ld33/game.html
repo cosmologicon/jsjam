@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<script src="http://ufx.space/UFX.js"></script>
+<script src="monster.js"></script>
+<canvas id=canvas></canvas>
+<script>
+var canvas = document.getElementById("canvas")
+var context = canvas.getContext("2d")
+canvas.width = 800
+canvas.height = 450
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+UFX.mouse.init(canvas)
+
+UFX.scenes.loading = {
+	start: function () {
+		this.t = 0
+		this.fload = 0
+		this.loaded = false
+	},
+	think: function (dt) {
+		var mstate = UFX.mouse.state()
+		this.t += dt
+		this.scale = canvas.width / 800
+		
+		if (this.loaded && mstate.left.down) {
+			UFX.scene.swap("play")
+		}
+	},
+	draw: function () {
+		UFX.draw("fs blue f0")
+		UFX.draw("[",
+			"z", this.scale, this.scale,
+			"[ font 70px~'Viga' fs white sh black 4 4 0",
+			"[ tab center middle t 400 100 ft0 Monster~Tshirts ]",
+			"font 30px~'Viga' fs white sh black 2.5 2.5 0",
+			"[ tab center middle t 400 160 ft0 by~Christopher~Night ]",
+			"]")
+		UFX.draw("[ t 400 400")
+		monster.draw()
+		UFX.draw("]")
+
+		UFX.draw("]")
+	}
+}
+UFX.scene.init()
+UFX.scene.push("loading")
+
+
+UFX.resource.onload = function () {
+	UFX.scenes.loading.loaded = true
+}
+UFX.resource.loadwebfonts("Viga")
+
+
+</script>
+
