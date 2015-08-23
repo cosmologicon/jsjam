@@ -3,6 +3,7 @@
 <script src="monster.js"></script>
 <canvas id=canvas></canvas>
 <script>
+var tau = 2 * Math.PI
 var canvas = document.getElementById("canvas")
 var context = canvas.getContext("2d")
 canvas.width = 800
@@ -16,6 +17,12 @@ UFX.scenes.loading = {
 		this.t = 0
 		this.fload = 0
 		this.loaded = false
+		this.specs = []
+		for (var j = 0 ; j < 20 ; ++j) {
+			this.specs.push(monster.randomspec())
+		}
+		this.x0 = -200
+		this.n0 = 0
 	},
 	think: function (dt) {
 		var mstate = UFX.mouse.state()
@@ -24,6 +31,11 @@ UFX.scenes.loading = {
 		
 		if (this.loaded && mstate.left.down) {
 			UFX.scene.swap("play")
+		}
+		this.x0 -= 80 * dt
+		if (this.x0 < -200) {
+			this.x0 += 400
+			this.n0 += 1
 		}
 	},
 	draw: function () {
@@ -35,14 +47,15 @@ UFX.scenes.loading = {
 			"font 30px~'Viga' fs white sh black 2.5 2.5 0",
 			"[ tab center middle t 400 160 ft0 by~Christopher~Night ]",
 			"]")
-		UFX.draw("[ t 400 400")
-		monster.draw()
-		UFX.draw("]")
-
+		for (var j = 0 ; j < 3 ; ++j) {
+			UFX.draw("[ t", this.x0 + 400 * j, 400)
+			monster.draw(this.specs[(this.n0 + j) % 20])
+			UFX.draw("]")
+		}
 		UFX.draw("]")
 	}
 }
-UFX.scene.init()
+UFX.scene.init({ minups: 5 })
 UFX.scene.push("loading")
 
 
