@@ -1,3 +1,12 @@
+function isuniq(list) {
+	var s = {}
+	for (var j = 0 ; j < list.length ; ++j) {
+		if (s[list[j]]) return false
+		s[list[j]] = true
+	}
+	return true
+}
+
 var monster = {
 	fprops: [
 		"footsize", "stance", "rleg",
@@ -23,6 +32,84 @@ var monster = {
 		this.cprops.forEach(function (cprop) {
 			spec[cprop + "color"] = UFX.random.choice(monster.colors)
 		})
+		return spec
+	},
+	species: {
+		3: "urx lom elp yat".split(" "),
+		4: "voam artg egol snov zemn".split(" "),
+		5: "rygow losiq splun xerti".split(" "),
+		6: "nescod mrawbl".split(" "),
+	},
+	names: [
+		"crenshaw", "mildred", "yancy", "lister", "yzma", "glinda", "guster", "egon", "jadzia",
+		"alvin", "zorba", "velma", "egbert", "morbo", "baskin", "fargo", "kendry", "besnik",
+		"twondy", "morbel", "baxter", "moblin", "oswald",
+	],
+	randomspecies: function (ns) {
+		var species = []
+		for (var j = 0 ; j < ns.length ; ++j) {
+			var n = ns[j]
+			while (species.length == j) {
+				var name = UFX.random.choice(this.species[n])
+				if (!isuniq(species.join("") + name)) continue
+				name = name.split("")
+				UFX.random.shuffle(name)
+				species.push(name.join(""))
+			}
+		}
+		return species
+	},
+	randomnames: function (n) {
+		var names = []
+		while (names.length < n) {
+			var name = UFX.random.choice(this.names)
+			if (names.indexOf(name) == -1) names.push(name)
+		}
+		return names
+	},
+	scache: {},
+	specfor: function (name, species) {
+		var key = name + "," + species
+		if (this.scache[key]) return this.scache[key]
+		var spec = {}
+		UFX.random.pushseed(name)
+		var parts = ["eye", "mouth", "height", "width", "color", "arm", "leg"]
+		var ds = {}
+		for (var j = 0 ; j < parts.length ; ++j) ds[parts[j]] = 40 * j
+		UFX.random.shuffle(parts)
+		for (var j = 0 ; j < species.length ; ++j) {
+			var c = species[j].charCodeAt(0) - "a".charCodeAt(0)
+			ds[parts[j]] += c
+		}
+		function f(d, n) {
+			var phi = 0.618033
+			return (0.5 + d * Math.pow(phi, n + 1)) % 1
+		}
+		var colors = this.colors
+		function fc(d, n) {
+			return colors[Math.floor(f(d, n) * colors.length)]
+		}
+
+		function set(vnames, d) {
+			for (var j = 0 ; j < vnames.length ; ++j) {
+				if (monster.fprops.indexOf(vnames[j]) > -1) {
+					spec["f" + vnames[j]] = f(d, j)
+				} else {
+					spec[vnames[j] + "color"] = fc(d, j)
+				}
+			}
+		}
+
+		set(["reye", "droop", "tilteye", "lid"], ds.eye)
+		set(["wmouth", "amouth", "bmouth", "tiltmouth"], ds.mouth)
+		set(["stand", "height", "yfeature"], ds.height)
+		set(["footsize", "stance", "rleg"], ds.leg)
+		set(["handsize", "larm", "warm"], ds.arm)
+		set(["width", "pear", "eyespread", "armtilt"], ds.width)
+		set(["body", "hand", "foot"], ds.color)
+		
+		UFX.random.popseed()
+		this.scache[key] = spec
 		return spec
 	},
 	draw: function (spec) {
@@ -146,7 +233,7 @@ var monster = {
 
 
 function drawshirt(name, species) {
-	UFX.draw("[ fs orange ss yellow font 32px~'Viga' lw 2")
+	UFX.draw("[ fs orange ss yellow font 32px~'Bree~Serif' lw 2")
 	UFX.draw("t 0 -30 tab center middle sft0 THE tb bottom")
 	;[].forEach.call(name, function (letter, jletter, word) {
 		var angle = (jletter - word.length / 2 + 1/2) * 0.4
@@ -154,7 +241,7 @@ function drawshirt(name, species) {
 	})
 	UFX.draw("]")
 	if (species) {
-		UFX.draw("fs white font 54px~'Viga' tab center top ft0", species.toUpperCase())
+		UFX.draw("fs white font bold~54px~'Catamaran' tab center top ft0", species.toUpperCase())
 	}
 }
 

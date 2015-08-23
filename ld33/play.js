@@ -42,38 +42,48 @@ UFX.scenes.play = {
 	xtile: 40,
 	ytile: 50,
 	start: function () {
-		this.customers = [
-			{
-				name: "kermit",
-				species: "frog",
-				pos: [100, 300],
+		var ns = [3, 4]
+		var species = monster.randomspecies(ns)
+		var names = monster.randomnames(ns.length)
+		this.customers = []
+		this.tshirts = []
+		for (var j = 0 ; j < names.length ; ++j) {
+			this.customers.push({
+				name: names[j],
+				species: species[j],
 				served: false,
-			},
-		]
-		this.tshirts = [
-			{
-				name: "kermit",
-				species: "gorf".split(""),
-				pos: [400, 200],
+			})
+			this.tshirts.push({
+				name: names[j],
+				species: species[j].split(""),
+				pos: [400 + 150 * j, 300],
 				sold: false,
-			},
-			{
-				name: "mildred",
-				species: "pnulk".split(""),
-				pos: [600, 200],
-				sold: false,
-			},
-		]
+			})
+		}
+		UFX.random.shuffle(this.customers)
+		this.customers.forEach(function (customer, j) {
+			customer.pos = [100 * j, 300]
+		})
+		
+		var letters = this.tshirts.map(function (tshirt) { return tshirt.species.join("") }).join("").split("")
+		UFX.random.shuffle(letters)
+		this.tshirts.forEach(function (tshirt) {
+			tshirt.species = letters.splice(0, tshirt.species.length)
+		})
+
+		console.log(this.customers)
+		console.log(this.tshirts)
+
 		this.jpullshirt = -1
 		this.jpullletter = 0
+		this.printed = {}
 	},
 	think: function (dt) {
 		var mstate = UFX.mouse.state()
 		var kstate = UFX.key.state()
 		
 		this.scale = canvas.width / 800
-		mstate.pos[0] /= this.scale
-		mstate.pos[1] /= this.scale
+		var mpos = [mstate.pos[0] / this.scale, mstate.pos[1] / this.scale]
 		
 		this.tiles = []
 		for (var j = 0 ; j < this.tshirts.length ; ++j) {
@@ -91,14 +101,14 @@ UFX.scenes.play = {
 		var target = null
 		var xtile = this.xtile, ytile = this.ytile
 		this.tiles.forEach(function (tile) {
-			var dx = mstate.pos[0] - tile[0][0], dy = mstate.pos[1] - tile[0][1]
+			var dx = mpos[0] - tile[0][0], dy = mpos[1] - tile[0][1]
 			if (dx > 1 && dx < xtile - 1 && dy > 1 && dy < ytile - 1) {
 				target = tile[2]
 			}
 		})
 
 		if (this.jpullshirt > -1) {
-			var pos = [mstate.pos[0] - this.xtile / 2, mstate.pos[1] - this.ytile / 2]
+			var pos = [mpos[0] - this.xtile / 2, mpos[1] - this.ytile / 2]
 			var letter = this.tshirts[this.jpullshirt].species[this.jpullletter]
 			this.tiles.push([pos, letter, [this.jpullshirt, this.jpullletter]])
 			if (mstate.left.up) {
@@ -123,11 +133,21 @@ UFX.scenes.play = {
 	},
 	draw: function () {
 		UFX.draw("fs blue f0 [ z", this.scale, this.scale)
+		for (var j = 0 ; j < this.customers.length ; ++j) {
+			var customer = this.customers[j]
+			if (customer.served) continue
+			UFX.draw("[ t", customer.pos)
+			monster.draw(monster.specfor(customer.name, customer.species))
+			UFX.draw("]")
+		}
+
 		for (var j = 0 ; j < this.tshirts.length ; ++j) {
 			var tshirt = this.tshirts[j]
 			if (tshirt.sold) continue
 			UFX.draw("[ t", tshirt.pos)
 			drawshirt(tshirt.name, null)
+			UFX.draw("t", 0, -160, "z", 0.7, 0.7)
+			monster.draw(monster.specfor(tshirt.name, tshirt.species))
 			UFX.draw("]")
 		}
 		
@@ -136,7 +156,7 @@ UFX.scenes.play = {
 			var pos = tile[0], letter = tile[1]
 			UFX.draw("[ t", pos, "fs #444 fr 2 2 36 46 fs black fr 5 5 30 40")
 			if (letter) {
-				UFX.draw("font 25px~'Viga' fs white ft", letter.toUpperCase(), 20, 25)
+				UFX.draw("font bold~25px~'Catamaran' fs white ft", letter.toUpperCase(), 20, 25)
 			}
 			UFX.draw("]")
 		})

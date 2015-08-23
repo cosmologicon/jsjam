@@ -46,9 +46,9 @@ UFX.scenes.loading = {
 		UFX.draw("fs blue f0")
 		UFX.draw("[",
 			"z", this.scale, this.scale,
-			"[ font 70px~'Viga' fs white sh black 4 4 0",
+			"[ font 70px~'Fontdiner~Swanky' fs white sh black 4 4 0",
 			"[ tab center middle t 400 100 ft0 Monster~Tshirts ]",
-			"font 30px~'Viga' fs white sh black 2.5 2.5 0",
+			"font 30px~'Catamaran' fs white sh black 2.5 2.5 0",
 			"[ tab center middle t 400 160 ft0 by~Christopher~Night ]",
 			"]")
 		for (var j = 0 ; j < 3 ; ++j) {
@@ -67,7 +67,7 @@ UFX.scene.push("loading")
 UFX.resource.onload = function () {
 	UFX.scenes.loading.loaded = true
 }
-UFX.resource.loadwebfonts("Viga")
+UFX.resource.loadwebfonts("Viga", "Catamaran", "Fontdiner Swanky", "Bree Serif")
 
 function playsound(name) {
 	console.log("missing sound: " + name)
