@@ -10,13 +10,18 @@ var monster = {
 	cprops: [
 		"body", "lid", "hand", "foot",
 	],
+	colors: [
+		"#FF7777", "#44FF44", "#7777FF",
+		"#FFAA44", "#FFFF00", "#00FFFF",
+		"#FF44FF",
+	],
 	randomspec: function () {
 		var spec = {}
 		this.fprops.forEach(function (fprop) {
 			spec["f" + fprop] = UFX.random()
 		})
 		this.cprops.forEach(function (cprop) {
-			spec[cprop + "color"] = UFX.random.choice(["red", "orange", "yellow", "green", "blue", "purple"])
+			spec[cprop + "color"] = UFX.random.choice(monster.colors)
 		})
 		return spec
 	},
