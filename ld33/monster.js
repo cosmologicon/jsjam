@@ -145,3 +145,18 @@ var monster = {
 }
 
 
+function drawshirt(name, species) {
+	UFX.draw("[ fs orange ss yellow font 32px~'Viga' lw 2")
+	UFX.draw("t 0 -30 tab center middle sft0 THE tb bottom")
+	;[].forEach.call(name, function (letter, jletter, word) {
+		var angle = (jletter - word.length / 2 + 1/2) * 0.4
+		UFX.draw("[ r", angle, "sft", letter.toUpperCase(), 0, -50, "]")
+	})
+	UFX.draw("]")
+	if (species) {
+		UFX.draw("fs white font 54px~'Viga' tab center top ft0", species.toUpperCase())
+	}
+}
+
+
+

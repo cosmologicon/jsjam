@@ -34,7 +34,7 @@ UFX.scenes.loading = {
 		this.scale = canvas.width / 800
 		
 		if (this.loaded && mstate.left.down) {
-			UFX.scene.swap("tweak")
+			UFX.scene.swap("play")
 		}
 		this.x0 -= 80 * dt
 		if (this.x0 < -200) {
@@ -56,6 +56,7 @@ UFX.scenes.loading = {
 			monster.draw(this.specs[(this.n0 + j) % 20])
 			UFX.draw("]")
 		}
+		UFX.draw("[ t 100 100") ; drawshirt("crenshaw", "plud") ; UFX.draw("]")
 		UFX.draw("]")
 	}
 }
@@ -67,6 +68,10 @@ UFX.resource.onload = function () {
 	UFX.scenes.loading.loaded = true
 }
 UFX.resource.loadwebfonts("Viga")
+
+function playsound(name) {
+	console.log("missing sound: " + name)
+}
 
 
 </script>
