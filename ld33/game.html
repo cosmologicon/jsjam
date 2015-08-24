@@ -2,6 +2,7 @@
 <script src="http://ufx.space/UFX.js"></script>
 <script src="monster.js"></script>
 <script src="play.js"></script>
+<title>Monster Apparel</title>
 <canvas id=canvas></canvas>
 <script>
 var tau = 2 * Math.PI
@@ -16,10 +17,10 @@ UFX.mouse.init(canvas)
 UFX.key.init()
 
 UFX.scenes.loading = {
+	fload: 0,
+	loaded: false,
 	start: function () {
 		this.t = 0
-		this.fload = 0
-		this.loaded = false
 		this.specs = []
 		for (var j = 0 ; j < 20 ; ++j) {
 			this.specs.push(monster.randomspec())
@@ -34,7 +35,9 @@ UFX.scenes.loading = {
 		this.scale = canvas.width / 800
 		
 		if (this.loaded && mstate.left.down) {
-			UFX.scene.swap("play")
+			UFX.scene.push("play")
+			state.bank = 10
+			state.level = 0
 		}
 		this.x0 -= 80 * dt
 		if (this.x0 < -200) {
@@ -47,7 +50,7 @@ UFX.scenes.loading = {
 		UFX.draw("[",
 			"z", this.scale, this.scale,
 			"[ font 70px~'Fontdiner~Swanky' fs white sh black 4 4 0",
-			"[ tab center middle t 400 100 ft0 Monster~Tshirts ]",
+			"[ tab center middle t 400 100 ft0 Monster~Apparel ]",
 			"font 30px~'Catamaran' fs white sh black 2.5 2.5 0",
 			"[ tab center middle t 400 160 ft0 by~Christopher~Night ]",
 			"]")
@@ -56,7 +59,6 @@ UFX.scenes.loading = {
 			monster.draw(this.specs[(this.n0 + j) % 20])
 			UFX.draw("]")
 		}
-		UFX.draw("[ t 100 100") ; drawshirt("crenshaw", "plud") ; UFX.draw("]")
 		UFX.draw("]")
 	}
 }

@@ -20,7 +20,7 @@ var monster = {
 		"body", "lid", "hand", "foot",
 	],
 	colors: [
-		"#FF7777", "#44FF44", "#7777FF",
+		"#FFAAAA", "#77FF77", "#AAAAFF",
 		"#FFAA44", "#FFFF00", "#00FFFF",
 		"#FF44FF",
 	],
@@ -75,7 +75,7 @@ var monster = {
 		UFX.random.pushseed(name)
 		var parts = ["eye", "mouth", "height", "width", "color", "arm", "leg"]
 		var ds = {}
-		for (var j = 0 ; j < parts.length ; ++j) ds[parts[j]] = 40 * j
+		for (var j = 0 ; j < parts.length ; ++j) ds[parts[j]] = 50 * j + UFX.random.rand(20)
 		UFX.random.shuffle(parts)
 		for (var j = 0 ; j < species.length ; ++j) {
 			var c = species[j].charCodeAt(0) - "a".charCodeAt(0)
@@ -123,7 +123,7 @@ var monster = {
 		farmtilt += 0.1 * Math.cos(1.2 * t)
 
 
-		var y0 = 20 + 40 * fstand
+		var y0 = 30 + 30 * fstand
 		var height = 80 + 100 * fheight
 
 		var yhip = y0 + 0.25 * height
@@ -141,9 +141,9 @@ var monster = {
 
 		// Legs
 		var rfoot = 10 + 30 * ffootsize
-		var xstance = rfoot + 2 + 20 * fstance
-		var rleg = (0.4 + 0.8 * frleg) * rfoot
-		var legcolor = "gray"
+		var xstance = rfoot + 2 + 35 * fstance
+		var rleg = (0.3 + 0.9 * frleg) * rfoot
+		var legcolor = "#555"
 
 		for (var a = 0 ; a < 2 ; ++a) {
 			UFX.draw("[")
@@ -161,12 +161,12 @@ var monster = {
 		// Arms
 		var xshoulder = 3 / 8 * (dx0 + dx1) * 0.9
 		var yshoulder = y0 + 0.5 * height
-		var atilt = -0.4 * farmtilt
-		var rhand = 10 + 15 * fhandsize
-		var warm = rhand * (0.4 + 0.8 * fwarm)
-		var beta = 1 + 1 * flarm
+		var atilt = 0.4 - 1 * farmtilt
+		var rhand = 6 + 25 * fhandsize
+		var warm = rhand * (0.3 + 0.9 * fwarm)
+		var beta = 0.5 + 1.7 * flarm
 		var rarm = 50
-		var armcolor = "gray"
+		var armcolor = "#555"
 		
 		var hgrad = UFX.draw.radgrad(0, 0, 0, 0, 0, rhand, 0, "rgba(0,0,0,0)", 1, "rgba(0,0,0,0.3)")
 		for (var a = 0 ; a < 2 ; ++a) {
@@ -194,9 +194,9 @@ var monster = {
 		// Mouth
 		var y0 = 80, w = 40, h = 40, b = -40, a = 0.3
 		var tiltmouth = 0.5 * (ftiltmouth - 0.5)
-		var amouth = 6 + 30 * famouth
-		var bmouth = amouth * 2.4 * (fbmouth - 0.5)
-		var wmouth = 10 + 20 * fwmouth
+		var amouth = 6 + 36 * famouth
+		var bmouth = amouth * 4.2 * (fbmouth - 0.5)
+		var wmouth = 10 + 28 * fwmouth
 		var mouthcolor = "#222222"
 		UFX.draw(
 			"[ t", 0, ymouth, "r", tiltmouth, "t", 0, -bmouth / 2,
@@ -205,12 +205,12 @@ var monster = {
 		"]")
 
 		// Eyes
-		var reye = 8 + 10 * freye
+		var reye = 6 + 14 * freye
 		var rpupil = 0.5 * reye
-		var deye = reye * (1.1 + 0.5 * feyespread)
+		var deye = reye * (1.1 + 0.8 * feyespread)
 		var aeye = 0.4 * (ftilteye - 0.5)
 		var rlid = 1.1 * reye
-		var alid = -0.2 + 0.6 * fdroop
+		var alid = -0.2 + 0.8 * fdroop
 		var pupilcolor = "black"
 		
 		UFX.draw("[ t", 0, yeye, "ss black lw 2",
@@ -234,7 +234,7 @@ var monster = {
 
 function drawshirt(name, species) {
 	UFX.draw("[ fs orange ss yellow font 32px~'Bree~Serif' lw 2")
-	UFX.draw("t 0 -30 tab center middle sft0 THE tb bottom")
+	UFX.draw("t 0 -30 tab center middle sft0 THE t 0 15 tb bottom")
 	;[].forEach.call(name, function (letter, jletter, word) {
 		var angle = (jletter - word.length / 2 + 1/2) * 0.4
 		UFX.draw("[ r", angle, "sft", letter.toUpperCase(), 0, -50, "]")

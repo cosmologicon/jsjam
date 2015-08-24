@@ -38,11 +38,17 @@ UFX.scenes.tweak = {
 	},
 }
 
+var state = {
+	bank: 10,
+	level: 0,
+}
+
 UFX.scenes.play = {
 	xtile: 40,
 	ytile: 50,
 	start: function () {
-		var ns = [3, 4]
+		var ns = [state.level < 2 ? 3 : state.level < 4 ? 4 : state.level < 6 ? 5 : 6]
+		this.price = state.level < 2 ? 5 : state.level < 4 ? 10 : state.level < 6 ? 17 : 25
 		var species = monster.randomspecies(ns)
 		var names = monster.randomnames(ns.length)
 		this.customers = []
@@ -56,13 +62,17 @@ UFX.scenes.play = {
 			this.tshirts.push({
 				name: names[j],
 				species: species[j].split(""),
-				pos: [400 + 150 * j, 300],
+				pos: [550 + 150 * j, 360],
 				sold: false,
 			})
 		}
-		UFX.random.shuffle(this.customers)
+		var ps = 
+			ns.length == 1 ? [[180, 360]] :
+			ns.length == 2 ? [[200, 200], [200, 400]] :
+			[[300, 200], [100, 400], [300, 400]]
+		UFX.random.shuffle(ps)
 		this.customers.forEach(function (customer, j) {
-			customer.pos = [100 * j, 300]
+			customer.pos = ps[j]
 		})
 		
 		var letters = this.tshirts.map(function (tshirt) { return tshirt.species.join("") }).join("").split("")
@@ -71,31 +81,58 @@ UFX.scenes.play = {
 			tshirt.species = letters.splice(0, tshirt.species.length)
 		})
 
-		console.log(this.customers)
-		console.log(this.tshirts)
-
 		this.jpullshirt = -1
 		this.jpullletter = 0
 		this.printed = {}
+		playsound("ring")
+		this.t = 0
+		this.wint = 0
 	},
 	think: function (dt) {
+		this.t += dt
 		var mstate = UFX.mouse.state()
 		var kstate = UFX.key.state()
+		if (kstate.down.escape) {
+			UFX.scene.pop()
+		}
 		
 		this.scale = canvas.width / 800
 		var mpos = [mstate.pos[0] / this.scale, mstate.pos[1] / this.scale]
+
+		if (this.customers.every(function (c) { return c.served })) {
+			if (mstate.left.down) {
+				UFX.scene.swap("play")
+				state.level += 1
+			}
+		}
 		
 		this.tiles = []
+		this.ptiles = []
 		for (var j = 0 ; j < this.tshirts.length ; ++j) {
-			var species = this.tshirts[j].species
+			var tshirt = this.tshirts[j]
+			if (tshirt.sold) continue
+			var species = tshirt.species
+			var x0 = tshirt.pos[0], y = tshirt.pos[1]
 			for (var k = 0 ; k < species.length ; ++k) {
 				var letter = species[k]
 				if (j == this.jpullshirt && k == this.jpullletter) {
 					letter = null
 				}
-				var x = this.tshirts[j].pos[0], y = this.tshirts[j].pos[1]
-				x += (k - species.length / 2) * this.xtile
+				var x = x0 + (k - species.length / 2) * this.xtile
 				this.tiles.push([[x, y], letter, [j, k]])
+			}
+			if (this.printed[tshirt.name + tshirt.species.join("")]) {
+				if (tshirt.species.join("") == this.customers[j].species) {
+					this.ptiles.push([
+						["sell", j],
+						[x0 - 80, y - 200, 160, 50],
+					])
+				}
+			} else {
+				this.ptiles.push([
+					["print", j],
+					[x0 - 80, y - 200, 160, 50],
+				])
 			}
 		}
 		var target = null
@@ -104,6 +141,15 @@ UFX.scenes.play = {
 			var dx = mpos[0] - tile[0][0], dy = mpos[1] - tile[0][1]
 			if (dx > 1 && dx < xtile - 1 && dy > 1 && dy < ytile - 1) {
 				target = tile[2]
+			}
+		})
+
+		var ptarget = null
+		this.ptiles.forEach(function (ptile) {
+			var p = ptile[1]
+			var dx = mpos[0] - p[0], dy = mpos[1] - p[1]
+			if (dx > 0 && dx < p[2] && dy > 0 && dy < p[3]) {
+				ptarget = ptile[0]
 			}
 		})
 
@@ -124,15 +170,30 @@ UFX.scenes.play = {
 				this.jpullshirt = -1
 			}
 		} else {
-			canvas.style.cursor = target ? "pointer" : "default"
+			canvas.style.cursor = target || ptarget ? "pointer" : "default"
 			if (mstate.left.down && target) {
 				this.jpullshirt = target[0]
 				this.jpullletter = target[1]
+				playsound("click")
+			} else if (mstate.left.down && ptarget) {
+				var action = ptarget[0]
+				if (action == "sell") {
+					this.tshirts[ptarget[1]].sold = true
+					this.customers[ptarget[1]].served = true
+					state.bank += this.price
+				} else if (action == "print") {
+					var tshirt = this.tshirts[ptarget[1]]
+					this.printed[tshirt.name + tshirt.species.join("")] = true
+					state.bank -= 1
+				}
 			}
 		}
 	},
 	draw: function () {
-		UFX.draw("fs blue f0 [ z", this.scale, this.scale)
+		var r = Math.round(80 + 70 * Math.sin(0.001 * 0.1 * Date.now() + 0 * tau / 3))
+		var g = Math.round(80 + 70 * Math.sin(0.001 * 0.1 * Date.now() + 1 * tau / 3))
+		var b = Math.round(80 + 70 * Math.sin(0.001 * 0.1 * Date.now() + 2 * tau / 3))
+		UFX.draw("fs rgb(" + r + "," + g + "," + b + ") f0 [ z", this.scale, this.scale)
 		for (var j = 0 ; j < this.customers.length ; ++j) {
 			var customer = this.customers[j]
 			if (customer.served) continue
@@ -146,8 +207,10 @@ UFX.scenes.play = {
 			if (tshirt.sold) continue
 			UFX.draw("[ t", tshirt.pos)
 			drawshirt(tshirt.name, null)
-			UFX.draw("t", 0, -160, "z", 0.7, 0.7)
-			monster.draw(monster.specfor(tshirt.name, tshirt.species))
+			if (this.printed[tshirt.name + tshirt.species.join("")]) {
+				UFX.draw("t", 0, -160, "z", 0.7, 0.7)
+				monster.draw(monster.specfor(tshirt.name, tshirt.species))
+			}
 			UFX.draw("]")
 		}
 		
@@ -160,6 +223,25 @@ UFX.scenes.play = {
 			}
 			UFX.draw("]")
 		})
+		var price = this.price
+		this.ptiles.forEach(function (ptile) {
+			var info = ptile[0], action = info[0]
+			var pos = ptile[1], x0 = pos[0], y0 = pos[1], dx = pos[2], dy = pos[3]
+			UFX.draw("[ fs #444 ss black fsr", pos)
+			action = action == "print" ? "print~(-$1)" : "sell~(+$" + price + ")"
+			UFX.draw("tab center middle fs white sh black 2 2 0 font 30px~'Bree~Serif'",
+				"ft", action, x0 + dx/2, y0 + dy/2)
+			UFX.draw("]")
+		})
+		if (this.customers.every(function (c) { return c.served })) {
+			UFX.draw("[ fs white sh black 3 3 0 font 32px~'Fontdiner~Swanky' tab left top",
+				"ft Success! 10 10 ]")
+		} else {
+			UFX.draw("[ fs white sh black 3 3 0 font 32px~'Fontdiner~Swanky' tab left top",
+				"ft Find~this~customer's~t-shirt! 10 10 ]")
+		}
+		UFX.draw("[ fs white sh black 3 3 0 font bold~32px~'Catamaran' tab right top",
+			"ft Funds:~$" + state.bank + " 790 10 ]")
 		UFX.draw("]")
 	},
 
