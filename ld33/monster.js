@@ -35,10 +35,10 @@ var monster = {
 		return spec
 	},
 	species: {
-		3: "urx lom elp yat".split(" "),
-		4: "voam artg egol snov zemn".split(" "),
-		5: "rygow losiq splun xerti".split(" "),
-		6: "nescod mrawbl".split(" "),
+		3: "yep org ilf baw nax urx lom elp yat pag".split(" "),
+		4: "voam artg egol snov zemn frog sped perf bolg".split(" "),
+		5: "rygow losiq splun xerti tiger melon gnome syrup".split(" "),
+		6: "nescod mrawbl spacer answer feldon captyr gorbun".split(" "),
 	},
 	names: [
 		"crenshaw", "mildred", "yancy", "lister", "yzma", "glinda", "guster", "egon", "jadzia",

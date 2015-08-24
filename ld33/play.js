@@ -92,7 +92,7 @@ UFX.scenes.play = {
 		this.t += dt
 		var mstate = UFX.mouse.state()
 		var kstate = UFX.key.state()
-		if (kstate.down.escape) {
+		if (kstate.down.esc) {
 			UFX.scene.pop()
 		}
 		
@@ -174,17 +174,22 @@ UFX.scenes.play = {
 			if (mstate.left.down && target) {
 				this.jpullshirt = target[0]
 				this.jpullletter = target[1]
-				playsound("click")
 			} else if (mstate.left.down && ptarget) {
 				var action = ptarget[0]
 				if (action == "sell") {
 					this.tshirts[ptarget[1]].sold = true
 					this.customers[ptarget[1]].served = true
 					state.bank += this.price
+					playsound("sell")
 				} else if (action == "print") {
 					var tshirt = this.tshirts[ptarget[1]]
 					this.printed[tshirt.name + tshirt.species.join("")] = true
 					state.bank -= 1
+					if (state.bank < 0) {
+						UFX.scene.pop()
+					} else {
+						playsound("print")
+					}
 				}
 			}
 		}

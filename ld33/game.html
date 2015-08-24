@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<script src="http://ufx.space/UFX.js"></script>
+<script src="UFX.js"></script>
 <script src="monster.js"></script>
 <script src="play.js"></script>
 <title>Monster Apparel</title>
@@ -59,6 +59,10 @@ UFX.scenes.loading = {
 			monster.draw(this.specs[(this.n0 + j) % 20])
 			UFX.draw("]")
 		}
+		if (this.loaded) {
+			UFX.draw("[ font 30px~'Catamaran' fs white sh black 2.5 2.5 0",
+				"tab right bottom ft Click~to~play 780 430 ]")
+		}
 		UFX.draw("]")
 	}
 }
@@ -68,11 +72,21 @@ UFX.scene.push("loading")
 
 UFX.resource.onload = function () {
 	UFX.scenes.loading.loaded = true
+	UFX.resource.sounds.music.volume = 0.3
+	UFX.resource.sounds.music.loop = true
+	UFX.resource.sounds.music.play()
 }
 UFX.resource.loadwebfonts("Viga", "Catamaran", "Fontdiner Swanky", "Bree Serif")
+UFX.resource.load({
+	"music": "sound/parks-and-ninjas.mp3",
+	"sell": "sound/sell.mp3",
+	"ring": "sound/ring.mp3",
+	"print": "sound/print.mp3",
+	"swap": "sound/swap.mp3",
+})
 
 function playsound(name) {
-	console.log("missing sound: " + name)
+	UFX.resource.sounds[name].play()
 }
 
 
