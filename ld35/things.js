@@ -1,3 +1,5 @@
+"use strict"
+
 var WorldBound = {
 	init: function (x, y) {
 		this.x = x || 0
@@ -10,20 +12,51 @@ var WorldBound = {
 	draw: function () {
 		UFX.draw("t", this.x, this.y)
 	},
+	think: function (dt) {
+	},
+}
+
+var Shifts = {
+	init: function (tshift) {
+		this.tshift = tshift || 0.2
+		this.fshift = 0
+		this.shiftable = true
+	},
+	setshift: function (x, y) {
+		this.fshift = 1
+		this.xshift = x
+		this.yshift = y
+	},
+	think: function (dt) {
+		this.fshift = Math.max(this.fshift - dt / this.tshift, 0)
+	},
+	draw: function () {
+		if (!this.fshift) return
+		UFX.draw("t", this.fshift * (this.xshift - this.x), this.fshift * (this.yshift - this.y))
+	},
 }
 
 var Blocky = {
 	init: function () {
 	},
 	construct: function (obj) {
-		this.blocks = obj.blocks || []
+		this.cells = obj.cells || []
 		this.color = obj.color || "white"
 	},
 	draw: function () {
-		this.blocks.forEach(function (block) {
+		this.cells.forEach(function (block) {
 			UFX.draw("[ t", block, "fs", this.color, "fr 0.05 0.05 0.9 0.9 ]")
 		}.bind(this))
 	},
+	canslide: function (off) {
+		return !this.cells.some(function (cell) {
+			var x = this.x + cell[0] + off[0]
+			var y = this.y + cell[1] + off[1]
+			var other = grid.cells[[x, y]]
+			return other && other !== this
+		}.bind(this))
+	},
+
 }
 
 var Peepers = {
@@ -49,12 +82,39 @@ var Peepers = {
 
 function You() {
 	this.construct({
-		blocks: [[0, 0]],
+		cells: [[0, 0]],
 		color: "red",
 	})
 }
 You.prototype = UFX.Thing()
 	.addcomp(WorldBound)
+	.addcomp(Shifts)
 	.addcomp(Blocky)
 	.addcomp(Peepers)
+
+function Shape(x, y, cells) {
+	this.construct({
+		x: x,
+		y: y,
+		cells: cells,
+		color: "#840",
+	})
+}
+Shape.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Shifts)
+	.addcomp(Blocky)
+	.addcomp(Peepers)
+
+function Block(x, y, cells) {
+	this.construct({
+		x: x,
+		y: y,
+		cells: cells,
+		color: "gray",
+	})
+}
+Block.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Blocky)
 
