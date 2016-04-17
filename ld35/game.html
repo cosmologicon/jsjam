@@ -23,13 +23,13 @@ UFX.maximize.onadjust = function () {
 }
 UFX.maximize.fill(canvas, "total")
 UFX.key.init()
-UFX.key.watchlist = "backspace 1 2 3 4 5".split(" ")
+UFX.key.watchlist = "backspace esc 1 2 3 4 5 6".split(" ")
 UFX.mouse.init(canvas)
 
 UFX.scenes.load = {
 	start: function () {
 		this.f = 0
-		this.you = new You(-2, 1)
+		this.you = new You(-2, 0.6)
 		this.you.shiftable = false
 		grid.x0 = -0.5
 		grid.y0 = 0
@@ -41,6 +41,7 @@ UFX.scenes.load = {
 			var mstate = UFX.mouse.state()
 			if (mstate && mstate.left.down) {
 				UFX.scene.swap("play")
+				UFX.resource.sounds.song.play(-1)
 			}
 			var kstate = UFX.key.state()
 			var mstate = UFX.mouse.state()
@@ -67,7 +68,21 @@ UFX.scene.push("load")
 UFX.resource.onloading = function (f) {
 	UFX.scenes.load.f = f
 }
-UFX.resource.loadwebfonts("Rock Salt", "Permanent Marker", "Just Me Again Down Here")
-UFX.resource.load()
+UFX.resource.onload = function () {
+	UFX.resource.sounds.song.volume = 0.2
+	UFX.resource.sounds.song.loop = true
+	UFX.resource.mergesounds("step")
+}
+UFX.resource.loadwebfonts("Rock Salt", "Permanent Marker", "Just Me Again Down Here", "Architects Daughter")
+UFX.resource.load({
+	"song": "song.ogg",
+	"get": "sfx/get.ogg",
+	"think": "sfx/think.ogg",
+	"next": "sfx/next.ogg",
+	"step-1": "sfx/step-1.ogg",
+	"step-2": "sfx/step-2.ogg",
+	"step-3": "sfx/step-3.ogg",
+	"undo": "sfx/undo.ogg",
+})
 
 </script>

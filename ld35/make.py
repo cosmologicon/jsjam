@@ -1,4 +1,4 @@
-import random
+import random, time
 
 def nps(shape, gsize, taken):
 	taken = taken - set(shape)
@@ -72,17 +72,24 @@ def randomstate(gsize, nblock, nasleep):
 		if idea not in you and idea not in blocks and idea not in ideas:
 			ideas = ideas + (idea,)
 	state = gsize, you, (), (), blocks, ideas, 0
+	t0 = time.time()
 	while len(state[2]) < nasleep:
+		if time.time() - t0 > 10:
+			print "breaking", len(state[2]), nasleep
+			return state
 		shape = randomshape(gsize)
 		if canadd(state, shape):
 			state = addasleep(state, shape)
 	return state
 
 def solve(state):
+	t0 = time.time()
 	q = [state]
 	scores = {state: 0}
 
 	while q:
+		if time.time() - t0 > 10:
+			break
 		state = q.pop(0)
 		for nstate in adjs(state):
 			if nstate in scores:
@@ -119,6 +126,7 @@ while True:
 	if n is None:
 		continue
 	if n > best:
+		print
 		best = n
 		print n
 		printstate(state)

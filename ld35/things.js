@@ -43,7 +43,7 @@ function fiery () {
     var h = obj.height || obj.size || 256
     var r0 = 250, dr = 0
     var g0 = 150, dg = 100
-    var b0 = 100, db = 0
+    var b0 = 150, db = 100
     var canvas = UFX.texture.makecanvas(w, h), data = canvas.data
     var ndata = UFX.texture.noisedata(obj, {fraclevel: 0, scale: 4})
     for (var j = 0, k = 0 ; k < w*h ; j += 4, ++k) {
@@ -87,6 +87,29 @@ function getFtexture(x) {
 	return Ftextures[n]
 }
 
+var texs = {}
+function gettexture(name) {
+	var s = 256
+	if (name == "large") s *= 2
+	if (!texs[name]) {
+		if (name == "stone") {
+			texs.stone = UFX.texture.stone()
+			UFX.draw(texs.stone.getContext("2d"), "drawimage0", UFX.texture.roughshade())
+		} else if (name == "large") {
+			texs.large = UFX.texture.spots({ size: 512 })
+		} else {
+			texs[name] = UFX.texture[name]()
+		}
+		if (name == "clouds") {
+			UFX.draw(texs[name].getContext("2d"), "[ fs gray alpha 0.7 f0 ]")
+		}
+	}
+	var c = document.createElement("canvas")
+	c.width = c.height = s
+	c.getContext("2d").drawImage(texs[name], 0, 0)
+	return c
+}
+
 
 var Blocky = {
 	init: function () {
@@ -96,26 +119,28 @@ var Blocky = {
 		this.color = obj.color || "white"
 		this.outline = celloutline(this.cells).map((p, j) => [j ? "l" : "m", p])
 		var ttype = this.ttype = obj.ttype || null
+		if (this.cells.some(cell => Math.max(cell[0] - obj.cells[0][0], cell[1] - obj.cells[0][1]) > 1)) {
+			ttype = this.ttype = "large"
+		}
 		if (ttype == null) {
 			this.texture = null
 		} else if (ttype == "cement") {
-			this.texture = UFX.texture.cement()
+			this.texture = gettexture("cement")
 		} else if (ttype == "clouds") {
-			this.texture = UFX.texture.clouds()
+			this.texture = gettexture("clouds")
 		} else if (ttype == "marble") {
-			this.texture = UFX.texture.marble()
+			this.texture = gettexture("marble")
 		} else if (ttype == "ocean") {
-			this.texture = UFX.texture.ocean()
+			this.texture = gettexture("ocean")
 		} else if (ttype == "spots") {
-			this.texture = UFX.texture.spots()
+			this.texture = gettexture("spots")
 		} else if (ttype == "nightsky") {
 			this.texture = UFX.texture.nightsky()
 		} else if (ttype == "enlightened") {
 			this.texture = UFX.texture.cement()
 			this.textures = {}
 		} else if (ttype == "stone") {
-			this.texture = UFX.texture.stone()
-			UFX.draw(this.texture.getContext("2d"), "drawimage0", UFX.texture.roughshade())
+			this.texture = gettexture("stone")
 		}
 		
 		if (this.texture) {
@@ -166,7 +191,7 @@ var Peepers = {
 		})
 		this.peepx = xs.sort()[Math.floor(obj.cells.length / 2)]
 		this.peepy = ys.sort()[Math.floor(obj.cells.length / 2)]
-		this.iriscolor = UFX.random.choice([
+		this.iriscolor = obj.iriscolor || UFX.random.choice([
 			"#00F", "#66F", "#009",
 			"#333", "#666",
 			"#420", "#630",
@@ -273,6 +298,7 @@ var CollectsIdeas = {
 			if (idea.x == x && idea.y == y) {
 				UFX.scenes.play.C += 1
 				UFX.scenes.play.ideas.splice(j, 1)
+				UFX.resource.sounds.get.play()
 			}
 		}
 	},
@@ -285,6 +311,7 @@ function You(x, y) {
 		cells: [[0, 0]],
 		color: "#FFF",
 		ttype: "enlightened",
+		iriscolor: "orange",
 	})
 	this.awaken()
 	this.restopen = 1

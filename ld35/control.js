@@ -13,6 +13,9 @@ var control = {
 		} else {
 			this.pointed = null
 		}
+		if (UFX.scenes.play.won && Math.abs(gmpos[0] - 0.1) < 0.4 && Math.abs(gmpos[1] - 0.1 < 0.25)) {
+			this.pointed = "next"
+		}
 		if (mstate && mstate.left.down) {
 			this.tdown = 0
 			this.pdown = gmpos
@@ -29,7 +32,11 @@ var control = {
 						UFX.scenes.play.C -= 1
 						this.pointed.awaken()
 						UFX.scenes.play.step()
+						UFX.resource.sounds.think.play()
 					}
+				} else if (this.pointed == "next") {
+					UFX.scenes.play.skiptolevel(+localStorage.ld35save + 1)
+					UFX.resource.sounds.next.play()
 				}
 			}
 		}
@@ -51,6 +58,7 @@ var control = {
 					if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
 						this.dragged.reposition(this.dragged.x + Math.sign(dx), this.dragged.y + Math.sign(dy))
 						UFX.scenes.play.step()
+						UFX.resource.sounds.step.play()
 						continue
 					}
 				} else {
@@ -66,6 +74,8 @@ var control = {
 		this.gmpos = gmpos
 	},
 	getcursor: function () {
+		if (this.pointed == "next") return "pointer"
+		if (this.pointed == "undo") return "pointer"
 		if (this.pointed && this.pointed.shiftable) return "pointer"
 		return "default"
 	},
