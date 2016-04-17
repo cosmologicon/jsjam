@@ -52,8 +52,6 @@ var grid = {
 		]
 	},
 	think: function (dt) {
-		this.x0 += 0.1 * dt
-		this.y0 += 0.1 * dt
 		var s = Math.min(sx, sy)
 		this.z = s / this.R
 	},

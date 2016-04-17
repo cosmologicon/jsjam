@@ -168,8 +168,10 @@ var Peepers = {
 	},
 }
 
-function You() {
+function You(x, y) {
 	this.construct({
+		x: x,
+		y: y,
 		cells: [[0, 0]],
 		color: "#FFF",
 		ttype: "marble",

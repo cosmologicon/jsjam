@@ -2,36 +2,20 @@
 
 UFX.scenes.play = {
 	start: function () {
-		var shapes = [
-			// monomino?
-			[[0, 0]],
-			// dominoes
-			[[0, 0], [1, 0]],
-			[[0, 0], [0, 1]],
-			// triominoes
-			[[0, 0], [-1, 0], [1, 0]],
-			[[0, 0], [-1, 0], [0, 1]],
-			[[0, 0], [-1, 0], [0, -1]],
-			[[0, 0], [1, 0], [0, 1]],
-			[[0, 0], [1, 0], [0, -1]],
-			[[0, 0], [0, 1], [0, -1]],
+		var ldata = leveldata[1]
+		var things = this.things = [
+			new You(ldata.you[0], ldata.you[1]),
 		]
-
-		this.things = [
-			new You(),
-		]
-		grid.updatecells()
+		ldata.shapes.forEach(function (shape) {
 		
-		while (this.things.length < 100) {
-			var x = UFX.random.rand(-8, 8)
-			var y = UFX.random.rand(-8, 8)
-			var shape = UFX.random.choice(shapes)
-			if (shape.some(cell => grid.cells[[cell[0] + x, cell[1] + y]])) {
-				continue
-			}
-			this.things.push(new Shape(x, y, shape))
-			grid.updatecells()
-		}
+		})
+		ldata.blocks.forEach(function (cells) {
+			things.push(new Block(0, 0, cells))
+		})
+		grid.updatecells()
+		grid.x0 = ldata.x0
+		grid.y0 = ldata.y0
+		grid.R = ldata.R
 	},
 	think: function (dt) {
 		var kstate = UFX.key.state()

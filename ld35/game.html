@@ -2,6 +2,7 @@
 <canvas id=canvas></canvas>
 <script src="http://ufx.space/UFX.js"></script>
 <script src="peeper.js"></script>
+<script src="level.js"></script>
 <script src="grid.js"></script>
 <script src="control.js"></script>
 <script src="things.js"></script>
@@ -26,6 +27,12 @@ UFX.mouse.init(canvas)
 UFX.scenes.load = {
 	start: function () {
 		this.f = 0
+		this.you = new You(-2, 1)
+		this.you.shiftable = false
+		grid.x0 = -0.5
+		grid.y0 = 0
+		grid.R = 4.5
+		grid.think(0)
 	},
 	think: function (dt) {
 		if (UFX.mouse.pos) {
@@ -33,17 +40,24 @@ UFX.scenes.load = {
 			if (mstate && mstate.left.down) {
 				UFX.scene.swap("play")
 			}
+			var kstate = UFX.key.state()
+			var mstate = UFX.mouse.state()
+			var tstate = UFX.touch.state()
+			control.think(dt, kstate, mstate, tstate)
 		}
+		grid.think(dt)
+		this.you.think(dt)
 	},
 	draw: function () {
 		UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#004", 1, "#77F"), "f0")
+		context.save() ; grid.look() ; this.you.draw() ; context.restore()
 		var s = Math.min(sx, sy)
 		var message = this.f == 1 ? "Click~to~begin" : "Loading:~" + Math.round(this.f * 100) + "%"
 		UFX.draw("[ t", sx / 2, sy / 2, "z", s/100, s/100,
 			"tab center middle",
 			"[ t -14 -30 font 15px~'Just~Me~Again~Down~Here' ss black lw 2 fs lg~0~-7~0~7~0~white~1~gray sft0 Wake~Up ]",
 			"[ t 0 -10 font 40px~'Just~Me~Again~Down~Here' ss black lw 3 fs lg~0~-20~0~20~0~white~1~gray sft0 Shaple ]",
-			"[ t 0 30 font 5px~'Permanent~Marker' ss black lw 1 fs lg~0~-2~0~2~0~white~1~gray sft0", message, "]",
+			"[ t 15 30 font 5px~'Permanent~Marker' ss black lw 1 fs lg~0~-2~0~2~0~white~1~gray sft0", message, "]",
 		"]")
 	},
 }
