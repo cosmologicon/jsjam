@@ -3,6 +3,7 @@
 var control = {
 	pointed: null,
 	dragged: null,
+	gmpos: null,
 	think: function (dt, kstate, mstate, tstate) {
 		var mpos = mstate && mstate.pos, gmpos = null, mcell = null
 		if (mpos) {
@@ -53,6 +54,7 @@ var control = {
 			}
 			this.dragged.setshift(x, y)
 		}
+		this.gmpos = gmpos
 	},
 	getcursor: function () {
 		if (this.pointed) return "pointer"

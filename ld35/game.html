@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <canvas id=canvas></canvas>
 <script src="http://ufx.space/UFX.js"></script>
+<script src="peeper.js"></script>
 <script src="grid.js"></script>
 <script src="control.js"></script>
 <script src="things.js"></script>
@@ -8,6 +9,7 @@
 <script type="text/javascript">
 "use strict"
 var tau = 2 * Math.PI
+function clamp(x, a, b) { return x < a ? a : x > b ? b : x }
 var canvas = document.getElementById("canvas")
 var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
@@ -26,9 +28,11 @@ UFX.scenes.load = {
 		this.f = 0
 	},
 	think: function (dt) {
-		var mstate = UFX.mouse.state()
-		if (mstate.left.down) {
-			UFX.scene.swap("play")
+		if (UFX.mouse.pos) {
+			var mstate = UFX.mouse.state()
+			if (mstate && mstate.left.down) {
+				UFX.scene.swap("play")
+			}
 		}
 	},
 	draw: function () {
