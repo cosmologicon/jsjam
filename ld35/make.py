@@ -45,7 +45,7 @@ def randompos(gsize):
 
 def randomshape(gsize):
 	offsets = random.choice([
-		[[0,0]],
+#		[[0,0]],
 		[[0,0],[1,0]],
 		[[0,0],[0,1]],
 		[[0,0],[0,1],[0,2]],
@@ -114,7 +114,7 @@ def printstate(state):
 
 best = 0
 while True:
-	state = randomstate((5, 4), 2, 6)
+	state = randomstate((5, 5), 2, 6)
 	n = solve(state)
 	if n is None:
 		continue

@@ -2,7 +2,8 @@
 
 UFX.scenes.play = {
 	start: function () {
-		var ldata = leveldata[1]
+		var jlevel = localStorage.ld35save
+		var ldata = leveldata[jlevel]
 		this.gsize = ldata.gsize
 		var things = this.things = [
 			new You(ldata.you[0], ldata.you[1]),
@@ -24,6 +25,7 @@ UFX.scenes.play = {
 		
 		this.record = []
 		this.step()
+		this.curtain = 1
 	},
 	step: function () {
 		var state = {
@@ -59,7 +61,19 @@ UFX.scenes.play = {
 		this.things.forEach(thing => thing.think(dt))
 		this.ideas.forEach(idea => idea.think(dt))
 		this.idea0.think(2 * dt)
-		if (kstate && kstate.down.backspace) this.backup()
+		if (kstate) {
+			if (kstate.down.backspace) this.backup()
+			if (kstate.down[1]) this.skiptolevel(1)
+			if (kstate.down[2]) this.skiptolevel(2)
+			if (kstate.down[3]) this.skiptolevel(3)
+			if (kstate.down[4]) this.skiptolevel(4)
+			if (kstate.down[5]) this.skiptolevel(5)
+		}
+		this.curtain = clamp(this.curtain - 2 * dt, 0, 1)
+	},
+	skiptolevel: function (n) {
+		localStorage.ld35save = n
+		UFX.scene.swap("play")
 	},
 	draw: function () {
 		UFX.draw("fs blue f0")
@@ -71,7 +85,7 @@ UFX.scenes.play = {
 
 		context.save()
 		grid.look()
-		UFX.draw("fs #111 fr 0 0", this.gsize)
+		UFX.draw("fs #004 fr 0 0", this.gsize)
 		this.things.forEach(draw)
 		this.ideas.forEach(draw)
 		if (this.C) {
@@ -80,6 +94,7 @@ UFX.scenes.play = {
 			UFX.draw("]")
 		}
 		context.restore()
+		if (this.curtain) UFX.draw("[ alpha", this.curtain, "fs white f0 ]")
 		
 		UFX.draw("[ tab left bottom fs white ss black lw 2 font 28px~'sans-serif'",
 			"sft", UFX.ticker.getrates().replace(/ /g, "~"), 10, canvas.height - 10, "]")

@@ -36,6 +36,58 @@ var Shifts = {
 	},
 }
 
+
+function fiery () {
+    var obj = UFX.texture.reduceargs(arguments)
+    var w = obj.width || obj.size || 256
+    var h = obj.height || obj.size || 256
+    var r0 = 250, dr = 0
+    var g0 = 150, dg = 100
+    var b0 = 100, db = 0
+    var canvas = UFX.texture.makecanvas(w, h), data = canvas.data
+    var ndata = UFX.texture.noisedata(obj, {fraclevel: 0, scale: 4})
+    for (var j = 0, k = 0 ; k < w*h ; j += 4, ++k) {
+        var v = Math.sin(20 * ndata[k])
+        data[j] = r0 + v*dr
+        data[j+1] = g0 + v*dg
+        data[j+2] = b0 + v*db
+        data[j+3] = 255
+    }
+    canvas.applydata()
+    return canvas
+}
+
+    UFX.texture.noisedata = function () {
+        var obj = this.reduceargs(arguments)
+        var w = obj.width || obj.size || 256
+        var h = obj.height || obj.size || 256
+        var xscale = obj.xscale || obj.scale || 8
+        var yscale = obj.yscale || obj.scale || 8
+        var zscale = obj.zscale || obj.scale || 8
+        var fraclevel = obj.fraclevel || 0
+        if (obj.seed) UFX.random.setseed(obj.seed)
+        var xoffset = ("xoffset" in obj) ? obj.xoffset : UFX.random(xscale)
+        var yoffset = ("yoffset" in obj) ? obj.yoffset : UFX.random(yscale)
+        var zoffset = ("zoffset" in obj) ? obj.zoffset : UFX.random(zscale)
+        var ndata = UFX.noise.wrapslice([w, h], zoffset, [xscale, yscale, zscale], [xoffset, yoffset, zoffset])
+        if (fraclevel) UFX.noise.fractalize(ndata, [w, h], fraclevel)
+        return ndata
+    }
+
+var Ntexture = 32
+var Ftextures = {}
+function getFtexture(x) {
+	var n = Math.floor(x * Ntexture) % Ntexture / Ntexture
+	if (!Ftextures[n]) {
+		Ftextures[n] = fiery({size: 128, xoffset: 1.1, yoffset: 2.3, zoffset: n * 4})
+	}
+	if (Object.keys(Ftextures).length == Ntexture && UFX.ticker.wfps * 3 > Ntexture) {
+		Ntexture *= 2
+	}
+	return Ftextures[n]
+}
+
+
 var Blocky = {
 	init: function () {
 	},
@@ -43,7 +95,7 @@ var Blocky = {
 		this.cells = obj.cells
 		this.color = obj.color || "white"
 		this.outline = celloutline(this.cells).map((p, j) => [j ? "l" : "m", p])
-		var ttype = obj.ttype || null
+		var ttype = this.ttype = obj.ttype || null
 		if (ttype == null) {
 			this.texture = null
 		} else if (ttype == "cement") {
@@ -56,6 +108,11 @@ var Blocky = {
 			this.texture = UFX.texture.ocean()
 		} else if (ttype == "spots") {
 			this.texture = UFX.texture.spots()
+		} else if (ttype == "nightsky") {
+			this.texture = UFX.texture.nightsky()
+		} else if (ttype == "enlightened") {
+			this.texture = UFX.texture.cement()
+			this.textures = {}
 		} else if (ttype == "stone") {
 			this.texture = UFX.texture.stone()
 			UFX.draw(this.texture.getContext("2d"), "drawimage0", UFX.texture.roughshade())
@@ -66,14 +123,23 @@ var Blocky = {
 			var xmin = Math.min.apply(Math, this.cells.map(cell => cell[0]))
 			var ymin = Math.min.apply(Math, this.cells.map(cell => cell[1]))
 			this.texturecommand = [
-				"[ t", xmin-0.1, ymin-0.1, "z 0.02 0.02 drawimage0", this.texture, "]",
+				"[ t", xmin-0.1, ymin-0.1, "z 0.01 0.01 drawimage0", this.texture, "]",
 			]
 		} else {
 			this.texturecommand = ["fs", this.color, "f"]
 		}
+		this.ttypet = 0
 	},
 	draw: function () {
 		UFX.draw("[ b", this.outline, "clip", this.texturecommand, "ss black lw 0.2 alpha 0.3 s ]")
+	},
+	think: function (dt) {
+		this.ttypet += dt
+		if (this.ttype == "enlightened") {
+			this.texturecommand = [
+				"[ t", -0.1, -0.1, "z 0.01 0.01 drawimage0", getFtexture(this.ttypet * 0.1), "]",
+			]
+		}
 	},
 	canslide: function (off) {
 		return !this.cells.some(function (cell) {
@@ -218,7 +284,7 @@ function You(x, y) {
 		y: y,
 		cells: [[0, 0]],
 		color: "#FFF",
-		ttype: "marble",
+		ttype: "enlightened",
 	})
 	this.awaken()
 	this.restopen = 1
