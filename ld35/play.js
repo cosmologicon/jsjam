@@ -162,11 +162,42 @@ UFX.scenes.play = {
 			5: "Level~5",
 			6: "Thank~you~for~playing!",
 		}[localStorage.ld35save]
-		var message = this.f == 1 ? "Click~to~begin" : "Loading:~" + Math.round(this.f * 100) + "%"
 		UFX.draw("[ t", sx / 2, sy / 2, "z", s/100, s/100,
-			"[ t 45 -48 font 5px~'Architects~Daughter' fs lg~0~2~0~5~0~white~1~#aaf ss black lw 0.5 tab right top sft0", title, "]",
-		"]")
+			"[ t 45 -48 font 5px~'Architects~Daughter' fs lg~0~2~0~5~0~white~1~#aaf ss black lw 0.5 tab right top sft0", title, "]")
 
+		if (localStorage.ld35save == 1) {
+			var nawake = this.things.map(x => +!!x.awake).reduce((a, b) => a + b)
+			if (nawake == 1 && !this.C) {
+				var message = [
+					"Drag Shaple to move.",
+					"Move Shaple to an idea to collect it.",
+				]
+			} else if (nawake == 1 && this.C) {
+				var message = [
+					"Each idea lets you awaken one shape.",
+					"Click on a shape to wake it up.",
+					"Shapes that are awake may move.",
+				]
+			} else if (nawake == 2) {
+				var message = [
+					"Only Shaple may collect ideas.",
+					"Wake up all shapes to complete the level.",
+				]
+			} else {
+				var message = []
+			}
+
+			if (message.length) {
+				UFX.draw("font 5px~'Architects~Daughter' fs lg~0~-3~0~-1~0~#ff7~1~#770 ss black lw 0.5 tab center bottom")
+				message.reverse().forEach(function (line, j) {
+					UFX.draw("[ t", 0, 48 - 6 * j)
+					context.strokeText(line, 0, 0)
+					context.fillText(line, 0, 0)
+					UFX.draw("]")
+				})
+			}
+		}
+		UFX.draw("]")
 		
 		if (this.curtain) UFX.draw("[ alpha", this.curtain, "fs white f0 ]")
 		if (window.location.href.includes("DEBUG")) {
