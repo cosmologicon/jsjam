@@ -43,6 +43,16 @@ var grid = {
 				cells[[x, y]] = thing
 			})
 		})
+		var g = {}
+		var gx = UFX.scenes.play.gsize[0], gy = UFX.scenes.play.gsize[1]
+		for (var x = 0 ; x < gx ; ++x) {
+			cells[[x, -1]] = g
+			cells[[x, gy]] = g
+		}
+		for (var y = 0 ; y < gy ; ++y) {
+			cells[[-1, y]] = g
+			cells[[gx, y]] = g
+		}
 	},
 
 	togame: function (p) {

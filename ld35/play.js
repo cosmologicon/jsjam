@@ -3,19 +3,24 @@
 UFX.scenes.play = {
 	start: function () {
 		var ldata = leveldata[1]
+		this.gsize = ldata.gsize
 		var things = this.things = [
 			new You(ldata.you[0], ldata.you[1]),
 		]
-		ldata.shapes.forEach(function (shape) {
-		
+		ldata.shapes.forEach(function (cells) {
+			things.push(new Shape(0, 0, cells))
 		})
 		ldata.blocks.forEach(function (cells) {
 			things.push(new Block(0, 0, cells))
 		})
 		grid.updatecells()
-		grid.x0 = ldata.x0
-		grid.y0 = ldata.y0
-		grid.R = ldata.R
+		grid.x0 = this.gsize[0] / 2
+		grid.y0 = this.gsize[1] / 2
+		grid.R = Math.max(this.gsize[0], this.gsize[1]) + 0.8
+
+		this.ideas = ldata.ideas.map(pos => new Idea(pos))
+		this.idea0 = new Idea([-0.5, -0.5])
+		this.C = 0
 	},
 	think: function (dt) {
 		var kstate = UFX.key.state()
@@ -24,6 +29,8 @@ UFX.scenes.play = {
 		control.think(dt, kstate, mstate, tstate)
 		grid.think(dt)
 		this.things.forEach(thing => thing.think(dt))
+		this.ideas.forEach(idea => idea.think(dt))
+		this.idea0.think(2 * dt)
 	},
 	draw: function () {
 		UFX.draw("fs blue f0")
@@ -35,7 +42,14 @@ UFX.scenes.play = {
 
 		context.save()
 		grid.look()
+		UFX.draw("fs #111 fr 0 0", this.gsize)
 		this.things.forEach(draw)
+		this.ideas.forEach(draw)
+		if (this.C) {
+			UFX.draw("[ z 1.5 1.5")
+			this.idea0.draw()
+			UFX.draw("]")
+		}
 		context.restore()
 		
 		UFX.draw("[ tab left bottom fs white ss black lw 2 font 28px~'sans-serif'",

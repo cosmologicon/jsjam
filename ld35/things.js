@@ -83,13 +83,23 @@ var Blocky = {
 			return other && other !== this
 		}.bind(this))
 	},
+	reposition: function (x, y) {
+		this.x = x
+		this.y = y
+		grid.updatecells()
+	},
 
 }
 
 var Peepers = {
 	construct: function (obj) {
-		this.peepx = obj.peepx || 0
-		this.peepy = obj.peepy || 0
+		var xs = [], ys = []
+		obj.cells.forEach(function (cell) {
+			xs.push(cell[0])
+			ys.push(cell[1])
+		})
+		this.peepx = xs.sort()[Math.floor(obj.cells.length / 2)]
+		this.peepy = ys.sort()[Math.floor(obj.cells.length / 2)]
 		this.iriscolor = UFX.random.choice([
 			"#00F", "#66F", "#009",
 			"#333", "#666",
@@ -168,6 +178,40 @@ var Peepers = {
 	},
 }
 
+var DrawIdea = {
+	init: function () {
+		this.t = UFX.random(1000)
+	},
+	think: function (dt) {
+		this.t += dt
+	},
+	draw: function () {
+		var h1 = 20 * Math.sin(this.t * 4)
+		var h2 = 20 * Math.sin(this.t * 4 + tau/3)
+		var h3 = 20 * Math.sin(this.t * 4 + 2*tau/3)
+		UFX.draw("[ t 0.5 0.5 z 0.01 0.01 r", this.t,
+			"b o 0 0 6 sh white 0 0 30 fs white f f f f",
+			"fs red sh red 0 0 10 b o 0", h1, "4 f b o 0", -h1, "4 f",
+			"r", tau / 3,
+			"fs #77F sh #77F 0 0 10 b o 0", h2, "4 f b o 0", -h2, "4 f",
+			"r", tau / 3,
+			"fs #4F4 sh #4F4 0 0 10 b o 0", h3, "4 f b o 0", -h3, "4 f",
+		"]")
+	},
+}
+
+var CollectsIdeas = {
+	reposition: function (x, y) {
+		for (var j = 0 ; j < UFX.scenes.play.ideas.length ; ++j) {
+			var idea = UFX.scenes.play.ideas[j]
+			if (idea.x == x && idea.y == y) {
+				UFX.scenes.play.C += 1
+				UFX.scenes.play.ideas.splice(j, 1)
+			}
+		}
+	},
+}
+
 function You(x, y) {
 	this.construct({
 		x: x,
@@ -181,6 +225,7 @@ function You(x, y) {
 }
 You.prototype = UFX.Thing()
 	.addcomp(WorldBound)
+	.addcomp(CollectsIdeas)
 	.addcomp(Shifts)
 	.addcomp(Blocky)
 	.addcomp(Peepers)
@@ -206,10 +251,20 @@ function Block(x, y, cells) {
 		x: x,
 		y: y,
 		cells: cells,
-		color: "#444",
+		color: "black",
 	})
 }
 Block.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Blocky)
+
+function Idea(pos) {
+	this.construct({
+		x: pos[0],
+		y: pos[1],
+	})
+}
+Idea.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(DrawIdea)
 

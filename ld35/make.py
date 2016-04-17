@@ -114,7 +114,7 @@ def printstate(state):
 
 best = 0
 while True:
-	state = randomstate((5, 4), 0, 6)
+	state = randomstate((3, 3), 0, 3)
 	n = solve(state)
 	if n is None:
 		continue
