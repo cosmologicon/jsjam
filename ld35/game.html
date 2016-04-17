@@ -62,6 +62,14 @@ UFX.scenes.load = {
 			"[ t 0 -10 font 40px~'Just~Me~Again~Down~Here' ss black lw 3 fs lg~0~-20~0~20~0~white~1~gray sft0 Shaple ]",
 			"[ t 15 30 font 5px~'Permanent~Marker' ss black lw 1 fs lg~0~-2~0~2~0~white~1~gray sft0", message, "]",
 		"]")
+		if (!(/Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor)) && Date.now() % 800 < 600) {
+			UFX.draw("[ t", sx / 2, sy / 2, "z", s/100, s/100, "r -0.15",
+				"tab center middle ss black fs yellow font 14px~'Permanent~Marker' lw 2",
+				"[ t 0 -14 sft0 Chrome ]",
+				"[ t 0 0 sft0 Strongly ]",
+				"[ t 0 14 sft0 Recommended ]",
+			"]")
+		}
 	},
 }
 UFX.scene.push("load")

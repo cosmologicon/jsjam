@@ -13,8 +13,16 @@ var control = {
 		} else {
 			this.pointed = null
 		}
-		if (UFX.scenes.play.won && Math.abs(gmpos[0] - 0.1) < 0.4 && Math.abs(gmpos[1] - 0.1 < 0.25)) {
+		function near(dx, dy, dr) {
+			return dx * dx + dy * dy < dr * dr
+		}
+		if (UFX.scenes.play.won && near(gmpos[0] - 0.1, gmpos[1] - 0.1, 0.4)) {
 			this.pointed = "next"
+		}
+
+		var gsize = UFX.scenes.play.gsize
+		if (UFX.scenes.play.record && UFX.scenes.play.record.length > 1 && near(gmpos[0] - (gsize[0] + 0.1), gmpos[1] - (gsize[1] - 0.1), 0.25)) {
+			this.pointed = "undo"
 		}
 		if (mstate && mstate.left.down) {
 			this.tdown = 0
@@ -37,6 +45,8 @@ var control = {
 				} else if (this.pointed == "next") {
 					UFX.scenes.play.skiptolevel(+localStorage.ld35save + 1)
 					UFX.resource.sounds.next.play()
+				} else if (this.pointed == "undo") {
+					UFX.scenes.play.backup()
 				}
 			}
 		}
@@ -74,9 +84,11 @@ var control = {
 		this.gmpos = gmpos
 	},
 	getcursor: function () {
+		if (this.dragged) return "grabbing"
 		if (this.pointed == "next") return "pointer"
 		if (this.pointed == "undo") return "pointer"
 		if (this.pointed && this.pointed.shiftable) return "pointer"
+		if (this.pointed && this.pointed instanceof Shape && !this.pointed.awake && UFX.scenes.play.C) return "pointer"
 		return "default"
 	},
 }

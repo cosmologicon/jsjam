@@ -140,11 +140,18 @@ UFX.scenes.play = {
 			UFX.draw("]")
 		}
 		if (this.won) {
-			UFX.draw("[ t 0.1 0.1 fs #ccf ss blue lw 0.03 sfr -0.4 -0.25 0.8 0.5",
-				"z 0.01 0.01 tab center middle font 24px~'Architects~Daughter'",
+			UFX.draw("[ t 0.1 0.1 fs #ccf ss blue lw 0.03 b o 0 0 0.4 s f",
+				"z 0.01 0.01 r -0.2 tab center middle font 24px~'Architects~Daughter'",
 				"fs blue ft NEXT 0 -10 ft LEVEL 0 10",
 			"]")
 		}
+		UFX.draw("[ t", this.gsize[0] + 0.1, this.gsize[1] - 0.1,
+			"alpha", (this.record.length > 1 ? 1 : 0.4),
+			"fs #a50 ss #f82 lw 0.05 b o 0 0 0.25 f s",
+			"z 0.01 0.01 r 0.2",
+			"tab center middle font 12px~'Architects~Daughter' fs #f82 ft UNDO 0 -7",
+			"font 24px~'Architects~Daughter' ft < 0 7",
+		"]")
 
 		context.restore()
 		var title = {
@@ -162,10 +169,10 @@ UFX.scenes.play = {
 
 		
 		if (this.curtain) UFX.draw("[ alpha", this.curtain, "fs white f0 ]")
-		
-		UFX.draw("[ tab left bottom fs white ss black lw 2 font 28px~'sans-serif'",
-			"sft", UFX.ticker.getrates().replace(/ /g, "~"), 10, canvas.height - 10, "]")
-		
+		if (window.location.href.includes("DEBUG")) {
+			UFX.draw("[ tab left bottom fs white ss black lw 2 font 28px~'sans-serif'",
+				"sft", UFX.ticker.getrates().replace(/ /g, "~"), 10, canvas.height - 10, "]")
+		}		
 		canvas.style.cursor = control.getcursor()
 	},
 }

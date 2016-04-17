@@ -42,6 +42,14 @@
 //  .. !b .. .. !g
 
 
+//  81
+//  XX .b .b !. .e
+//  !a .. .c .c !e
+//  .a .a .. .c .f
+//  .. !. .d .f .f
+//  YY .. !d XX !.
+
+
 
 var leveldata = {
 	//  slightly higher than 21
