@@ -28,12 +28,30 @@
 
 
 var leveldata = {
+	//  slightly higher than 21
+	//  .. .b .c
+	//  !a YY ..
+	//  !a .a !.
+	1: {
+		gsize: [3, 3],
+		you: [1, 1],
+		shapes: [
+			[[0, 1], [0, 2], [1, 2]],
+			[[1, 0]],
+			[[2, 0]],
+		],
+		blocks: [
+		],
+		ideas: [
+			[0, 1], [0, 2], [2, 2],
+		],
+	},
 	//  55
 	//  .a .a .a ..
 	//  YY !. .c .c
 	//  !. XX !d .c
 	//  .b .b .. !.
-	1: {
+	3: {
 		gsize: [4, 4],
 		you: [0, 1],
 		shapes: [
@@ -54,7 +72,7 @@ var leveldata = {
 	//  .b !b .. .e
 	//  !b YY .d .e
 	//  .. !. .d ..
-	2: {
+	4: {
 		gsize: [4, 4],
 		you: [1, 2],
 		shapes: [

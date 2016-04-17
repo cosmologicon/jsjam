@@ -28,6 +28,7 @@ var control = {
 					if (UFX.scenes.play.C) {
 						UFX.scenes.play.C -= 1
 						this.pointed.awaken()
+						UFX.scenes.play.step()
 					}
 				}
 			}
@@ -49,6 +50,7 @@ var control = {
 				if (this.dragged.canslide([Math.sign(dx), Math.sign(dy)])) {
 					if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
 						this.dragged.reposition(this.dragged.x + Math.sign(dx), this.dragged.y + Math.sign(dy))
+						UFX.scenes.play.step()
 						continue
 					}
 				} else {

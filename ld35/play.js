@@ -21,6 +21,34 @@ UFX.scenes.play = {
 		this.ideas = ldata.ideas.map(pos => new Idea(pos))
 		this.idea0 = new Idea([-0.5, -0.5])
 		this.C = 0
+		
+		this.record = []
+		this.step()
+	},
+	step: function () {
+		var state = {
+			objs: this.things.map(thing => [thing.x, thing.y, thing.awake, thing.shiftable, thing.restopen]),
+			ideas: this.ideas.map(idea => [idea.x, idea.y]),
+			C: this.C,
+		}
+		this.record.push(state)
+	},
+	backup: function () {
+		if (this.record.length < 2) return
+		this.record.pop()
+		this.load(this.record[this.record.length - 1])
+	},
+	load: function (state) {
+		this.C = state.C
+		this.ideas = state.ideas.map(pos => new Idea(pos))
+		state.objs.forEach(function (obj, j) {
+			this.things[j].x = obj[0]
+			this.things[j].y = obj[1]
+			this.things[j].awake = obj[2]
+			this.things[j].shiftable = obj[3]
+			this.things[j].restopen = obj[4]
+		}.bind(this))
+		grid.updatecells()
 	},
 	think: function (dt) {
 		var kstate = UFX.key.state()
@@ -31,6 +59,7 @@ UFX.scenes.play = {
 		this.things.forEach(thing => thing.think(dt))
 		this.ideas.forEach(idea => idea.think(dt))
 		this.idea0.think(2 * dt)
+		if (kstate && kstate.down.backspace) this.backup()
 	},
 	draw: function () {
 		UFX.draw("fs blue f0")
