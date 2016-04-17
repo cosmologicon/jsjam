@@ -17,21 +17,37 @@ UFX.maximize.onadjust = function () {
 	sx = canvas.width
 	sy = canvas.height
 }
-UFX.maximize.fill(canvas, "aspect")
+UFX.maximize.fill(canvas, "total")
 // UFX.key.init()
 UFX.mouse.init(canvas)
 
 UFX.scenes.load = {
+	start: function () {
+		this.f = 0
+	},
 	think: function (dt) {
+		var mstate = UFX.mouse.state()
+		if (mstate.left.down) {
+			UFX.scene.swap("play")
+		}
 	},
 	draw: function () {
-		UFX.draw("fs red f0")
+		UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#004", 1, "#77F"), "f0")
+		var s = Math.min(sx, sy)
+		var message = this.f == 1 ? "Click~to~begin" : "Loading:~" + Math.round(this.f * 100) + "%"
+		UFX.draw("[ t", sx / 2, sy / 2, "z", s/100, s/100,
+			"tab center middle",
+			"[ t -14 -30 font 15px~'Just~Me~Again~Down~Here' ss black lw 2 fs lg~0~-7~0~7~0~white~1~gray sft0 Wake~Up ]",
+			"[ t 0 -10 font 40px~'Just~Me~Again~Down~Here' ss black lw 3 fs lg~0~-20~0~20~0~white~1~gray sft0 Shaple ]",
+			"[ t 0 30 font 5px~'Permanent~Marker' ss black lw 1 fs lg~0~-2~0~2~0~white~1~gray sft0", message, "]",
+		"]")
 	},
 }
 UFX.scene.push("load")
-UFX.resource.onload = function () {
-	UFX.scene.swap("play")
+UFX.resource.onloading = function (f) {
+	UFX.scenes.load.f = f
 }
+UFX.resource.loadwebfonts("Rock Salt", "Permanent Marker", "Just Me Again Down Here")
 UFX.resource.load()
 
 </script>

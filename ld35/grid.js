@@ -5,11 +5,32 @@ function getcell(cstring) {
 	return cstring.split(",").map(x => +x)
 }
 
+var ocache = {}
+function celloutline(cells) {
+	if (ocache[cells]) return ocache[cells]
+	var sides = []
+	cells.forEach(function (cell) {
+		var x0 = cell[0], y0 = cell[1], x1 = x0 + 1, y1 = y0 + 1
+		sides.push([x0, y0, x0, y1])
+		sides.push([x0, y1, x1, y1])
+		sides.push([x1, y1, x1, y0])
+		sides.push([x1, y0, x0, y0])
+	})
+	sides = sides.filter(s => !sides.map(a => a.join()).includes([s[2], s[3], s[0], s[1]].join()))
+	var steps = {}
+	sides.forEach(s => steps[s.slice(0, 2)] = s.slice(2, 4))
+	var outline = [sides[0].slice(0, 2)]
+	while (outline.length == 1 || outline[0].join() != outline[outline.length - 1].join()) {
+		outline.push(steps[outline[outline.length - 1]])
+	}
+	return ocache[cells] = outline
+}
+
 // Handles the camera
 var grid = {
 	x0: 0,  // center of grid window
 	y0: 0,
-	R: 4,  // approximate height of grid window, in blocks
+	R: 7,  // approximate height of grid window, in blocks
 	z: 20,  // scale of a single block, in pixels (set by calling think)
 
 	cells: {},

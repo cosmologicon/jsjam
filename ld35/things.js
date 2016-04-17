@@ -42,11 +42,11 @@ var Blocky = {
 	construct: function (obj) {
 		this.cells = obj.cells || []
 		this.color = obj.color || "white"
+		this.outline = celloutline(this.cells).map((p, j) => [j ? "l" : "m", p])
+		console.log(this.outline)
 	},
 	draw: function () {
-		this.cells.forEach(function (block) {
-			UFX.draw("[ t", block, "fs", this.color, "fr 0.05 0.05 0.9 0.9 ]")
-		}.bind(this))
+		UFX.draw("[ b", this.outline, "clip fs", this.color, "f ss white lw 0.2 alpha 0.2 s ]")
 	},
 	canslide: function (off) {
 		return !this.cells.some(function (cell) {
@@ -83,7 +83,7 @@ var Peepers = {
 function You() {
 	this.construct({
 		cells: [[0, 0]],
-		color: "red",
+		color: "#A44",
 	})
 }
 You.prototype = UFX.Thing()
@@ -93,11 +93,12 @@ You.prototype = UFX.Thing()
 	.addcomp(Peepers)
 
 function Shape(x, y, cells) {
+	var color = "#" + UFX.random.word(3, "234567")
 	this.construct({
 		x: x,
 		y: y,
 		cells: cells,
-		color: "#840",
+		color: color,
 	})
 }
 Shape.prototype = UFX.Thing()

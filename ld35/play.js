@@ -1,12 +1,37 @@
 "use strict"
+
 UFX.scenes.play = {
 	start: function () {
+		var shapes = [
+			// monomino?
+			[[0, 0]],
+			// dominoes
+			[[0, 0], [1, 0]],
+			[[0, 0], [0, 1]],
+			// triominoes
+			[[0, 0], [-1, 0], [1, 0]],
+			[[0, 0], [-1, 0], [0, 1]],
+			[[0, 0], [-1, 0], [0, -1]],
+			[[0, 0], [1, 0], [0, 1]],
+			[[0, 0], [1, 0], [0, -1]],
+			[[0, 0], [0, 1], [0, -1]],
+		]
+
 		this.things = [
 			new You(),
-			new Block(1, -1, [[0, 0], [1, 0]]),
-			new Shape(-2, -2, [[0, 0], [0, 1], [1, 0]]),
 		]
 		grid.updatecells()
+		
+		while (this.things.length < 100) {
+			var x = UFX.random.rand(-8, 8)
+			var y = UFX.random.rand(-8, 8)
+			var shape = UFX.random.choice(shapes)
+			if (shape.some(cell => grid.cells[[cell[0] + x, cell[1] + y]])) {
+				continue
+			}
+			this.things.push(new Shape(x, y, shape))
+			grid.updatecells()
+		}
 	},
 	think: function (dt) {
 		var kstate = UFX.key.state()
