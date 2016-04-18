@@ -270,17 +270,17 @@ var Peepers = {
 }
 
 var DrawIdea = {
-	init: function () {
-		this.t = UFX.random(1000)
+	construct: function () {
+		this.trot = UFX.random(1000)
 	},
 	think: function (dt) {
-		this.t += dt
+		this.trot += dt
 	},
 	draw: function () {
-		var h1 = 20 * Math.sin(this.t * 4)
-		var h2 = 20 * Math.sin(this.t * 4 + tau/3)
-		var h3 = 20 * Math.sin(this.t * 4 + 2*tau/3)
-		UFX.draw("[ t 0.5 0.5 z 0.01 0.01 r", this.t,
+		var h1 = 20 * Math.sin(this.trot * 4)
+		var h2 = 20 * Math.sin(this.trot * 4 + tau/3)
+		var h3 = 20 * Math.sin(this.trot * 4 + 2*tau/3)
+		UFX.draw("[ t 0.5 0.5 z 0.01 0.01 r", this.trot,
 			"b o 0 0 6 sh white 0 0 30 fs white f f f f",
 			"fs red sh red 0 0 10 b o 0", h1, "4 f b o 0", -h1, "4 f",
 			"r", tau / 3,

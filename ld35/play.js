@@ -145,12 +145,15 @@ UFX.scenes.play = {
 				"fs blue ft NEXT 0 -10 ft LEVEL 0 10",
 			"]")
 		}
-		UFX.draw("[ t", this.gsize[0] + 0.1, this.gsize[1] - 0.1,
+		UFX.draw("[",
 			"alpha", (this.record.length > 1 ? 1 : 0.4),
-			"fs #a50 ss #f82 lw 0.05 b o 0 0 0.25 f s",
-			"z 0.01 0.01 r 0.2",
-			"tab center middle font 12px~'Architects~Daughter' fs #f82 ft UNDO 0 -7",
-			"font 24px~'Architects~Daughter' ft < 0 7",
+			"fs #a50 ss #f82 lw 0.05",
+			"[ t", this.gsize[0] + 0.1, this.gsize[1] - 0.1, "b o 0 0 0.25 f s",
+			"z 0.01 0.01 r 0.2 tab center middle font 12px~'Architects~Daughter' fs #f82 ft UNDO 0 -7",
+			"font 24px~'Architects~Daughter' ft < 0 7 ]",
+			"[ t", -0.1, this.gsize[1] - 0.1, "b o 0 0 0.25 f s",
+			"z 0.01 0.01 r -0.2 tab center middle font 12px~'Architects~Daughter' fs #f82 ft RESET 0 -7",
+			"font 24px~'Architects~Daughter' ft << 0 7 ]",
 		"]")
 
 		context.restore()

@@ -24,6 +24,9 @@ var control = {
 		if (UFX.scenes.play.record && UFX.scenes.play.record.length > 1 && near(gmpos[0] - (gsize[0] + 0.1), gmpos[1] - (gsize[1] - 0.1), 0.25)) {
 			this.pointed = "undo"
 		}
+		if (UFX.scenes.play.record && UFX.scenes.play.record.length > 1 && near(gmpos[0] - 0.1, gmpos[1] - (gsize[1] - 0.1), 0.25)) {
+			this.pointed = "reset"
+		}
 		if (mstate && mstate.left.down) {
 			this.tdown = 0
 			this.pdown = gmpos
@@ -47,6 +50,8 @@ var control = {
 					UFX.resource.sounds.next.play()
 				} else if (this.pointed == "undo") {
 					UFX.scenes.play.backup()
+				} else if (this.pointed == "reset") {
+					UFX.scenes.play.skiptolevel(localStorage.ld35save)
 				}
 			}
 		}
