@@ -13,6 +13,9 @@
 "use strict"
 var tau = 2 * Math.PI
 function clamp(x, a, b) { return x < a ? a : x > b ? b : x }
+if (window.location.href.includes("DEBUG")) {
+	window.onerror = function (error, url, line) { document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>" }
+}
 if (!localStorage.ld35save) localStorage.ld35save = 1
 var canvas = document.getElementById("canvas")
 var context = canvas.getContext("2d")
@@ -27,6 +30,8 @@ UFX.maximize.fill(canvas, "total")
 UFX.key.init()
 UFX.key.watchlist = "backspace esc 1 2 3 4 5 6".split(" ")
 UFX.mouse.init(canvas)
+UFX.touch.init(canvas)
+UFX.touch.multi = false
 
 UFX.scenes.load = {
 	start: function () {
@@ -39,19 +44,26 @@ UFX.scenes.load = {
 		grid.think(0)
 	},
 	think: function (dt) {
-		if (UFX.mouse.pos) {
-			var mstate = UFX.mouse.state()
-			if (mstate && mstate.left.down) {
-				UFX.scenes.play.skiptolevel(localStorage.ld35save, true)
-				UFX.resource.sounds.song.play(-1)
+		var kstate = UFX.key.state()
+		var mstate = UFX.mouse.state()
+		var tstate = UFX.touch.state()
+		if (this.f == 1) {
+			if (mstate && mstate.left.up) {
+				UFX.touch.active = false
+				this.go()
 			}
-			var kstate = UFX.key.state()
-			var mstate = UFX.mouse.state()
-			var tstate = UFX.touch.state()
-			control.think(dt, kstate, mstate, tstate)
+			if (tstate && tstate.end.length && tstate.end[0].pos) {
+				UFX.mouse.active = false
+				this.go()
+			}
 		}
+		control.think(dt, kstate, mstate, tstate)
 		grid.think(dt)
 		this.you.think(dt)
+	},
+	go: function () {
+		UFX.scenes.play.skiptolevel(localStorage.ld35save, true)
+		UFX.resource.sounds.song.play(-1)
 	},
 	draw: function () {
 		UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#004", 1, "#77F"), "f0")

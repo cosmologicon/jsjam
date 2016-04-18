@@ -5,7 +5,13 @@ var control = {
 	dragged: null,
 	gmpos: null,
 	think: function (dt, kstate, mstate, tstate) {
-		var mpos = mstate && mstate.pos, gmpos = null, mcell = null
+		var mpos = (mstate && mstate.pos) || (tstate && UFX.touch.ps.length && UFX.touch.ps[0])
+		var down = (mstate && mstate.left.down) || (tstate && tstate.start.length && tstate.start[0].pos)
+		var up = (mstate && mstate.left.up) || (tstate && tstate.end.length && tstate.end[0].pos)
+		if (!mpos && down) mpos = down
+		if (!mpos && up) mpos = up
+
+		var gmpos = null, mcell = null
 		if (mpos) {
 			gmpos = grid.togame(mpos)
 			mcell = gmpos.map(Math.floor)
@@ -16,18 +22,19 @@ var control = {
 		function near(dx, dy, dr) {
 			return dx * dx + dy * dy < dr * dr
 		}
-		if (UFX.scenes.play.won && near(gmpos[0] - 0.1, gmpos[1] - 0.1, 0.4)) {
-			this.pointed = "next"
+		if (gmpos) {
+			if (UFX.scenes.play.won && near(gmpos[0] - 0.1, gmpos[1] - 0.1, 0.4)) {
+				this.pointed = "next"
+			}
+			var gsize = UFX.scenes.play.gsize
+			if (UFX.scenes.play.record && UFX.scenes.play.record.length > 1 && near(gmpos[0] - (gsize[0] + 0.1), gmpos[1] - (gsize[1] - 0.1), 0.25)) {
+				this.pointed = "undo"
+			}
+			if (UFX.scenes.play.record && UFX.scenes.play.record.length > 1 && near(gmpos[0] - 0.1, gmpos[1] - (gsize[1] - 0.1), 0.25)) {
+				this.pointed = "reset"
+			}
 		}
-
-		var gsize = UFX.scenes.play.gsize
-		if (UFX.scenes.play.record && UFX.scenes.play.record.length > 1 && near(gmpos[0] - (gsize[0] + 0.1), gmpos[1] - (gsize[1] - 0.1), 0.25)) {
-			this.pointed = "undo"
-		}
-		if (UFX.scenes.play.record && UFX.scenes.play.record.length > 1 && near(gmpos[0] - 0.1, gmpos[1] - (gsize[1] - 0.1), 0.25)) {
-			this.pointed = "reset"
-		}
-		if (mstate && mstate.left.down) {
+		if (down) {
 			this.tdown = 0
 			this.pdown = gmpos
 			if (!this.dragged && this.pointed && this.pointed.shiftable) {
@@ -35,7 +42,7 @@ var control = {
 				this.draganchor = [gmpos[0] - this.dragged.x, gmpos[1] - this.dragged.y]
 			}
 		}
-		if (mstate && mstate.left.up) {
+		if (up) {
 			this.dragged = null
 			if (this.tdown < 0.3 && Math.abs(gmpos[0] - this.pdown[0]) < 0.2 && Math.abs(gmpos[1] - this.pdown[1]) < 0.2) {
 				if (this.pointed instanceof Shape && !this.pointed.awake) {
