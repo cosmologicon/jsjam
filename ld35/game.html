@@ -3,6 +3,7 @@
 <script src="http://ufx.space/UFX.js"></script>
 <script src="peeper.js"></script>
 <script src="level.js"></script>
+<script src="story.js"></script>
 <script src="grid.js"></script>
 <script src="control.js"></script>
 <script src="things.js"></script>
@@ -40,7 +41,7 @@ UFX.scenes.load = {
 		if (UFX.mouse.pos) {
 			var mstate = UFX.mouse.state()
 			if (mstate && mstate.left.down) {
-				UFX.scene.swap("play")
+				UFX.scenes.play.skiptolevel(localStorage.ld35save, true)
 				UFX.resource.sounds.song.play(-1)
 			}
 			var kstate = UFX.key.state()

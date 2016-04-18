@@ -107,9 +107,10 @@ UFX.scenes.play = {
 			this.won = true
 		}
 	},
-	skiptolevel: function (n) {
+	skiptolevel: function (n, dostory) {
 		localStorage.ld35save = n
 		UFX.scene.swap("play")
+		if (dostory) UFX.scene.push("story")
 	},
 	draw: function () {
 		function getcolor(t) {

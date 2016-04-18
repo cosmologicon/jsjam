@@ -46,7 +46,7 @@ var control = {
 						UFX.resource.sounds.think.play()
 					}
 				} else if (this.pointed == "next") {
-					UFX.scenes.play.skiptolevel(+localStorage.ld35save + 1)
+					UFX.scenes.play.skiptolevel(+localStorage.ld35save + 1, true)
 					UFX.resource.sounds.next.play()
 				} else if (this.pointed == "undo") {
 					UFX.scenes.play.backup()
