@@ -95,6 +95,7 @@ UFX.scenes.play = {
 		if (kstate) {
 			if (kstate.down.backspace) this.backup()
 			if (kstate.down.esc) this.skiptolevel(localStorage.ld35save)
+			if (kstate.down[0]) this.skiptolevel(0)
 			if (kstate.down[1]) this.skiptolevel(1)
 			if (kstate.down[2]) this.skiptolevel(2)
 			if (kstate.down[3]) this.skiptolevel(3)
@@ -159,6 +160,7 @@ UFX.scenes.play = {
 
 		context.restore()
 		var title = {
+			0: "Minus~World",
 			1: "Level~1",
 			2: "Level~2",
 			3: "Level~3",

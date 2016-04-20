@@ -82,6 +82,58 @@ def randomstate(gsize, nblock, nasleep):
 			state = addasleep(state, shape)
 	return state
 
+def mutate(state):
+	a = random.random()
+	if a < 0.5:
+		return mutateshape(state)
+	elif a < 0.7:
+		return mutateidea(state)
+	elif a < 0.9:
+		return mutateblock(state)
+	else:
+		return mutateyou(state)
+
+def mutateshape(state):
+	gsize, you, asleep, awake, blocks, ideas, C = state
+	if not asleep:
+		return state
+	removed = random.choice(asleep)
+	asleep = tuple(a for a in asleep if a != removed)
+	nstate = gsize, you, asleep, awake, blocks, ideas, C
+	while True:
+		shape = randomshape(gsize)
+		if canadd(nstate, shape):
+			return addasleep(nstate, shape)
+def mutateidea(state):
+	gsize, you, asleep, awake, blocks, ideas, C = state
+	if not ideas:
+		return state
+	removed = random.choice(ideas)
+	ideas = tuple(i for i in ideas if i != removed)
+	while True:
+		p = randompos(gsize)
+		if p not in you and p not in blocks and p not in ideas:
+			ideas = tuple(sorted(ideas + (p,)))
+			return gsize, you, asleep, awake, blocks, ideas, C
+def mutateblock(state):
+	gsize, you, asleep, awake, blocks, ideas, C = state
+	if not blocks:
+		return state
+	removed = random.choice(blocks)
+	blocks = tuple(b for b in blocks if b != removed)
+	while True:
+		p = randompos(gsize)
+		if p not in you and p not in blocks and p not in ideas and not any(p in shape for shape in asleep):
+			blocks = tuple(sorted(blocks + (p,)))
+			return gsize, you, asleep, awake, blocks, ideas, C
+def mutateyou(state):
+	gsize, you, asleep, awake, blocks, ideas, C = state
+	while True:
+		nyou = randompos(gsize)
+		if nyou not in blocks and nyou not in ideas and not any(nyou in shape for shape in asleep):
+			return gsize, (nyou,), asleep, awake, blocks, ideas, C
+
+
 def solve(state):
 	t0 = time.time()
 	q = [state]
@@ -100,6 +152,28 @@ def solve(state):
 				return scores[nstate]
 	return None
 
+def solution(state):
+	q = [state]
+	scores = {state: 0}
+	parent = {state: None}
+
+	while q:
+		state = q.pop(0)
+		for nstate in adjs(state):
+			if nstate in scores:
+				continue
+			q.append(nstate)
+			scores[nstate] = scores[state] + 1
+			parent[nstate] = state
+			if iswin(nstate):
+				sol = [nstate]
+				while parent[sol[-1]] != None:
+					sol.append(parent[sol[-1]])
+				return reversed(sol)
+	return None
+
+
+
 def printstate(state):
 	(gx, gy), you, asleep, awake, blocks, ideas, C = state
 	grid = [[".." for x in range(gx)] for y in range(gy)]
@@ -111,6 +185,10 @@ def printstate(state):
 		letter = chr(ord("a") + j)
 		for x, y in a:
 			grid[y][x] = grid[y][x][0] + letter
+	for j, a in enumerate(awake):
+		letter = chr(ord("A") + j)
+		for x, y in a:
+			grid[y][x] = grid[y][x][0] + letter
 	for x, y in ideas:
 		grid[y][x] = "!" + grid[y][x][1]
 	for y in range(gy):
@@ -118,17 +196,63 @@ def printstate(state):
 			print grid[y][x],
 		print
 
+cscores = {}
+def getscore(state):
+	if state not in cscores:
+		cscores[state] = solve(state)
+	return cscores[state]
 
-best = 0
+def randomgoodstate():
+	while True:
+		state = randomstate((5, 5), 2, 6)
+		if getscore(state) != None:
+			return state
+
+state = (
+	(5, 5),
+	((2, 2),),
+	(((1,0),(2,0),(3,0)),),
+	(
+		((0,0),(0,1),(1,1)),
+		((3,1),(4,1)),
+		((0,3),(0,4),(1,4)),
+		((2,3),(2,4),(3,3)),
+		((3,4),(4,4)),
+	),
+	((2,1),(4,3)),
+	((4,0),),
+	0
+)
+
+printstate(state)
+
+for s in solution(state):
+	print
+	printstate(s)
+
+exit()
+
+
+
+states = []
+while len(states) < 20:
+	states.append(randomgoodstate())
+
+best = [0]
 while True:
-	state = randomstate((5, 5), 2, 6)
-	n = solve(state)
-	if n is None:
+	nstate = random.choice(states)
+	while random.random() < 0.8:
+		nstate = mutate(nstate)
+	if getscore(nstate) == None:
 		continue
-	if n > best:
+	states.append(nstate)
+	while len(states) < 20:
+		states.append(randomgoodstate())
+	states = sorted(set(states), key = getscore, reverse = True)[:20]
+	s = [getscore(state) for state in states]
+	if s > best:
+		best = s
 		print
-		best = n
-		print n
-		printstate(state)
-
+		print s
+		printstate(states[0])
 

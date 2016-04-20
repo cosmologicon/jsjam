@@ -17,6 +17,9 @@ if (window.location.href.includes("DEBUG")) {
 	window.onerror = function (error, url, line) { document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>" }
 }
 if (!localStorage.ld35save) localStorage.ld35save = 1
+;"0123456".split("").forEach(function (level) {
+	if (window.location.href.includes("level=" + level)) localStorage.ld35save = level
+})
 var canvas = document.getElementById("canvas")
 var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
@@ -28,7 +31,7 @@ UFX.maximize.onadjust = function () {
 }
 UFX.maximize.fill(canvas, "total")
 UFX.key.init()
-UFX.key.watchlist = "backspace esc 1 2 3 4 5 6".split(" ")
+UFX.key.watchlist = "backspace esc 0 1 2 3 4 5 6".split(" ")
 UFX.mouse.init(canvas)
 UFX.touch.init(canvas)
 UFX.touch.multi = false

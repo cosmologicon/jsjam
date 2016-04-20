@@ -76,7 +76,6 @@ UFX.scenes.story = {
 		var mstate = UFX.mouse.state()
 		var tstate = UFX.touch.state()
 		var up = (mstate && mstate.left.up) || (tstate && tstate.end.length && tstate.end[0].pos)
-		if (UFX.random.flip(0.01)) console.log(mstate)
 		if (this.t > 0.5) {
 			if (up || (kstate && kstate.down.esc)) {
 				UFX.scene.pop()
@@ -86,7 +85,10 @@ UFX.scenes.story = {
 	draw: function () {
 		var text = story[localStorage.ld35save]
 		UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#004", 1, "#77F"), "f0")
-		if (!text) return
+		if (!text) {
+			UFX.scene.pop()
+			return
+		}
 		var s = Math.min(sx, sy)
 		UFX.draw("[ t", sx / 2, sy / 2, "z", s/100, s/100, "font 7px~'Architects~Daughter' tab center middle",
 			"fs lg~0~-3~0~3~0~#7f7~1~#0a0 ss black lw 1")
