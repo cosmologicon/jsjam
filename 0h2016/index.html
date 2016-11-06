@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<title>Game Name - 0h game jam entry</title>
+<script src="http://ufx.space/UFX.js"></script>
+<canvas id=canvas></canvas>
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = 160
+canvas.height = 90
+var context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+function think(dt) {
+	var pstate = UFX.pointer(canvas)
+	var ppos = pstate.pos ? [pstate.pos[0] * 160 / canvas.width, pstate.pos[1] * 90 / canvas.height] : null
+
+
+	UFX.draw("fs #004 f0")
+	UFX.draw("[ z", canvas.width / 160, canvas.height / 90)
+	UFX.draw("[ alpha 0.2 t 50 20 r -0.1 tab center middle",
+		"fs white font 12px~'Viga' ft Game~Name 0 -8",
+		"fs white font 4px~'Viga' ft by~Christopher~Night 0 0",
+		"fs white font 5px~'Viga' ft 0h~Game~Jam~entry 0 6",
+	"]")
+	UFX.draw("[ alpha 0.2 fs white font 4px~'Viga' ft", UFX.ticker.getrates().replace(/ /g, "~"), 2, 85, "]")
+
+	UFX.draw("]")
+}
+UFX.resource.loadwebfonts("Viga")
+UFX.resource.onload = function () {
+	UFX.ticker.init(think, null, { minups: 5, maxups: 240 })
+}
+</script>
