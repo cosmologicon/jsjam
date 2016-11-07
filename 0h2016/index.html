@@ -1,28 +1,107 @@
 <!DOCTYPE html>
-<title>Game Name - 0h game jam entry</title>
+<title>Moonrise - 0h game jam entry</title>
 <script src="http://ufx.space/UFX.js"></script>
 <canvas id=canvas></canvas>
 <script>
+var tau = 2 * Math.PI
 var canvas = document.getElementById("canvas")
 canvas.width = 160
 canvas.height = 90
 var context = canvas.getContext("2d")
 UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
+
+var pos = [0, 0]
+var d = [12, 20, 27, 33]
+var omega = [3, -2, 1.2, -0.5]
+var theta = [
+	UFX.random.angle(), 
+	UFX.random.angle(), 
+	UFX.random.angle(), 
+	UFX.random.angle(), 
+]
+for (var j = 0 ; j < 4 ; ++j) {
+	for (var k = 0 ; k < j + 1 ; ++k) {
+		d.push(d[j])
+		omega.push(omega[j])
+		theta.push(theta[j] + tau * (k + 1) / (j + 2))
+	}
+}
+var N = d.length
+var drops = []
+var hi = 0
+
 function think(dt) {
 	var pstate = UFX.pointer(canvas)
 	var ppos = pstate.pos ? [pstate.pos[0] * 160 / canvas.width, pstate.pos[1] * 90 / canvas.height] : null
+	if (ppos) pos = ppos
+	var mpos = [], dmpos = []
+	for (var j = 0 ; j < N ; ++j) {
+		theta[j] += dt * omega[j]
+		var S = Math.sin(theta[j]), C = Math.cos(theta[j])
+		mpos[j] = [
+			pos[0] + d[j] * C,
+			pos[1] + d[j] * S,
+		]
+		dmpos[j] = [
+			d[j] * omega[j] * -S,
+			d[j] * omega[j] * C,
+		]
+	}
+	if (UFX.random() < dt) {
+		drops.push({
+			x: UFX.random(160),
+			y: 0,
+			vx: 0,
+			vy: 0,
+			n: 0,
+		})
+	}
+	drops = drops.filter(function (drop) {
+		for (var j = 0 ; j < N ; ++j) {
+			if (drop.vy <= 0 || dmpos[j][1] >= 0) continue
+			var dx = drop.x - mpos[j][0], dy = drop.y - mpos[j][1]
+			var r = Math.sqrt(dx * dx + dy * dy)
+			if (r < 5) {
+				drop.n += 1
+				if (drop.n > hi) hi = drop.n
+				drop.vy = -drop.vy
+				drop.vy -= 3
+				drop.vx += 3 * dx
+				drop.vx += 0.5 * dmpos[j][0]
+			}
+		}
+		drop.vy += 20 * dt
+		drop.x += drop.vx * dt
+		drop.y += drop.vy * dt
+		return drop.y < 100
+	})
 
 
-	UFX.draw("fs #004 f0")
 	UFX.draw("[ z", canvas.width / 160, canvas.height / 90)
+	UFX.draw("[ fs", UFX.draw.lingrad(0, 0, 160, 90, 0, "#001", 1, "#004"), "fr 0 0 160 90 ]")
 	UFX.draw("[ alpha 0.2 t 50 20 r -0.1 tab center middle",
-		"fs white font 12px~'Viga' ft Game~Name 0 -8",
-		"fs white font 4px~'Viga' ft by~Christopher~Night 0 0",
-		"fs white font 5px~'Viga' ft 0h~Game~Jam~entry 0 6",
+		"[ t 0 -10 fs", UFX.draw.lingrad(0, -4, 0, 4, 0, "white", 1, "gray"), "font 12px~'Viga' ft0 Moonrise ]",
+		"[ t 0 0 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "white", 1, "gray"), "font 6px~'Viga' ft0 by~Christopher~Night ]",
+		"[ t 0 8 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "white", 1, "gray"), "font 4px~'Viga' ft0 made~in~0~hours ]",
+		"[ t 0 13 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "white", 1, "gray"), "font 4px~'Viga' ft0 for~the~0h~Game~Jam ]",
 	"]")
 	UFX.draw("[ alpha 0.2 fs white font 4px~'Viga' ft", UFX.ticker.getrates().replace(/ /g, "~"), 2, 85, "]")
+	UFX.draw("[ alpha 0.3 tab center middle fs white font 7px~'Viga' ft high:~" + hi, 140, 20, "]")
 
+	for (var j = 0 ; j < 4 ; ++j) {
+		UFX.draw("[ t", pos, "b o 0 0", d[j], "ss #444 lw 0.3 s ]")
+	}
+	var grad = UFX.draw.radgrad(-2, -2, 0, -2, -2, 5, 0, "#999", 1, "#222")
+	for (var j = 0 ; j < N ; ++j) {
+		UFX.draw("[ t", mpos[j], "b o 0 0 3 fs", grad, "f ]")
+	}
+	drops.forEach(function (drop) {
+		var color0 = ["#004", "#440", "#404", "#040", "#400"][drop.n % 5]
+		var color1 = ["#00F", "#FF0", "#F0F", "#0F0", "#F00"][drop.n % 5]
+		UFX.draw("[ t", drop.x, drop.y, "b o 0 0 2 fs", color0, "f ss", color1, "lw 0.25 s",
+			"tab center middle font 3px~'Viga' fs", color1, "ft0 " + drop.n, "]")
+	})
 	UFX.draw("]")
 }
 UFX.resource.loadwebfonts("Viga")
