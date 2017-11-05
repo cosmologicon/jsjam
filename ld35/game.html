@@ -32,9 +32,7 @@ UFX.maximize.onadjust = function () {
 UFX.maximize.fill(canvas, "total")
 UFX.key.init()
 UFX.key.watchlist = "backspace esc 0 1 2 3 4 5 6".split(" ")
-UFX.mouse.init(canvas)
-UFX.touch.init(canvas)
-UFX.touch.multi = false
+UFX.pointer(canvas)
 
 UFX.scenes.load = {
 	start: function () {
@@ -48,19 +46,11 @@ UFX.scenes.load = {
 	},
 	think: function (dt) {
 		var kstate = UFX.key.state()
-		var mstate = UFX.mouse.state()
-		var tstate = UFX.touch.state()
-		if (this.f == 1) {
-			if (mstate && mstate.left.up) {
-				UFX.touch.active = false
-				this.go()
-			}
-			if (tstate && tstate.end.length && tstate.end[0].pos) {
-				UFX.mouse.active = false
-				this.go()
-			}
+		var pstate = UFX.pointer()
+		if (this.f == 1 && pstate.up) {
+			this.go()
 		}
-		control.think(dt, kstate, mstate, tstate)
+		control.think(dt, kstate, pstate)
 		grid.think(dt)
 		this.you.think(dt)
 	},

@@ -85,9 +85,8 @@ UFX.scenes.play = {
 	},
 	think: function (dt) {
 		var kstate = UFX.key.state()
-		var mstate = UFX.mouse.state()
-		var tstate = UFX.touch.state()
-		control.think(dt, kstate, mstate, tstate)
+		var pstate = UFX.pointer()
+		control.think(dt, kstate, pstate)
 		grid.think(dt)
 		this.things.forEach(thing => thing.think(dt))
 		this.ideas.forEach(idea => idea.think(dt))

@@ -73,11 +73,9 @@ UFX.scenes.story = {
 	think: function (dt) {
 		this.t += dt
 		var kstate = UFX.key.state()
-		var mstate = UFX.mouse.state()
-		var tstate = UFX.touch.state()
-		var up = (mstate && mstate.left.up) || (tstate && tstate.end.length && tstate.end[0].pos)
+		var pstate = UFX.pointer()
 		if (this.t > 0.5) {
-			if (up || (kstate && kstate.down.esc)) {
+			if (pstate.up || (kstate && kstate.down.esc)) {
 				UFX.scene.pop()
 			}
 		}

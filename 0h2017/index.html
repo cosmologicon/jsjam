@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<title> - 0h game jam 2017 entry</title>
+<script src="http://ufx.space/UFX.js"></script>
+<canvas id=canvas></canvas>
+<script>
+let tau = 2 * Math.PI
+let canvas = document.getElementById("canvas")
+let sx = 400, sy = 400
+canvas.width = sx
+canvas.height = sy
+let context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+
+let pos = [0, 0]
+function think(dt) {
+	var pstate = UFX.pointer(canvas)
+	var ppos = pstate.pos ? [pstate.pos[0] * sx / canvas.width, pstate.pos[1] * sy / canvas.height] : null
+	if (ppos) pos = ppos
+
+	UFX.draw("[ z", canvas.width / sx, canvas.height / sy)
+	UFX.draw("[ fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#001", 1, "#004"), "fr 0 0", sx, sy, "]")
+	UFX.draw("[ alpha 0.5 t 140 100 r -0.1 tab center middle z 2 2",
+		"[ t 0 -10 fs", UFX.draw.lingrad(0, -4, 0, 4, 0, "white", 1, "gray"), "font 12px~'Viga' ft0 0h~game~jam~entry ]",
+		"[ t 0 0 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "white", 1, "gray"), "font 6px~'Viga' ft0 by~Christopher~Night ]",
+		"[ t 0 8 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "white", 1, "gray"), "font 4px~'Viga' ft0 made~in~0~hours ]",
+		"[ t 0 13 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "white", 1, "gray"), "font 4px~'Viga' ft0 for~the~0h~Game~Jam ]",
+	"]")
+	UFX.draw("]")
+}
+UFX.resource.loadwebfonts("Viga")
+UFX.resource.onload = function () {
+	UFX.ticker.init(think, null, { minups: 5, maxups: 240 })
+}
+</script>

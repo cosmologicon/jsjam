@@ -4,13 +4,8 @@ var control = {
 	pointed: null,
 	dragged: null,
 	gmpos: null,
-	think: function (dt, kstate, mstate, tstate) {
-		var mpos = (mstate && mstate.pos) || (tstate && UFX.touch.ps.length && UFX.touch.ps[0])
-		var down = (mstate && mstate.left.down) || (tstate && tstate.start.length && tstate.start[0].pos)
-		var up = (mstate && mstate.left.up) || (tstate && tstate.end.length && tstate.end[0].pos)
-		if (!mpos && down) mpos = down
-		if (!mpos && up) mpos = up
-
+	think: function (dt, kstate, pstate) {
+		var mpos = pstate.pos
 		var gmpos = null, mcell = null
 		if (mpos) {
 			gmpos = grid.togame(mpos)
@@ -34,7 +29,7 @@ var control = {
 				this.pointed = "reset"
 			}
 		}
-		if (down) {
+		if (pstate.down) {
 			this.tdown = 0
 			this.pdown = gmpos
 			if (!this.dragged && this.pointed && this.pointed.shiftable) {
@@ -42,7 +37,7 @@ var control = {
 				this.draganchor = [gmpos[0] - this.dragged.x, gmpos[1] - this.dragged.y]
 			}
 		}
-		if (up) {
+		if (pstate.up) {
 			this.dragged = null
 			if (this.tdown < 0.3 && Math.abs(gmpos[0] - this.pdown[0]) < 0.2 && Math.abs(gmpos[1] - this.pdown[1]) < 0.2) {
 				if (this.pointed instanceof Shape && !this.pointed.awake) {
