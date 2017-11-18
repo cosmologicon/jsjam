@@ -3,6 +3,9 @@
 let words = {
 	font: "Architects Daughter",
 	fsize: 20,
+	setfont: function (context, size, font, bold) {
+		context.font = (bold ? "bold " : "") + size + "px '" + font + "'"
+	},
 	init: function () {
 		this.canvas = document.createElement("canvas")
 		this.context = this.canvas.getContext("2d")
@@ -10,10 +13,10 @@ let words = {
 	onlist: function (word) {
 		return words.list.includes(word.toLowerCase())
 	},
-	getwidth: function (text, size, font) {
+	getwidth: function (text, size, font, bold) {
 		size = size || this.fsize
 		font = font || this.font
-		this.context.font = size + "px '" + font + "'"
+		this.setfont(this.context, size, font, bold)
 		return this.context.measureText(text).width
 	},
 	breaktext: function (text) {
@@ -38,7 +41,7 @@ let words = {
 		let ret = []
 		let x = 0, jline = 0
 		this.breaktext(text).forEach(obj => {
-			let w = this.getwidth(obj.text, opts.size, opts.font)
+			let w = this.getwidth(obj.text, opts.size, opts.font, opts.bold)
 			if (x + w > width && obj.isspace) {
 				jline += 1
 				x = 0
@@ -70,4 +73,35 @@ let words = {
 }
 words.init()
 
+function Statement(text, pos) {
+	this.size = 32
+	this.lineheight = this.size * 1.2
+	this.width = 320
+	this.font = "Architects Daughter"
+	this.bold = true
+	this.text = text
+	this.texts = words.splittext(this.text, { size: this.size, width: this.width, font: this.font, bold: this.bold })
+	this.pos = pos
+	this.drawables = []
+	this.targets = []
+	this.texts.forEach((t, j) => {
+		t.y = this.lineheight * t.jline
+		t.pos = [t.x, t.y]
+		t.j = j
+		if (!t.isspace) this.drawables.push(t)
+		if (t.isword) this.targets.push(t)
+	})
+	this.nline = this.texts[this.texts.length - 1].jline + 1
+	this.ymax = this.pos[1] + this.lineheight * this.nline
+}
+Statement.prototype = {
+	draw: function () {
+		UFX.draw("t", this.pos)
+		words.setfont(context, this.size, this.font, this.bold)
+		this.drawables.forEach(obj => {
+			let color = !obj.isword ? "white" : words.onlist(obj.text) ? "#77F" : "#F77"
+			UFX.draw("fs", color, "ft", obj.text, obj.pos)
+		})
+	},
+}
 

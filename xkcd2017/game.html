@@ -4,6 +4,7 @@
 <script src="http://ufx.space/UFX.js"></script>
 <script src="play.js"></script>
 <script src="words.js"></script>
+<script src="control.js"></script>
 <script type="text/javascript">
 "use strict"
 let tau = 2 * Math.PI
@@ -13,7 +14,8 @@ if (window.location.href.includes("DEBUG")) {
 }
 // if (!localStorage.xkcd2017save) localStorage.xkcd2017save = 1
 let canvas = document.getElementById("canvas")
-canvas.width = 160 ; canvas.height = 90
+let sx0 = canvas.width = 1600
+let sy0 = canvas.height = 900
 let context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 UFX.scene.init({ minups: 5, maxups: 120 })
