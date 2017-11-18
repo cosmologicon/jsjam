@@ -5,6 +5,7 @@
 <script src="play.js"></script>
 <script src="words.js"></script>
 <script src="control.js"></script>
+<script src="simple-writer-word-list.js"></script>
 <script type="text/javascript">
 "use strict"
 let tau = 2 * Math.PI
@@ -48,7 +49,7 @@ UFX.resource.onloading = function (f) {
 }
 UFX.resource.onload = function () {
 	UFX.scenes.load.loaded = true
-	words.list = UFX.resource.data.wordlist.split("\n")
+	words.makelist(UFX.resource.data.wordlist)
 }
 UFX.resource.loadwebfonts("Architects Daughter")
 UFX.resource.load({

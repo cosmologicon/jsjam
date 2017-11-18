@@ -25,6 +25,14 @@ let SquarePanel = {
 	draw: function () {
 		UFX.draw("rr", 4, 4, this.w - 8, this.h - 8, 5, "fs #666 f lw 3 ss #111 s")
 	},
+	centerpos: function () {
+		return [this.x + this.w / 2, this.y + this.h / 2]
+	},
+	dcenterpos: function (pos) {
+		let [x, y] = pos
+		let [x0, y0] = this.centerpos()
+		return [x - x0, y - y0]
+	},
 }
 
 let Graduated = {
@@ -34,6 +42,17 @@ let Graduated = {
 		this.setting = "setting" in obj ? obj.setting : this.min
 		this.range = []
 		for (let j = this.min ; j <= this.max ; ++j) this.range.push(j)
+	},
+}
+
+let Ranged = {
+	setup: function (obj) {
+		this.min = obj.min
+		this.max = obj.max
+		this.setting = "setting" in obj ? obj.setting : this.min
+	},
+	fsetting: function () {
+		return (this.setting - this.min) / (this.max - this.min)
 	},
 }
 
@@ -133,5 +152,65 @@ VSlider.prototype = UFX.Thing()
 		},
 	})
 	
+function Coil(obj) {
+	this.setup(obj)
+	this.R = 0.35 * Math.min(this.w, this.h)
+	this.r = 0.1 * this.R
+	
+}
+let aaa = 2
+Coil.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(SquarePanel)
+	.addcomp(Ranged)
+	.addcomp({
+		Rthetaset: function () {
+			return [(1 - 0.1 * this.fsetting()) * this.R, tau * this.setting]
+		},
+		xyset: function () {
+			let [R, theta] = this.Rthetaset()
+			return [R * Math.sin(theta), -R * Math.cos(theta)]
+		},
+		draw: function () {
+			let nseg = Math.floor(10 * this.setting)
+			let R0 = 0.2 * this.R
+			let [R1, theta1] = this.Rthetaset()
+			let Rs = []
+			for (let j = 0 ; j <= nseg ; ++j) {
+				let R = j / nseg * (R1 - R0) + R0
+				let theta = tau * j / nseg * this.setting
+				let S = Math.sin(theta), C = Math.cos(theta)
+				let a = aaa * R * this.setting / nseg
+				Rs.push([
+					[R * S - a * C, -R * C - a * S],
+					[R * S, -R * C],
+					[R * S + a * C, -R * C + a * S],
+				])
+			}
+			UFX.draw("[ t", this.w / 2, this.h / 2)
+			let [x0, y0] = Rs[0][0]
+			UFX.draw("b m 0 0 c", y0/2, 0, y0/2, y0, 0, y0)
+			for (let j = 0 ; j < nseg ; ++j) {
+				UFX.draw("c", Rs[j][2], Rs[j+1][0], Rs[j+1][1])
+			}
+			UFX.draw("ss black lw 10 s ss #588 lw 6 s")
+			if (this.focused == 1) UFX.draw("sh white 0 0", 0.5 * this.r)
+			UFX.draw("b o", this.xyset(), this.r, "fs orange f ss black lw 3 s")
+			UFX.draw("]")
+		},
+		focusat: function (pos) {
+			let [x, y] = this.dcenterpos(pos)
+			let [x0, y0] = this.xyset()
+			let dx = x - x0, dy = y - y0
+			if (dx * dx + dy * dy <= 4 * this.r * this.r) return 1
+		},
+		grabify: function (pos, kpoint) {
+			let [x, y] = this.dcenterpos(pos)
+			if (!x && !y) return
+			let theta = Math.atan2(x, -y) / tau
+			let dsetting = (theta - this.setting + 100.5) % 1 - 0.5
+			this.setting = clamp(this.setting + dsetting, this.min, this.max)
+		},
+	})
 	
 

@@ -10,8 +10,29 @@ let words = {
 		this.canvas = document.createElement("canvas")
 		this.context = this.canvas.getContext("2d")
 	},
+	makelist: function (words) {
+		this.list = {}
+		words.split("\n").forEach(word => {
+			word = word.toLowerCase()
+			this.list[word] = 1
+			;["ing", "er", "ed", "s"].forEach(suffix => {
+				this.list[word + suffix] = 1
+			})
+			if (word.endsWith("e")) {
+				let sword = word.slice(0, -1)
+				;["ing", "er", "ed"].forEach(suffix => {
+					this.list[sword + suffix] = 1
+				})
+			}
+			;["ing", "er", "ed"].forEach(suffix => {
+				this.list[word + word.slice(-1) + suffix] = 1
+			})
+		})
+		this.list = {}
+		__WORDS.split("|").forEach(word => this.list[word] = 1)
+	},
 	onlist: function (word) {
-		return words.list.includes(word.toLowerCase())
+		return !!this.list[word.toLowerCase()]
 	},
 	getwidth: function (text, size, font, bold) {
 		size = size || this.fsize
