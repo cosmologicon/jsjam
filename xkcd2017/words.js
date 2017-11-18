@@ -100,8 +100,22 @@ Statement.prototype = {
 		words.setfont(context, this.size, this.font, this.bold)
 		this.drawables.forEach(obj => {
 			let color = !obj.isword ? "white" : words.onlist(obj.text) ? "#77F" : "#F77"
-			UFX.draw("fs", color, "ft", obj.text, obj.pos)
+			UFX.draw("[")
+			if (obj.j === this.focused) {
+				UFX.draw("sh black 0 0", 0.2 * this.size)
+				color = "white"
+			}
+			UFX.draw("fs", color, "ft", obj.text, obj.pos, "]")
 		})
+	},
+	focusat: function (pos) {
+		let x = pos[0] - this.pos[0], y = pos[1] - this.pos[1]
+		for (let j = 0 ; j < this.targets.length ; ++j) {
+			let target = this.targets[j]
+			let dx = x - target.x, dy = y - target.y
+			if (0 <= dx && dx < target.w && -this.size <= dy && dy < 0) return target.j
+		}
+		return null
 	},
 }
 

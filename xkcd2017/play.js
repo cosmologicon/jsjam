@@ -21,6 +21,10 @@ UFX.scenes.play = {
 		this.jpoint = null
 		this.kpoint = null
 		this.grabbing = false
+
+		this.wjpoint = null
+		this.wkpoint = null
+		this.grabbing = false
 	},
 	think: function (dt) {
 		let pstate = UFX.pointer()
@@ -55,6 +59,22 @@ UFX.scenes.play = {
 		}
 		this.controls.forEach((control, j) => {
 			if (j != this.jpoint) control.focused = null
+		})
+
+		this.wjpoint = null
+		this.wkpoint = null
+		for (let j = 0 ; j < this.statements.length ; ++j) {
+			let statement = this.statements[j]
+			let k = statement.focusat(pos)
+			if (k !== null && k !== undefined) {
+				this.wjpoint = j
+				this.wkpoint = k
+				statement.focused = k
+				break
+			}
+		}
+		this.statements.forEach((statement, j) => {
+			if (j != this.wjpoint) statement.focused = null
 		})
 	},
 	draw: function () {
