@@ -15,7 +15,16 @@ UFX.scenes.play = {
 			return s
 		})
 		this.controls = [
-			new Knob({ x: 1000, y: 200, w: 400, h: 400, min: 0, max: 5, setting: 2 }),
+//			new Knob({ x: 1000, y: 200, w: 400, h: 400, min: 0, max: 5, setting: 2 }),
+			new Button({ x: 1000, y: 200, w: 100, h: 100, color: "red", shape: "square" }),
+			new Button({ x: 1000, y: 300, w: 100, h: 100, color: "red", shape: "circle" }),
+			new Button({ x: 1000, y: 400, w: 100, h: 100, color: "red", shape: "star" }),
+			new Button({ x: 1100, y: 200, w: 100, h: 100, color: "orange", shape: "square" }),
+			new Button({ x: 1100, y: 300, w: 100, h: 100, color: "orange", shape: "circle" }),
+			new Button({ x: 1100, y: 400, w: 100, h: 100, color: "orange", shape: "star" }),
+			new Button({ x: 1200, y: 200, w: 100, h: 100, color: "blue", shape: "square" }),
+			new Button({ x: 1200, y: 300, w: 100, h: 100, color: "blue", shape: "circle" }),
+			new Button({ x: 1200, y: 400, w: 100, h: 100, color: "blue", shape: "star" }),
 //			new VSlider({ x: 700, y: 200, w: 250, h: 500, min: 0, max: 5, setting: 3 }),
 			new Coil({ x: 500, y: 200, w: 400, h: 400, min: 2, max: 4, setting: 3 }),
 		]
@@ -25,15 +34,22 @@ UFX.scenes.play = {
 
 		this.wjpoint = null
 		this.wkpoint = null
+		this.wpoint = null
 		this.grabbing = false
+		
+		this.pos = [0, 0]
+
+		lesson.reset()
 	},
 	think: function (dt) {
 		let pstate = UFX.pointer()
-		let pos = pstate.pos ? pstate.pos.slice() : [0, 0]
+		let pos = this.pos = pstate.pos ? pstate.pos.slice() : [0, 0]
 		pos[0] *= sx0 / sx
 		pos[1] *= sy0 / sy
 		if (this.grabbing) {
-			this.controls[this.jpoint].grabify(pos, this.kpoint)
+			if (this.jpoint !== null) {
+				this.controls[this.jpoint].grabify(pos, this.kpoint)
+			}
 			if (pstate.up) {
 				this.grabbing = false
 			}
@@ -41,9 +57,17 @@ UFX.scenes.play = {
 			this.setfocused(pos)
 			if (this.jpoint !== null && pstate.down) {
 				this.grabbing = true
+			} else if (this.wjpoint !== null && pstate.down) {
+				this.grabbing = true
 			}
 		}
 		canvas.style.cursor = this.grabbing ? "move" : this.jpoint == null ? "default" : "pointer"
+		if (this.grabbing && this.wjpoint != null && lesson.focusat(pos)) {
+			lesson.learn(this.statements[this.wjpoint].getword(this.wkpoint))
+		} else {
+			lesson.learn(null)
+		}
+		lesson.think(dt)
 	},
 	setfocused: function (pos) {
 		this.jpoint = null
@@ -64,6 +88,7 @@ UFX.scenes.play = {
 
 		this.wjpoint = null
 		this.wkpoint = null
+		this.wpoint = null
 		for (let j = 0 ; j < this.statements.length ; ++j) {
 			let statement = this.statements[j]
 			let k = statement.focusat(pos)
@@ -71,12 +96,19 @@ UFX.scenes.play = {
 				this.wjpoint = j
 				this.wkpoint = k
 				statement.focused = k
+				this.wpoint = statement.getobj(k)
 				break
 			}
 		}
 		this.statements.forEach((statement, j) => {
 			if (j != this.wjpoint) statement.focused = null
 		})
+	},
+	dropword: function () {
+		this.wjpoint = null
+		this.wkpoint = null
+		this.wpoint = null
+		this.grabbing = false
 	},
 	draw: function () {
 		UFX.draw("fs #600 f0")
@@ -88,6 +120,10 @@ UFX.scenes.play = {
 		}
 		this.statements.forEach(draw)
 		this.controls.forEach(draw)
+		draw(lesson)
+		if (this.grabbing && this.wpoint) {
+			this.statements[this.wjpoint].drawat(this.pos, this.wkpoint)
+		}
 		UFX.draw("]")
 	},
 }

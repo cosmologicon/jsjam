@@ -22,9 +22,6 @@ let SquarePanel = {
 		this.w = obj.w
 		this.h = obj.h
 	},
-	draw: function () {
-		UFX.draw("rr", 4, 4, this.w - 8, this.h - 8, 5, "fs #666 f lw 3 ss #111 s")
-	},
 	centerpos: function () {
 		return [this.x + this.w / 2, this.y + this.h / 2]
 	},
@@ -34,7 +31,17 @@ let SquarePanel = {
 		return [x - x0, y - y0]
 	},
 }
-
+let DrawPanel = {
+	draw: function () {
+		UFX.draw("rr", 4, 4, this.w - 8, this.h - 8, 5, "fs #666 f lw 3 ss #111 s")
+	},
+}
+let Shaped = {
+	setup: function (obj) {
+		this.shape = obj.shape
+		this.color = obj.color
+	},
+}
 let Graduated = {
 	setup: function (obj) {
 		this.min = obj.min
@@ -155,13 +162,12 @@ VSlider.prototype = UFX.Thing()
 function Coil(obj) {
 	this.setup(obj)
 	this.R = 0.35 * Math.min(this.w, this.h)
-	this.r = 0.1 * this.R
-	
+	this.r = 0.1 * this.R	
 }
-let aaa = 2
 Coil.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(SquarePanel)
+	.addcomp(DrawPanel)
 	.addcomp(Ranged)
 	.addcomp({
 		Rthetaset: function () {
@@ -180,7 +186,7 @@ Coil.prototype = UFX.Thing()
 				let R = j / nseg * (R1 - R0) + R0
 				let theta = tau * j / nseg * this.setting
 				let S = Math.sin(theta), C = Math.cos(theta)
-				let a = aaa * R * this.setting / nseg
+				let a = 2 * R * this.setting / nseg
 				Rs.push([
 					[R * S - a * C, -R * C - a * S],
 					[R * S, -R * C],
@@ -210,6 +216,43 @@ Coil.prototype = UFX.Thing()
 			let theta = Math.atan2(x, -y) / tau
 			let dsetting = (theta - this.setting + 100.5) % 1 - 0.5
 			this.setting = clamp(this.setting + dsetting, this.min, this.max)
+		},
+	})
+	
+function Button(obj) {
+	this.setup(obj)
+	this.r = 0.8 * Math.min(this.w, this.h)
+}
+Button.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(SquarePanel)
+	.addcomp(Shaped)
+	.addcomp({
+		draw: function () {
+			UFX.draw("[ t", this.w / 2, this.h / 2)
+			UFX.draw("z", this.r, this.r)
+			if (this.shape == "circle") {
+				UFX.draw("b o 0 0 0.5")
+			} else if (this.shape == "square") {
+				UFX.draw("rr -0.45 -0.45 0.9 0.9 0.1")
+			} else if (this.shape == "star") {
+				UFX.draw("( m", 0, -0.6)
+				for (let j = 1 ; j < 10 ; ++j) {
+					let r = j % 2 ? 0.3 : 0.6
+					UFX.draw("l", r * Math.sin(j * tau / 10), -r * Math.cos(j * tau / 10))
+				}
+				UFX.draw(")")
+			}
+			UFX.draw("z", 1 / this.r, 1 / this.r)
+			if (this.focused == 1) UFX.draw("sh white 0 0", 0.2 * this.r)
+			UFX.draw("fs", this.color, "f lw 3 ss black s")
+			UFX.draw("]")
+		},
+		focusat: function (pos) {
+			let [x, y] = this.dcenterpos(pos)
+			if (x * x + y * y <= this.r * this.r) return 1
+		},
+		grabify: function (pos, kpoint) {
 		},
 	})
 	

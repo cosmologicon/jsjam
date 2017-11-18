@@ -10,7 +10,7 @@ let words = {
 		this.canvas = document.createElement("canvas")
 		this.context = this.canvas.getContext("2d")
 	},
-	makelist: function (words) {
+	makelist_old: function (words) {
 		this.list = {}
 		words.split("\n").forEach(word => {
 			word = word.toLowerCase()
@@ -28,8 +28,10 @@ let words = {
 				this.list[word + word.slice(-1) + suffix] = 1
 			})
 		})
+	},
+	makelist: function () {
 		this.list = {}
-		__WORDS.split("|").forEach(word => this.list[word] = 1)
+		__WORDS.split("|").forEach(word => this.list[word.toLowerCase()] = 1)
 	},
 	onlist: function (word) {
 		return !!this.list[word.toLowerCase()]
@@ -120,7 +122,8 @@ Statement.prototype = {
 		UFX.draw("t", this.pos)
 		words.setfont(context, this.size, this.font, this.bold)
 		this.drawables.forEach(obj => {
-			let color = !obj.isword ? "white" : words.onlist(obj.text) ? "#77F" : "#F77"
+			if (UFX.scenes.play.grabbing && obj === UFX.scenes.play.wpoint) return
+			let color = !obj.isword || !lesson.learned[obj.text] ? "white" : words.onlist(obj.text) ? "#77F" : "#F77"
 			UFX.draw("[")
 			if (obj.j === this.focused) {
 				UFX.draw("sh black 0 0", 0.2 * this.size)
@@ -128,6 +131,14 @@ Statement.prototype = {
 			}
 			UFX.draw("fs", color, "ft", obj.text, obj.pos, "]")
 		})
+	},
+	drawat: function (pos, kword) {
+		let obj = this.texts[kword]
+		UFX.draw("[ t", pos, "tab center middle")
+		words.setfont(context, this.size, this.font, this.bold)
+		let color = !obj.isword || !lesson.learned[obj.text] ? "white" : words.onlist(obj.text) ? "#77F" : "#F77"
+		UFX.draw("fs", color, "ft0", obj.text, "]")
+		UFX.draw("]")
 	},
 	focusat: function (pos) {
 		let x = pos[0] - this.pos[0], y = pos[1] - this.pos[1]
@@ -137,6 +148,12 @@ Statement.prototype = {
 			if (0 <= dx && dx < target.w && -this.size <= dy && dy < 0) return target.j
 		}
 		return null
+	},
+	getobj: function (kword) {
+		return this.texts[kword]
+	},
+	getword: function (kword) {
+		return this.texts[kword].text
 	},
 }
 
