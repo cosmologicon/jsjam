@@ -32,11 +32,8 @@ let Graduated = {
 		this.min = obj.min
 		this.max = obj.max
 		this.setting = "setting" in obj ? obj.setting : this.min
-	},
-	range: function () {
-		let ret = []
-		for (let j = this.min ; j <= this.max ; ++j) ret.push(j)
-		return ret
+		this.range = []
+		for (let j = this.min ; j <= this.max ; ++j) this.range.push(j)
 	},
 }
 
@@ -82,13 +79,59 @@ Knob.prototype = UFX.Thing()
 		grabify: function (pos, kpoint) {
 			let [x, y] = this.relativepos(pos)
 			let dx = x - this.w / 2, dy = y - this.h / 2
-			let ds = this.range().map(j => {
+			let ds = this.range.map(j => {
 				let theta = this.angleof(j)
 				return dx * Math.sin(theta) - dy * Math.cos(theta)
 			})
 			let jmax = ds.indexOf(Math.max.apply(Math, ds))
-			this.setting = this.range()[jmax]
+			this.setting = this.range[jmax]
 		},
 	})
+
+function VSlider(obj) {
+	this.setup(obj)
+}
+VSlider.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(SquarePanel)
+	.addcomp(Graduated)
+	.addcomp({
+		heightof: function (j) {
+			return (j - this.min) / (this.max - this.min) * 0.7 + 0.15
+		},
+		fracpos: function (pos) {
+			return [pos[0] * this.w, (1 - pos[1]) * this.h]
+		},
+		yset: function () {
+			return this.fracpos([0, this.heightof(this.setting)])[1]
+		},
+		draw: function () {
+			UFX.draw("[ ss #333")
+			this.range.forEach(j => {
+				let h = this.heightof(j)
+				let lw = j == this.min || j == this.max ? 5 : 2.5
+				UFX.draw("b m", this.fracpos([0.25, h]), "l", this.fracpos([0.75, h]), "lw", lw, "s")
+			})
+			UFX.draw("b m", this.fracpos([0.5, 0.12]), "l", this.fracpos([0.5, 0.88]), "lw 15 ss black s")
+			UFX.draw("t", this.fracpos([0.5, this.heightof(this.setting)]))
+			UFX.draw("tr", -0.2 * this.w, -0.05 * this.h, 0.4 * this.w, 0.1 * this.h)
+			UFX.draw("[ sh white 0 0", (this.focused == 1 ? 0.2 * this.w : 0), "fs #963 f ]")
+			UFX.draw("lw 3 ss black s")
+			UFX.draw("]")
+		},
+		focusat: function (pos) {
+			let [x, y] = this.relativepos(pos)
+			let dx = x - this.w / 2, dy = y - this.yset()
+			let r = this.w / 3
+			if (dx * dx + dy * dy <= r * r) return 1
+		},
+		grabify: function (pos, kpoint) {
+			let [x, y] = this.relativepos(pos)
+			let ds = this.range.map(j => Math.abs(y - this.fracpos([0, this.heightof(j)])[1]))
+			let jmin = ds.indexOf(Math.min.apply(Math, ds))
+			this.setting = this.range[jmin]
+		},
+	})
+	
 	
 

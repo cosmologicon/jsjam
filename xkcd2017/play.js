@@ -16,6 +16,7 @@ UFX.scenes.play = {
 		})
 		this.controls = [
 			new Knob({ x: 1000, y: 200, w: 400, h: 400, min: 0, max: 5, setting: 2 }),
+			new VSlider({ x: 700, y: 200, w: 250, h: 500, min: 0, max: 5, setting: 3 }),
 		]
 		this.jpoint = null
 		this.kpoint = null
@@ -37,6 +38,7 @@ UFX.scenes.play = {
 				this.grabbing = true
 			}
 		}
+		canvas.style.cursor = this.grabbing ? "move" : this.jpoint == null ? "default" : "pointer"
 	},
 	setfocused: function (pos) {
 		this.jpoint = null
