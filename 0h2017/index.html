@@ -1,31 +1,129 @@
 <!DOCTYPE html>
-<title> - 0h game jam 2017 entry</title>
+<title>Rainbows - 0h game jam 2017 entry</title>
 <script src="http://ufx.space/UFX.js"></script>
 <canvas id=canvas></canvas>
 <script>
 let tau = 2 * Math.PI
 let canvas = document.getElementById("canvas")
-let sx = 400, sy = 400
+let sx = 400, sy = 200
 canvas.width = sx
 canvas.height = sy
 let context = canvas.getContext("2d")
 UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
 
+let rainbow = UFX.draw.radgrad(0, 0, 0, 0, 0, 100,
+	0.82, "rgba(255,0,255,0)",
+	0.85, "purple",
+	0.88, "blue",
+	0.91, "rgb(0,255,0)",
+	0.94, "yellow",
+	0.97, "red",
+	1.00, "rgba(255,0,0,0)")
+function drawrainbow(x, y, r) {
+	UFX.draw("[ t", x, y, "z", r / 100, r / 100,
+		"fs", rainbow,
+		"fr", -100, -100, 200, 200,
+		"]")
+}
+
+
+let bows = []
+let drops = []
+let bow = null
+
+let land = []
+for (let j = 0 ; j < 402 ; ++j) {
+	let h1 = 180 + 20 * Math.sin(0.0223 * j + 2.354)
+	let h2 = 175 + 12 * Math.sin(0.0314 * j + 1.592)
+	let h3 = 172 + 10 * Math.sin(0.0456 * j + 18.901)
+	land.push(Math.min(h1, h2, h3))
+}
+
 let pos = [0, 0]
 function think(dt) {
 	var pstate = UFX.pointer(canvas)
 	var ppos = pstate.pos ? [pstate.pos[0] * sx / canvas.width, pstate.pos[1] * sy / canvas.height] : null
 	if (ppos) pos = ppos
+	if (pstate.down) {
+		bow = {
+			x: pos[0],
+			y: pos[1],
+			r: 0
+		}
+	}
+	if (pstate.up) {
+		bows.push(bow)
+		bow = null
+	}
+	if (bow) {
+		bow.x = pos[0]
+		bow.y = pos[1]
+		bow.r += 70 * dt
+	}
+	for (let j = 0 ; j < 10 ; ++j) {
+		if (UFX.random() < 10 * dt) {
+			drops.push({
+				x: UFX.random(400),
+				y: 0,
+				vx: 0,
+				vy: 20,
+				t: 0,
+			})
+		}
+	}
+	let allbows = bow ? bows.concat([bow]) : bows
+	drops.forEach(drop => {
+		drop.t += dt
+		drop.x += drop.vx * dt
+		drop.y += drop.vy * dt
+		drop.vy += 200 * dt
+		allbows.forEach(bow => {
+			let dx = drop.x - bow.x, dy = drop.y - bow.y
+			let dot = dx * drop.vx + dy * drop.vy
+			if (dot > 0) return
+			if (dx * dx + dy * dy > bow.r * bow.r) return
+			let d = Math.max(Math.sqrt(dx * dx + dy * dy), 0.1)
+			drop.x += (bow.r - d) * dx / d
+			drop.y += (bow.r - d) * dy / d
+			let v = Math.sqrt(drop.vx * drop.vx + drop.vy * drop.vy)
+			dx /= bow.r
+			dy /= bow.r
+			dot /= (bow.r * v)
+			drop.vx -= 1.8 * dx * v * dot
+			drop.vy -= 1.8 * dy * v * dot
+			
+		})
+	
+	})
+	drops = drops.filter(drop => drop.t < 3 && drop.x > 0 && drop.x < 400 && drop.y < land[Math.floor(drop.x)])
 
 	UFX.draw("[ z", canvas.width / sx, canvas.height / sy)
-	UFX.draw("[ fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#001", 1, "#004"), "fr 0 0", sx, sy, "]")
-	UFX.draw("[ alpha 0.5 t 140 100 r -0.1 tab center middle z 2 2",
-		"[ t 0 -10 fs", UFX.draw.lingrad(0, -4, 0, 4, 0, "white", 1, "gray"), "font 12px~'Viga' ft0 0h~game~jam~entry ]",
-		"[ t 0 0 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "white", 1, "gray"), "font 6px~'Viga' ft0 by~Christopher~Night ]",
-		"[ t 0 8 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "white", 1, "gray"), "font 4px~'Viga' ft0 made~in~0~hours ]",
-		"[ t 0 13 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "white", 1, "gray"), "font 4px~'Viga' ft0 for~the~0h~Game~Jam ]",
+	UFX.draw("[ fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#88F", 1, "#008"), "fr 0 0", sx, sy, "]")
+	UFX.draw("[ alpha 0.5 t 140 80 r -0.1 tab center middle z 2 2",
+		"[ t 0 -10 fs", UFX.draw.lingrad(0, -4, 0, 4, 0, "#444", 1, "black"), "font 12px~'Viga' ft0 Rainbows ]",
+		"[ t 0 0 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "#444", 1, "black"), "font 6px~'Viga' ft0 by~Christopher~Night ]",
+		"[ t 0 8 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "#444", 1, "black"), "font 4px~'Viga' ft0 made~in~0~hours ]",
+		"[ t 0 13 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "#444", 1, "black"), "font 4px~'Viga' ft0 for~the~0h~Game~Jam ]",
 	"]")
+
+	UFX.draw("[ alpha 0.5 t 320 120 r 0.1 tab center middle z 1.2 1.2",
+		"[ t 0 -10 fs", UFX.draw.lingrad(0, -4, 0, 4, 0, "#444", 1, "black"), "font 12px~'Viga' ft0 click~and~hold ]",
+		"[ t 0 0 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "#444", 1, "black"), "font 6px~'Viga' ft0 to~place~rainbows ]",
+		"[ t 0 8 fs", UFX.draw.lingrad(0, -2, 0, 2, 0, "#444", 1, "black"), "font 4px~'Viga' ft0 reload~page~to~reset ]",
+	"]")
+
+
+	bows.forEach(b => drawrainbow(b.x, b.y, b.r))
+	if (bow) {
+		drawrainbow(bow.x, bow.y, bow.r)
+	}
+	drops.forEach(drop => {
+		UFX.draw("b o", drop.x, drop.y, 1, "lw 0.4 ss white s")
+	})
+	UFX.draw("( m 0 200", land.map((h, j) => ["l", j, h]), "l 400 200 ) fs", UFX.draw.lingrad(200, 150, 200, 200, 0, "#0b0", 1, "#050"), "f")
+
+//	UFX.draw("[ t 10 191 fs black font 5px~'Viga' ft0 drops:~" + drops.length + " ]")
 	UFX.draw("]")
 }
 UFX.resource.loadwebfonts("Viga")
