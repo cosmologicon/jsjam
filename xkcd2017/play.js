@@ -22,7 +22,7 @@ UFX.scenes.play = {
 		this.statements.push(
 			new Statement("Cut the Red Power Stick", [800, 120], { size: 70, width: 900, center: true })
 		)
-		this.done = new Button({ x: 400, y: 740, w: 160, h: 160, shape: "star", color: "#aa6", label: "DONE", })
+		this.done = new Button({ x: 420, y: 710, w: 160, h: 160, shape: "star", color: "#aa6", label: "DONE", })
 		this.lcontrols = ldata.controls.map(cdata => {
 			let [cname, opts] = cdata
 			return new (window[cname])(opts)
@@ -45,6 +45,8 @@ UFX.scenes.play = {
 		this.pos = [0, 0]
 
 		lesson.reset()
+		
+		UFX.scene.push("talk", ["hi. you're new here. I'll show you how we do things. See those steps? Follow each step exactly, and then pick Done."])
 	},
 	think: function (dt) {
 		this.t = clamp(this.t - dt, 0, this.t0)
@@ -146,9 +148,9 @@ UFX.scenes.play = {
 		this.controls.forEach(draw)
 		this.statements.forEach(draw)
 		words.setfont(context, 60, "Passion One", false)
-		UFX.draw("[ tab center top fs orange sh black", Z(6), Z(6), 0,
-			"ft time:", 260, 760,
-			"ft", this.t.toFixed(this.t >= 10 ? 0 : 1), 260, 820,
+		UFX.draw("[ tab center top fs orange sh black", Z(6), Z(6), 0, "t", 300, 730,
+			"ft0 time:",
+			"t", 0, 60, "ft0", this.t.toFixed(this.t >= 10 ? 0 : 1),
 		"]")
 		draw(lesson)
 		if (this.grabbing && this.wpoint) {
@@ -200,4 +202,40 @@ UFX.scenes.win = UFX.Thing()
 UFX.scenes.timeup = UFX.Thing()
 	.addcomp(ShowMessage, "Out~of~time")
 
+UFX.scenes.talk = {
+	start: function (texts) {
+		this.texts = texts
+		this.t = 0
+		this.f = 0
+		this.ttext = 0
+		this.balloons = texts.map(text => new WordBalloon(text, [800, 200], { width: 1000, }))
+	},
+	think: function (dt) {
+		this.f = clamp(this.f + 2 * dt, 0, 1)
+		if (this.f == 1) {
+			this.ttext += dt
+		}
+		let pstate = UFX.pointer()
+		if (this.ttext > 0.4 && pstate.down) {
+			this.ttext = 0
+			if (this.balloons.length) this.balloons.shift()
+			if (!this.balloons.length) UFX.scene.pop()
+		}
+	},
+	draw: function () {
+		UFX.scenes.play.draw()
+		let alpha = 0.9 * this.f
+		UFX.draw("fs", "rgba(80,80,80," + alpha + ")", "f0")
+		if (this.f < 1) return
+		if (!this.balloons.length) return
+		UFX.draw("[ z", sx / sx0, sy / sy0)
+		function draw(obj) {
+			context.save()
+			obj.draw()
+			context.restore()
+		}
+		draw(this.balloons[0])
+		UFX.draw("]")
+	},
+}
 

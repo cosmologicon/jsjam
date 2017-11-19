@@ -39,7 +39,7 @@ UFX.scenes.load = {
 		UFX.draw("[ z", sx / sx0, sy / sy0, "tab center middle")
 		context.lineJoin = "round"
 		context.lineCap = "round"
-		UFX.draw("[ t 800 150 font 150px~'Passion~One'",
+		UFX.draw("[ t 800 150 font 150px~'Mouse~Memoirs'",
 			"fs", UFX.draw.lingrad(0, -40, 0, 40, 0, "#aac", 1, "#77a"),
 			"sh black", Z(10), Z(10), 0,
 			"ft0 Cut~the~Red~Power~Stick ]")
@@ -89,7 +89,7 @@ UFX.resource.onload = function () {
 	UFX.scenes.load.loaded = true
 	words.makelist(UFX.resource.data.wordlist)
 }
-UFX.resource.loadwebfonts("Architects Daughter", "Passion One")
+UFX.resource.loadwebfonts("Architects Daughter", "Passion One", "Mouse Memoirs")
 UFX.resource.load({
 	wordlist: "1000.dicin.txt",
 })

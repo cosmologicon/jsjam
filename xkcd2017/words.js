@@ -93,6 +93,14 @@ let words = {
 		})
 		return ret
 	},
+	splitlines: function (text, opts) {
+		let texts = this.splittext(text, opts)
+		let nline = texts[texts.length - 1].jline + 1
+		let ret = []
+		for (let j = 0 ; j < nline ; ++j) ret.push("")
+		texts.forEach(t => ret[t.jline] += t.text)
+		return ret
+	},
 }
 words.init()
 
@@ -130,7 +138,7 @@ Statement.prototype = {
 		words.setfont(context, this.size, this.font, this.bold)
 		this.drawables.forEach(obj => {
 			if (UFX.scenes.play.grabbing && obj === UFX.scenes.play.wpoint) return
-			let color = !obj.isword || !lesson.learned[obj.text] ? "white" : words.onlist(obj.text) ? "#aaF" : "#Faa"
+			let color = !obj.isword || !lesson.islearned(obj.text) ? "white" : words.onlist(obj.text) ? "#aaF" : "#Faa"
 			UFX.draw("[")
 			if (obj.j === this.focused) {
 				UFX.draw("st", obj.text, obj.pos)
@@ -145,7 +153,7 @@ Statement.prototype = {
 		let obj = this.texts[kword]
 		UFX.draw("[ t", pos, "tab center middle ss black lw", 0.1 * this.size)
 		words.setfont(context, this.size, this.font, this.bold)
-		let color = !obj.isword || !lesson.learned[obj.text] ? "white" : words.onlist(obj.text) ? "#aaF" : "#Faa"
+		let color = !obj.isword || !lesson.islearned(obj.text) ? "white" : words.onlist(obj.text) ? "#aaF" : "#Faa"
 		UFX.draw("fs", color, "sft0", obj.text)
 		UFX.draw("]")
 	},
@@ -174,3 +182,32 @@ Statement.prototype = {
 
 }
 
+function WordBalloon(text, pos, opts) {
+	opts = opts || {}
+	this.size = opts.size || 50
+	this.lineheight = this.size * 1.2
+	this.width = opts.width || this.size * 10
+	this.font = opts.font || "Mouse Memoirs"
+	this.bold = "bold" in opts ? opts.bold : false
+	this.text = text
+	this.lines = words.splitlines(this.text, { size: this.size, width: this.width, font: this.font, bold: this.bold })
+	this.nline = this.lines.length
+	this.pos = pos
+	this.drawables = []
+	this.targets = []
+	this.ysize = this.lineheight * this.nline
+}
+WordBalloon.prototype = {
+	draw: function () {
+		let d = this.size * 0.4
+		words.setfont(context, this.size, this.font, this.bold)
+		UFX.draw("[ t", this.pos,
+			"rr", -this.width / 2 - d, -d, this.width + 2 * d, this.ysize + 2 * d, d,
+			"[ fs white sh black", Z(d/2), Z(d/2), 0, "f ]",
+			"fs black tab center top")
+		this.lines.forEach((line, jline) => {
+			context.fillText(line, 0, jline * this.lineheight)
+		})
+		UFX.draw("]")
+	},
+}

@@ -25,10 +25,13 @@ let lesson = {
 		}
 	},
 	complete: function (word) {
-		this.learned[word] = 1
+		this.learned[word.toLowerCase()] = 1
 		this.currentword = null
 		this.f = 0
 		UFX.scenes.play.dropword()
+	},
+	islearned: function (word) {
+		return !!this.learned[word.toLowerCase()]
 	},
 	draw: function () {
 		UFX.draw("t", this.pos,
