@@ -7,54 +7,5 @@
 <script src="control.js"></script>
 <script src="lesson.js"></script>
 <script src="simple-writer-word-list.js"></script>
-<script type="text/javascript">
-"use strict"
-let tau = 2 * Math.PI
-function clamp(x, a, b) { return x < a ? a : x > b ? b : x }
-if (window.location.href.includes("DEBUG")) {
-	window.onerror = function (error, url, line) { document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>" }
-}
-// if (!localStorage.xkcd2017save) localStorage.xkcd2017save = 1
-let canvas = document.getElementById("canvas")
-let sx0 = canvas.width = 1600
-let sy0 = canvas.height = 900
-let context = canvas.getContext("2d")
-UFX.draw.setcontext(context)
-UFX.scene.init({ minups: 5, maxups: 120 })
-let sx, sy
-UFX.maximize.onadjust = function () {
-	sx = canvas.width
-	sy = canvas.height
-}
-UFX.maximize.fill(canvas, "aspect")
-// UFX.key.init()
-// UFX.key.watchlist = "backspace esc 0 1 2 3 4 5 6".split(" ")
-UFX.pointer(canvas)
+<script src="start.js"></script>
 
-UFX.scenes.load = {
-	start: function () {
-		this.f = 0
-		this.loaded = false
-	},
-	think: function (dt) {
-		let pstate = UFX.pointer()
-		if (this.loaded && pstate.down) UFX.scene.swap("play")
-	},
-	draw: function () {
-		UFX.draw("fs #006 f0")
-	},
-}
-UFX.scene.push("load")
-UFX.resource.onloading = function (f) {
-	UFX.scenes.load.f = f
-}
-UFX.resource.onload = function () {
-	UFX.scenes.load.loaded = true
-	words.makelist(UFX.resource.data.wordlist)
-}
-UFX.resource.loadwebfonts("Architects Daughter")
-UFX.resource.load({
-	wordlist: "1000.dicin.txt",
-})
-
-</script>
