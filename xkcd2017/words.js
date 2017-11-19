@@ -96,12 +96,13 @@ let words = {
 }
 words.init()
 
-function Statement(text, pos) {
-	this.size = 32
+function Statement(text, pos, opts) {
+	opts = opts || {}
+	this.size = opts.size || 32
 	this.lineheight = this.size * 1.2
-	this.width = 320
-	this.font = "Architects Daughter"
-	this.bold = true
+	this.width = opts.width || this.size * 10
+	this.font = opts.font || "Architects Daughter"
+	this.bold = "bold" in opts ? opts.bold : true
 	this.text = text
 	this.texts = words.splittext(this.text, { size: this.size, width: this.width, font: this.font, bold: this.bold })
 	this.pos = pos
@@ -115,6 +116,12 @@ function Statement(text, pos) {
 		if (t.isword) this.targets.push(t)
 	})
 	this.nline = this.texts[this.texts.length - 1].jline + 1
+	this.xsize = Math.max.apply(Math, this.texts.map(t => t.x + t.w))
+	this.ysize = this.lineheight * this.nline
+	if (opts.center) {
+		this.pos[0] -= this.xsize / 2
+		this.pos[1] -= this.ysize / 2
+	}
 	this.ymax = this.pos[1] + this.lineheight * this.nline
 }
 Statement.prototype = {
@@ -155,5 +162,13 @@ Statement.prototype = {
 	getword: function (kword) {
 		return this.texts[kword].text
 	},
+	panel: function () {
+		let d = this.size * 0.1
+		return new Panel({
+			x: this.pos[0] - 2 * d, y: this.pos[1] - this.ysize + this.size * 0.2 - d,
+			w: this.xsize + 4 * d, h: this.ysize + 2 * d,
+		})
+	},
+
 }
 

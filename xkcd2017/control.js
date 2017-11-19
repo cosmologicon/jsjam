@@ -16,6 +16,8 @@ let Focusable = {
 	setup: function (obj) {
 		this.focused = null
 	},
+	focusat: function () {
+	},
 	release: function () {
 	},
 }
@@ -84,6 +86,15 @@ let Ranged = {
 		return (this.setting - this.min) / (this.max - this.min)
 	},
 }
+
+function Panel(obj) {
+	this.setup(obj)
+}
+Panel.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+	.addcomp(DrawPanel)
 
 
 function Knob(obj) {
