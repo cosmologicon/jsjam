@@ -126,25 +126,27 @@ function Statement(text, pos, opts) {
 }
 Statement.prototype = {
 	draw: function () {
-		UFX.draw("t", this.pos)
+		UFX.draw("t", this.pos, "ss black lw", 0.1 * this.size)
 		words.setfont(context, this.size, this.font, this.bold)
 		this.drawables.forEach(obj => {
 			if (UFX.scenes.play.grabbing && obj === UFX.scenes.play.wpoint) return
-			let color = !obj.isword || !lesson.learned[obj.text] ? "white" : words.onlist(obj.text) ? "#77F" : "#F77"
+			let color = !obj.isword || !lesson.learned[obj.text] ? "white" : words.onlist(obj.text) ? "#aaF" : "#Faa"
 			UFX.draw("[")
 			if (obj.j === this.focused) {
-				UFX.draw("sh black 0 0", 0.2 * this.size)
-				color = "white"
+				UFX.draw("st", obj.text, obj.pos)
+				UFX.draw("sh yellow 0 0", Z(0.2 * this.size))
+				UFX.draw("fs", color, "ft", obj.text, obj.pos, "]")
+			} else {
+				UFX.draw("fs", color, "sft", obj.text, obj.pos, "]")
 			}
-			UFX.draw("fs", color, "ft", obj.text, obj.pos, "]")
 		})
 	},
 	drawat: function (pos, kword) {
 		let obj = this.texts[kword]
-		UFX.draw("[ t", pos, "tab center middle")
+		UFX.draw("[ t", pos, "tab center middle ss black lw", 0.1 * this.size)
 		words.setfont(context, this.size, this.font, this.bold)
-		let color = !obj.isword || !lesson.learned[obj.text] ? "white" : words.onlist(obj.text) ? "#77F" : "#F77"
-		UFX.draw("fs", color, "ft0", obj.text, "]")
+		let color = !obj.isword || !lesson.learned[obj.text] ? "white" : words.onlist(obj.text) ? "#aaF" : "#Faa"
+		UFX.draw("fs", color, "sft0", obj.text)
 		UFX.draw("]")
 	},
 	focusat: function (pos) {

@@ -1,7 +1,8 @@
 "use strict"
 let tau = 2 * Math.PI
 function clamp(x, a, b) { return x < a ? a : x > b ? b : x }
-if (window.location.href.includes("DEBUG")) {
+let DEBUG = window.location.href.includes("DEBUG")
+if (DEBUG) {
 	window.onerror = function (error, url, line) { document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>" }
 }
 // if (!localStorage.xkcd2017save) localStorage.xkcd2017save = 1
@@ -18,8 +19,10 @@ UFX.maximize.onadjust = function () {
 }
 let Z = a => a * sx / sx0
 UFX.maximize.fill(canvas, "aspect")
-// UFX.key.init()
-// UFX.key.watchlist = "backspace esc 0 1 2 3 4 5 6".split(" ")
+if (DEBUG) {
+	UFX.key.init()
+	UFX.key.watchlist = "backspace esc 0 1 2 3 4 5 6".split(" ")
+}
 UFX.pointer(canvas)
 
 UFX.scenes.load = {
@@ -56,7 +59,7 @@ UFX.scenes.load = {
 			"b m -220 70 l -100 -50 l -120 40 l 80 -45 l 30 40 l 200 -60 l 140 30",
 			"sh black", Z(2), Z(2), 0, "s",
 			"]")
-		UFX.draw("[ t 1200 450 ss blue lw 10",
+		UFX.draw("[ t 1200 450 ss blue lw 10 hflip vflip",
 			"b m -220 70 l -100 -50 l -120 40 l 80 -45 l 30 40 l 200 -60 l 140 30",
 			"sh black", Z(2), Z(2), 0, "s",
 			"]")

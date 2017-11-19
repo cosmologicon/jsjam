@@ -15,6 +15,7 @@ let WorldBound = {
 let Focusable = {
 	setup: function (obj) {
 		this.focused = null
+		this.setmethodmode("state", "getarray")
 	},
 	focusat: function () {
 	},
@@ -66,6 +67,18 @@ let Shaped = {
 		UFX.draw("]")
 	},
 }
+let Labeled = {
+	setup: function (obj) {
+		this.label = obj.label || null
+	},
+	draw: function () {
+		if (!this.label) return
+		words.setfont(context, 0.3 * this.r, "Architects Daughter", true)
+		UFX.draw("[ t", this.w / 2, this.h / 2, "tab center middle")
+		UFX.draw("fs white ss black lw", 0.05 * this.r, "sft0", this.label)
+		UFX.draw("]")
+	},
+}
 let Graduated = {
 	setup: function (obj) {
 		this.min = obj.min
@@ -74,6 +87,9 @@ let Graduated = {
 		this.range = []
 		for (let j = this.min ; j <= this.max ; ++j) this.range.push(j)
 	},
+	state: function () {
+		return this.setting
+	},
 }
 
 let Ranged = {
@@ -81,6 +97,9 @@ let Ranged = {
 		this.min = obj.min
 		this.max = obj.max
 		this.setting = "setting" in obj ? obj.setting : this.min
+	},
+	state: function () {
+		return this.setting
 	},
 	fsetting: function () {
 		return (this.setting - this.min) / (this.max - this.min)
@@ -144,7 +163,7 @@ Knob.prototype = UFX.Thing()
 				return dx * Math.sin(theta) - dy * Math.cos(theta)
 			})
 			let jmax = ds.indexOf(Math.max.apply(Math, ds))
-			this.setting = clamp(this.setting + dsetting, this.min, this.max)
+			this.setting = this.range[jmax]
 		},
 	})
 
@@ -297,23 +316,34 @@ Screw.prototype = UFX.Thing()
 			this.setting = clamp(this.setting + dsetting, this.min, this.max)
 			if (this.setting == this.min) this.screwed = false
 		},
+		state: function () {
+			return this.screwed
+		},
 	})
 
 function Button(obj) {
 	this.setup(obj)
 	this.r = 0.8 * Math.min(this.w, this.h)
+	this.nclick = 0
 }
 Button.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Focusable)
 	.addcomp(SquarePanel)
 	.addcomp(Shaped)
+	.addcomp(Labeled)
 	.addcomp({
 		focusat: function (pos) {
 			let [x, y] = this.dcenterpos(pos)
 			if (x * x + y * y <= this.r * this.r) return 1
 		},
 		grabify: function (pos, kpoint) {
+		},
+		release: function () {
+			this.nclick += 1
+		},
+		state: function () {
+			return this.nclick
 		},
 	})
 
@@ -405,6 +435,9 @@ Switch.prototype = UFX.Thing()
 		release: function () {
 			this.on = !this.on
 		},
+		state: function () {
+			return this.on
+		},
 	})
 
 function Contact(obj) {
@@ -482,6 +515,9 @@ Contact.prototype = UFX.Thing()
 			this.taken[y] = true
 			this.connections.push([x, y])
 		},
+		state: function () {
+			return this.connections
+		},
 	})
 
 function Tiles(obj) {
@@ -548,6 +584,9 @@ Tiles.prototype = UFX.Thing()
 		},
 		release: function () {
 			this.grabbed = null
+		},
+		state: function () {
+			return this.order
 		},
 	})
 
