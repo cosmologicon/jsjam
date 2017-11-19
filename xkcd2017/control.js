@@ -43,6 +43,26 @@ let Shaped = {
 		this.shape = obj.shape
 		this.color = obj.color
 	},
+	draw: function () {
+		UFX.draw("[ t", this.w / 2, this.h / 2)
+		UFX.draw("z", this.r, this.r)
+		if (this.shape == "circle") {
+			UFX.draw("b o 0 0 0.5")
+		} else if (this.shape == "square") {
+			UFX.draw("rr -0.45 -0.45 0.9 0.9 0.1")
+		} else if (this.shape == "star") {
+			UFX.draw("( m", 0, -0.6)
+			for (let j = 1 ; j < 10 ; ++j) {
+				let r = j % 2 ? 0.3 : 0.6
+				UFX.draw("l", r * Math.sin(j * tau / 10), -r * Math.cos(j * tau / 10))
+			}
+			UFX.draw(")")
+		}
+		UFX.draw("z", 1 / this.r, 1 / this.r)
+		if (this.focused == 1) UFX.draw("sh white 0 0", 0.2 * this.r)
+		UFX.draw("fs", this.color, "f lw 3 ss black s")
+		UFX.draw("]")
+	},
 }
 let Graduated = {
 	setup: function (obj) {
@@ -113,7 +133,7 @@ Knob.prototype = UFX.Thing()
 				return dx * Math.sin(theta) - dy * Math.cos(theta)
 			})
 			let jmax = ds.indexOf(Math.max.apply(Math, ds))
-			this.setting = this.range[jmax]
+			this.setting = clamp(this.setting + dsetting, this.min, this.max)
 		},
 	})
 
@@ -267,7 +287,7 @@ Screw.prototype = UFX.Thing()
 			if (this.setting == this.min) this.screwed = false
 		},
 	})
-	
+
 function Button(obj) {
 	this.setup(obj)
 	this.r = 0.8 * Math.min(this.w, this.h)
@@ -278,26 +298,6 @@ Button.prototype = UFX.Thing()
 	.addcomp(SquarePanel)
 	.addcomp(Shaped)
 	.addcomp({
-		draw: function () {
-			UFX.draw("[ t", this.w / 2, this.h / 2)
-			UFX.draw("z", this.r, this.r)
-			if (this.shape == "circle") {
-				UFX.draw("b o 0 0 0.5")
-			} else if (this.shape == "square") {
-				UFX.draw("rr -0.45 -0.45 0.9 0.9 0.1")
-			} else if (this.shape == "star") {
-				UFX.draw("( m", 0, -0.6)
-				for (let j = 1 ; j < 10 ; ++j) {
-					let r = j % 2 ? 0.3 : 0.6
-					UFX.draw("l", r * Math.sin(j * tau / 10), -r * Math.cos(j * tau / 10))
-				}
-				UFX.draw(")")
-			}
-			UFX.draw("z", 1 / this.r, 1 / this.r)
-			if (this.focused == 1) UFX.draw("sh white 0 0", 0.2 * this.r)
-			UFX.draw("fs", this.color, "f lw 3 ss black s")
-			UFX.draw("]")
-		},
 		focusat: function (pos) {
 			let [x, y] = this.dcenterpos(pos)
 			if (x * x + y * y <= this.r * this.r) return 1
@@ -305,7 +305,46 @@ Button.prototype = UFX.Thing()
 		grabify: function (pos, kpoint) {
 		},
 	})
-	
+
+function ChargeButton(obj) {
+	obj.min = 0
+	obj.max = obj.colors.length
+	this.setup(obj)
+	this.r = 0.8 * Math.min(this.w, this.h)
+	this.colors = obj.colors
+}
+ChargeButton.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+	.addcomp(Shaped)
+	.addcomp(Ranged)
+	.addcomp({
+		nlit: function () {
+			return this.setting == this.max ? this.colors.length : Math.ceil(this.setting) - 1
+		},
+		draw: function () {
+			UFX.draw("[ t", this.w / 2, this.h / 2)
+			UFX.draw("z", this.r, this.r)
+			let n = this.colors.length
+			this.colors.forEach((color, j) => {
+				let theta = 0.5 * (j - (n - 1) / 2)
+				UFX.draw("[ r", theta, "t", 0, -0.8, "b o 0 0 0.15 fs black f",
+					"fs", color, "alpha", (j < this.nlit() ? 1 : 0.4), "b o 0 0 0.12 f ]")
+			})
+			UFX.draw("]")
+		},
+		focusat: function (pos) {
+			let [x, y] = this.dcenterpos(pos)
+			if (x * x + y * y <= this.r * this.r) return 1
+		},
+		grabify: function (pos, kpoint, dt) {
+			let dsetting = dt
+			this.setting = clamp(this.setting + dsetting, this.min, this.max)
+		},
+	})
+
+
 function Contact(obj) {
 	this.setup(obj)
 	this.R = 0.25 * Math.min(this.w, this.h)

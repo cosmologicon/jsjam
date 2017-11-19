@@ -33,6 +33,7 @@ UFX.scenes.play = {
 			new Screw({ x: 850, y: 550, w: 50, h: 50, min: 0, max: 4 }),
 			new Screw({ x: 850, y: 550, w: 50, h: 50, min: 0, max: 4 }),
 			new Contact({ x: 1200, y: 500, w: 300, h: 300, labels: "ABCDE", }),
+			new ChargeButton({ x: 500, y: 700, w: 100, h: 100, colors: ["red", "orange", "yellow", "white"], color: "blue", shape: "circle" }),
 		]
 		this.jpoint = null
 		this.kpoint = null
@@ -54,7 +55,7 @@ UFX.scenes.play = {
 		pos[1] *= sy0 / sy
 		if (this.grabbing) {
 			if (this.jpoint !== null) {
-				this.controls[this.jpoint].grabify(pos, this.kpoint)
+				this.controls[this.jpoint].grabify(pos, this.kpoint, dt)
 			}
 			if (pstate.up) {
 				this.grabbing = false
