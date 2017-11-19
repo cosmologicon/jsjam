@@ -5,7 +5,6 @@ let DEBUG = window.location.href.includes("DEBUG")
 if (DEBUG) {
 	window.onerror = function (error, url, line) { document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>" }
 }
-// if (!localStorage.xkcd2017save) localStorage.xkcd2017save = 1
 let canvas = document.getElementById("canvas")
 let sx0 = canvas.width = 1600
 let sy0 = canvas.height = 900
@@ -19,7 +18,9 @@ UFX.maximize.onadjust = function () {
 }
 let Z = a => a * sx / sx0
 UFX.maximize.fill(canvas, "aspect")
+let acontext = new AudioContext()
 if (DEBUG) {
+	progress.unlockall()
 	UFX.key.init()
 	UFX.key.watchlist = "backspace esc 0 1 2 3 4 5 6".split(" ")
 }
@@ -88,9 +89,23 @@ UFX.resource.onloading = function (f) {
 UFX.resource.onload = function () {
 	UFX.scenes.load.loaded = true
 	words.makelist(UFX.resource.data.wordlist)
+	
+	function aplay (buffer) {
+		let source = acontext.createBufferSource()
+		source.buffer = buffer
+		source.connect(acontext.destination)
+		source.start(0)
+	}
+	for (let aname in afiles) {
+		UFX.resource.data[aname].play = () => aplay(UFX.resource.data[aname])
+	}
 }
 UFX.resource.loadwebfonts("Architects Daughter", "Passion One", "Mouse Memoirs")
 UFX.resource.load({
 	wordlist: "1000.dicin.txt",
 })
+let afiles = {
+	dune: "sound/dune.ogg",
+}
+UFX.resource.loadaudiobuffer(acontext, afiles)
 

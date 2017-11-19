@@ -26,6 +26,7 @@ let SquarePanel = {
 	setup: function (obj) {
 		this.w = obj.w
 		this.h = obj.h
+		this.drawpanel = obj.drawpanel || false
 	},
 	centerpos: function () {
 		return [this.x + this.w / 2, this.y + this.h / 2]
@@ -35,10 +36,10 @@ let SquarePanel = {
 		let [x0, y0] = this.centerpos()
 		return [x - x0, y - y0]
 	},
-}
-let DrawPanel = {
 	draw: function () {
-		UFX.draw("rr", 4, 4, this.w - 8, this.h - 8, 5, "fs #666 f lw 3 ss #111 s")
+		if (this.drawpanel) {
+			UFX.draw("rr", 4, 4, this.w - 8, this.h - 8, 5, "fs #666 f lw 3 ss #111 s")
+		}
 	},
 }
 let Shaped = {
@@ -107,13 +108,13 @@ let Ranged = {
 }
 
 function Panel(obj) {
+	obj.drawpanel = true
 	this.setup(obj)
 }
 Panel.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Focusable)
 	.addcomp(SquarePanel)
-	.addcomp(DrawPanel)
 
 
 function Knob(obj) {
@@ -222,7 +223,6 @@ Coil.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Focusable)
 	.addcomp(SquarePanel)
-	.addcomp(DrawPanel)
 	.addcomp(Ranged)
 	.addcomp({
 		Rthetaset: function () {
@@ -280,12 +280,12 @@ function Screw(obj) {
 	this.R = 0.25 * Math.min(this.w, this.h)
 	if (!("setting" in obj)) this.setting = this.max
 	this.screwed = true
+	this.theta = UFX.random.angle()
 }
 Screw.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Focusable)
 	.addcomp(SquarePanel)
-//	.addcomp(DrawPanel)
 	.addcomp(Ranged)
 	.addcomp({
 		draw: function () {
@@ -296,10 +296,16 @@ Screw.prototype = UFX.Thing()
 			}
 			UFX.draw("b o 0 0", this.R, "fs #555")
 			UFX.draw("[")
+			let f = 1 - this.fsetting()
+			if (f > 0) {
+				UFX.draw("sh", "rgba(0,0,0,0.5)",
+					Z(0.5 * this.R * f), Z(2 * this.R * f), Z(1 * this.R * f),
+					"f")
+			}
 			if (this.focused == 1) UFX.draw("sh white 0 0", this.R, "f")
 			else UFX.draw("f")
 			UFX.draw("] ss black lw 3 s")
-			UFX.draw("r", this.setting * tau, "b m", 0, -this.R, "l", 0, this.R, "lw 7 s")
+			UFX.draw("r", this.theta + this.setting * tau, "b m", 0, -this.R, "l", 0, this.R, "lw 7 s")
 		},
 		focusat: function (pos) {
 			if (!this.screwed) return
@@ -318,6 +324,28 @@ Screw.prototype = UFX.Thing()
 		},
 		state: function () {
 			return this.screwed
+		},
+	})
+
+function FakeScrew(obj) {
+	this.setup(obj)
+	this.R = 0.25 * Math.min(this.w, this.h)
+	this.theta = UFX.random.angle()
+}
+FakeScrew.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+	.addcomp({
+		draw: function () {
+			UFX.draw("t", this.w / 2, this.h / 2)
+			UFX.draw("b o 0 0", this.R, "fs #555")
+			UFX.draw("f ss black lw 3 s")
+			UFX.draw("r", this.theta, "b m", 0, -this.R, "l", 0, this.R, "lw 7 s")
+		},
+		focusat: function (pos) {
+		},
+		grabify: function (pos, kpoint) {
 		},
 	})
 
@@ -396,7 +424,6 @@ Switch.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Focusable)
 	.addcomp(SquarePanel)
-	.addcomp(DrawPanel)
 	.addcomp({
 		draw: function () {
 			UFX.draw("[ t", this.w / 2, this.h / 2)
@@ -459,7 +486,6 @@ Contact.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Focusable)
 	.addcomp(SquarePanel)
-	.addcomp(DrawPanel)
 	.addcomp({
 		draw: function () {
 			UFX.draw("t", this.w / 2, this.h / 2, "tab center middle")
@@ -536,7 +562,6 @@ Tiles.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Focusable)
 	.addcomp(SquarePanel)
-	.addcomp(DrawPanel)
 	.addcomp({
 		draw: function () {
 			UFX.draw("t", this.w / 2, this.h / 2, "tab center middle")

@@ -10,7 +10,7 @@ function comparestate(x, y) {
 
 UFX.scenes.play = {
 	start: function () {
-		let ldata = levels[1]
+		let ldata = levels[progress.current]
 		this.t0 = this.t = ldata.t
 		this.todo = ldata.winsequence.slice()
 		let y = 160
@@ -32,7 +32,16 @@ UFX.scenes.play = {
 			this.statements.slice(-1)[0].panel(),
 			new Panel({ x: 20, y: 100, w: 600, h: 600 }),
 			new Panel({ x: 620, y: 100, w: 960, h: 780 }),
-		].concat(this.lcontrols)
+		]
+		if (ldata.fakescrews) {
+			this.controls.push(
+				new FakeScrew({ x: 620, y: 100, w: 70, h: 70, }),
+				new FakeScrew({ x: 1510, y: 100, w: 70, h: 70, }),
+				new FakeScrew({ x: 620, y: 810, w: 70, h: 70, }),
+				new FakeScrew({ x: 1510, y: 810, w: 70, h: 70, })
+			)
+		}
+		this.controls = this.controls.concat(this.lcontrols)
 		this.jpoint = null
 		this.kpoint = null
 		this.grabbing = false
@@ -46,11 +55,12 @@ UFX.scenes.play = {
 
 		lesson.reset()
 		
-		UFX.scene.push("talk", ["hi. you're new here. I'll show you how we do things. See those steps? Follow each step exactly, and then pick Done."])
+		if (ldata.intro) UFX.scene.push("talk", ldata.intro)
 	},
 	think: function (dt) {
 		this.t = clamp(this.t - dt, 0, this.t0)
 		if (this.t == 0) {
+			UFX.scene.swap("menu")
 			UFX.scene.push("timeup")
 			return
 		}
@@ -88,6 +98,7 @@ UFX.scenes.play = {
 		lesson.think(dt)
 		if (this.done.nclick > 0) {
 			this.checkstate(true)
+			UFX.scene.swap("menu")
 			UFX.scene.push(this.todo.length == 0 ? "win" : "fail")
 		}
 	},
@@ -177,7 +188,6 @@ let ShowMessage = {
 		let pstate = UFX.pointer()
 		if (this.f == 1 && pstate.down) {
 			UFX.scene.pop()
-			UFX.scene.swap("play")
 		}
 	},
 	draw: function () {
