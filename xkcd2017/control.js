@@ -345,6 +345,57 @@ ChargeButton.prototype = UFX.Thing()
 	})
 
 
+function Switch(obj) {
+	this.setup(obj)
+	this.on = false
+	this.labels = obj.labels || "  "
+	if (this.labels.split) this.labels = this.labels.split("")
+}
+Switch.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+	.addcomp(DrawPanel)
+	.addcomp({
+		draw: function () {
+			UFX.draw("[ t", this.w / 2, this.h / 2)
+			words.setfont(context, 0.2 * this.h, "Architects Daughter", true)
+			UFX.draw("tab center middle fs black")
+			if (this.labels[0] != " ") UFX.draw("ft", this.labels[0], 0, -0.35 * this.h)
+			if (this.labels[1] != " ") UFX.draw("ft", this.labels[1], 0, 0.35 * this.h)
+			UFX.draw("tr", -0.25 * this.w, -0.05 * this.h, 0.5 * this. w, 0.1 * this.h, "[")
+			if (this.focused === 1) UFX.draw("sh white 0 0", this.w * 0.2)
+			UFX.draw("fs #999 f ] lw", this.w * 0.02, "ss black s")
+			if (this.on) UFX.draw("vflip")
+			UFX.draw("(",
+				"m", 0.1 * this.w, 0 * this.h,		
+				"l", 0.1 * this.w, 0.1 * this.h,		
+				"l", 0.2 * this.w, 0.15 * this.h,
+				"l", 0.25 * this.w, 0.25 * this.h,
+				"l", -0.25 * this.w, 0.25 * this.h,
+				"l", -0.2 * this.w, 0.15 * this.h,
+				"l", -0.1 * this.w, 0.1 * this.h,
+				"l", -0.1 * this.w, 0 * this.h,
+			") fs #666 f ss black s")
+			UFX.draw("(",
+				"m", 0.25 * this.w, 0.25 * this.h,
+				"l", 0.22 * this.w, 0.29 * this.h,
+				"l", -0.22 * this.w, 0.29 * this.h,
+				"l", -0.25 * this.w, 0.25 * this.h,
+			") fs #666 f ss black s")
+			UFX.draw("]")
+		},
+		focusat: function (pos) {
+			let [x, y] = this.dcenterpos(pos)
+			if (Math.abs(x) < 0.3 * this.w && Math.abs(y) < 0.3 * this.h) return 1
+		},
+		grabify: function (pos, kpoint) {
+		},
+		release: function () {
+			this.on = !this.on
+		},
+	})
+
 function Contact(obj) {
 	this.setup(obj)
 	this.R = 0.25 * Math.min(this.w, this.h)
@@ -422,4 +473,70 @@ Contact.prototype = UFX.Thing()
 		},
 	})
 
+function Tiles(obj) {
+	this.setup(obj)
+	this.labels = obj.labels
+	if (this.labels.split) this.labels = this.labels.split("")
+	this.n = this.labels.length
+	this.order = this.labels.map((label, j) => j)
+	this.tw = this.w * 0.75 / this.n
+	this.dw = this.w * 0.9 / this.n
+	this.th = this.h * 0.7
+	this.xs = this.labels.map((label, j) => this.dw * (j - (this.n - 1) / 2))
+	this.grabbed = null
+}
+Tiles.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+	.addcomp(DrawPanel)
+	.addcomp({
+		draw: function () {
+			UFX.draw("t", this.w / 2, this.h / 2, "tab center middle")
+			words.setfont(context, 0.7 * this.th, "Architects Daughter", true)
+			let drawtileat = (pos, label, glow) => {
+				UFX.draw("[ t", pos, "tr", -this.tw / 2, -this.th / 2, this.tw, this.th, "[")
+				if (glow) UFX.draw("sh white 0 0", this.dw * 0.3)
+				UFX.draw("fs #676 f ] ss black lw", this.dw * 0.04, "s")
+				UFX.draw("fs black ft0", label, "]")
+			}
+			for (let j = 0 ; j < this.n ; ++j) {
+				let k = this.order[j]
+				if (k === this.grabbed) continue
+				let glow = this.grabbed === null && k === this.focused
+				drawtileat([this.xs[j], 0], this.labels[k], glow)
+			}
+			if (this.grabbed !== null) {
+				drawtileat(this.holdpos, this.labels[this.grabbed], false)
+			}
+		},
+		focusat: function (pos) {
+			if (this.grabbed !== null) {
+				this.holdpos = this.dcenterpos(pos)
+			}
+			let [x, y] = this.dcenterpos(pos)
+			if (Math.abs(y) > this.th / 2) return null
+			for (let j = 0 ; j < this.n ; ++j) {
+				if (Math.abs(x - this.xs[j]) < this.tw / 2) return this.order[j]
+			}
+		},
+		grabify: function (pos, kpoint) {
+			if (this.grabbed == null) {
+				this.grabbed = kpoint
+			}
+			this.focused = this.focusat(pos)
+			if (this.focused !== null && this.focused !== undefined && this.focused !== this.grabbed) {
+				this.align(this.grabbed, this.focused)
+			}
+			this.holdpos = this.dcenterpos(pos)
+		},
+		align: function (from, to) {
+			let index = this.order.indexOf(to)
+			this.order.splice(this.order.indexOf(from), 1)
+			this.order.splice(index, 0, from)
+		},
+		release: function () {
+			this.grabbed = null
+		},
+	})
 
