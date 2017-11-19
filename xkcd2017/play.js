@@ -27,6 +27,12 @@ UFX.scenes.play = {
 			new Button({ x: 1200, y: 400, w: 100, h: 100, color: "blue", shape: "star" }),
 //			new VSlider({ x: 700, y: 200, w: 250, h: 500, min: 0, max: 5, setting: 3 }),
 			new Coil({ x: 500, y: 200, w: 400, h: 400, min: 2, max: 4, setting: 3 }),
+			new Screw({ x: 500, y: 200, w: 50, h: 50, min: 0, max: 4 }),
+			new Screw({ x: 500, y: 550, w: 50, h: 50, min: 0, max: 4 }),
+			new Screw({ x: 850, y: 200, w: 50, h: 50, min: 0, max: 4 }),
+			new Screw({ x: 850, y: 550, w: 50, h: 50, min: 0, max: 4 }),
+			new Screw({ x: 850, y: 550, w: 50, h: 50, min: 0, max: 4 }),
+			new Contact({ x: 1200, y: 500, w: 300, h: 300, labels: "ABCDE", }),
 		]
 		this.jpoint = null
 		this.kpoint = null
@@ -52,6 +58,7 @@ UFX.scenes.play = {
 			}
 			if (pstate.up) {
 				this.grabbing = false
+				if (this.jpoint !== null) this.controls[this.jpoint].release()
 			}
 		} else {
 			this.setfocused(pos)

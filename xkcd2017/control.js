@@ -14,7 +14,9 @@ let WorldBound = {
 }
 let Focusable = {
 	setup: function (obj) {
-		this.focused = false
+		this.focused = null
+	},
+	release: function () {
 	},
 }
 let SquarePanel = {
@@ -70,6 +72,7 @@ function Knob(obj) {
 }
 Knob.prototype = UFX.Thing()
 	.addcomp(WorldBound)
+	.addcomp(Focusable)
 	.addcomp(SquarePanel)
 	.addcomp(Graduated)
 	.addcomp({
@@ -119,6 +122,7 @@ function VSlider(obj) {
 }
 VSlider.prototype = UFX.Thing()
 	.addcomp(WorldBound)
+	.addcomp(Focusable)
 	.addcomp(SquarePanel)
 	.addcomp(Graduated)
 	.addcomp({
@@ -166,6 +170,7 @@ function Coil(obj) {
 }
 Coil.prototype = UFX.Thing()
 	.addcomp(WorldBound)
+	.addcomp(Focusable)
 	.addcomp(SquarePanel)
 	.addcomp(DrawPanel)
 	.addcomp(Ranged)
@@ -215,7 +220,51 @@ Coil.prototype = UFX.Thing()
 			if (!x && !y) return
 			let theta = Math.atan2(x, -y) / tau
 			let dsetting = (theta - this.setting + 100.5) % 1 - 0.5
+			if (Math.abs(dsetting) > 0.2) return
 			this.setting = clamp(this.setting + dsetting, this.min, this.max)
+		},
+	})
+
+function Screw(obj) {
+	this.setup(obj)
+	this.R = 0.25 * Math.min(this.w, this.h)
+	if (!("setting" in obj)) this.setting = this.max
+	this.screwed = true
+}
+Screw.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+//	.addcomp(DrawPanel)
+	.addcomp(Ranged)
+	.addcomp({
+		draw: function () {
+			UFX.draw("t", this.w / 2, this.h / 2)
+			if (!this.screwed) {
+				UFX.draw("b o 0 0", 0.4 * this.R, "fs black f")
+				return
+			}
+			UFX.draw("b o 0 0", this.R, "fs #555")
+			UFX.draw("[")
+			if (this.focused == 1) UFX.draw("sh white 0 0", this.R, "f")
+			else UFX.draw("f")
+			UFX.draw("] ss black lw 3 s")
+			UFX.draw("r", this.setting * tau, "b m", 0, -this.R, "l", 0, this.R, "lw 7 s")
+		},
+		focusat: function (pos) {
+			if (!this.screwed) return
+			let [dx, dy] = this.dcenterpos(pos)
+			if (dx * dx + dy * dy <= this.R * this.R) return 1
+		},
+		grabify: function (pos, kpoint) {
+			if (!this.screwed) return
+			let [x, y] = this.dcenterpos(pos)
+			if (!x && !y) return
+			let theta = Math.atan2(x, -y) / tau
+			let dsetting = (theta - this.setting + 100.5) % 1 - 0.5
+			if (Math.abs(dsetting) > 0.2) return
+			this.setting = clamp(this.setting + dsetting, this.min, this.max)
+			if (this.setting == this.min) this.screwed = false
 		},
 	})
 	
@@ -225,6 +274,7 @@ function Button(obj) {
 }
 Button.prototype = UFX.Thing()
 	.addcomp(WorldBound)
+	.addcomp(Focusable)
 	.addcomp(SquarePanel)
 	.addcomp(Shaped)
 	.addcomp({
@@ -256,4 +306,81 @@ Button.prototype = UFX.Thing()
 		},
 	})
 	
+function Contact(obj) {
+	this.setup(obj)
+	this.R = 0.25 * Math.min(this.w, this.h)
+	if (!("setting" in obj)) this.setting = this.max
+	this.labels = obj.labels
+	if (this.labels.split) this.labels = this.labels.split("")
+	this.n = this.labels.length
+	this.connections = []
+	this.taken = {}
+	this.start = null
+	this.ps = this.labels.map((label, j) => {
+		let theta = j / this.n * tau
+		return [this.R * Math.sin(theta), -this.R * Math.cos(theta)]
+	})
+}
+Contact.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+	.addcomp(DrawPanel)
+	.addcomp({
+		draw: function () {
+			UFX.draw("t", this.w / 2, this.h / 2, "tab center middle")
+			let connect = (p0, p1) => {
+				UFX.draw("b m", p0, "q", 0, 0, p1,
+					"ss black lw", 0.2 * this.R, "s ss blue lw", 0.12 * this.R, "s")
+			}
+			this.connections.forEach(con => connect(this.ps[con[0]], this.ps[con[1]]))
+			if (this.start !== null) {
+				connect(this.ps[this.start], this.end)
+			}
+			words.setfont(context, 0.6 * this.R, "Architects Daughter", true)
+			for (let j = 0 ; j < this.n ; ++j) {
+				let theta = j / this.n * tau, S = Math.sin(theta), C = Math.cos(theta)
+				UFX.draw("[ t", 1.5 * this.R * S, -1.5 * this.R * C,
+					"fs black ft0", this.labels[j], "]")
+				UFX.draw("[ r", theta, "z", this.R, this.R,
+					"tr", -0.2, -1.1, 0.4, 0.2)
+				UFX.draw("[")
+				if (j === this.focused) UFX.draw("sh white 0 0", 0.2 * this.R)
+				UFX.draw("fs #aaa f ] ss black lw 0.04 s ]")
+			}
+		},
+		focusat: function (pos) {
+			if (this.start !== null) {
+				this.end = this.dcenterpos(pos)
+			}
+			let [x, y] = this.dcenterpos(pos)
+			x /= this.R
+			y /= this.R
+			for (let j = 0 ; j < this.n ; ++j) {
+				if (this.taken[j] || j === this.start) continue
+				let theta = j / this.n * tau, S = Math.sin(theta), C = Math.cos(theta)
+				let dx = x - S, dy = y + C
+				if (dx * dx + dy * dy < 0.2 * 0.2) return j
+			}
+		},
+		grabify: function (pos, kpoint) {
+			if (this.start == null) {
+				this.start = kpoint
+			}
+			this.focused = this.focusat(pos)
+			this.end = this.dcenterpos(pos)
+		},
+		release: function () {
+			if (this.start !== null && this.focused !== null && this.focused !== undefined) {
+				this.connect(this.start, this.focused)
+			}
+			this.start = null
+		},
+		connect: function (x, y) {
+			this.taken[x] = true
+			this.taken[y] = true
+			this.connections.push([x, y])
+		},
+	})
+
 
