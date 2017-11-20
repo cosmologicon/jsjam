@@ -64,9 +64,12 @@ let Shaped = {
 			}
 			UFX.draw(")")
 		}
-		UFX.draw("z", 1 / this.r, 1 / this.r)
-		if (this.focused == 1) UFX.draw("sh white 0 0", 0.2 * this.r)
-		UFX.draw("fs", this.color, "f lw 3 ss black s")
+		UFX.draw("z", 1 / this.r, 1 / this.r, "[")
+		UFX.draw("sh rgba(0,0,0,0.25)", Z(0.04 * this.r), Z(0.08 * this.r), Z(0.1 * this.r))
+		UFX.draw("fs", this.color, "f")
+		if (this.focused == 1) UFX.draw("sh white 0 0", Z(0.2 * this.r))
+		UFX.draw("fs", this.color, "f ]")
+		UFX.draw("lw 3 ss black s")
 		UFX.draw("]")
 	},
 }
@@ -136,7 +139,7 @@ Knob.prototype = UFX.Thing()
 			UFX.draw("[ t", this.w / 2, this.h / 2, "lw 0.03 ss #111",
 				"[ r", this.angleof(this.setting), "z", this.r, this.r)
 			if (this.focused == 1) {
-				UFX.draw("[ b o 0 0 1 fs white sh white 0 0", 0.25 * this.r, "f ]")
+				UFX.draw("[ b o 0 0 1 fs white sh white 0 0", Z(0.25 * this.r), "f ]")
 			}
 			UFX.draw(
 				"b o 0 0 1 fs #aaa f",
@@ -198,7 +201,7 @@ VSlider.prototype = UFX.Thing()
 			UFX.draw("b m", this.fracpos([0.5, 0.12]), "l", this.fracpos([0.5, 0.88]), "lw 15 ss black s")
 			UFX.draw("t", this.fracpos([0.5, this.heightof(this.setting)]))
 			UFX.draw("tr", -0.2 * this.w, -0.05 * this.h, 0.4 * this.w, 0.1 * this.h)
-			UFX.draw("[ sh white 0 0", (this.focused == 1 ? 0.2 * this.w : 0), "fs #963 f ]")
+			UFX.draw("[ sh white 0 0", Z(this.focused == 1 ? 0.2 * this.w : 0), "fs #963 f ]")
 			UFX.draw("lw 3 ss black s")
 			UFX.draw("]")
 		},
@@ -257,7 +260,7 @@ Coil.prototype = UFX.Thing()
 				UFX.draw("c", Rs[j][2], Rs[j+1][0], Rs[j+1][1])
 			}
 			UFX.draw("ss black lw 10 s ss #588 lw 6 s")
-			if (this.focused == 1) UFX.draw("sh white 0 0", 0.5 * this.r)
+			if (this.focused == 1) UFX.draw("sh white 0 0", Z(0.5 * this.r))
 			UFX.draw("b o", this.xyset(), this.r, "fs orange f ss black lw 3 s")
 			UFX.draw("]")
 		},
@@ -304,7 +307,7 @@ Screw.prototype = UFX.Thing()
 					Z(0.5 * this.R * f), Z(2 * this.R * f), Z(1 * this.R * f),
 					"f")
 			}
-			if (this.focused == 1) UFX.draw("sh white 0 0", this.R, "f")
+			if (this.focused == 1) UFX.draw("sh white 0 0", Z(this.R), "f")
 			else UFX.draw("f")
 			UFX.draw("] ss black lw 3 s")
 			UFX.draw("r", this.theta + this.setting * tau, "b m", 0, -this.R, "l", 0, this.R, "lw 7 s")
@@ -434,7 +437,7 @@ Switch.prototype = UFX.Thing()
 			if (this.labels[0] != " ") UFX.draw("ft", this.labels[0], 0, 0.35 * this.h)
 			if (this.labels[1] != " ") UFX.draw("ft", this.labels[1], 0, -0.35 * this.h)
 			UFX.draw("tr", -0.25 * this.w, -0.05 * this.h, 0.5 * this. w, 0.1 * this.h, "[")
-			if (this.focused === 1) UFX.draw("sh white 0 0", this.w * 0.2)
+			if (this.focused === 1) UFX.draw("sh white 0 0", Z(this.w * 0.2))
 			UFX.draw("fs #999 f ] lw", this.w * 0.02, "ss black s")
 			if (this.on) UFX.draw("vflip")
 			UFX.draw("(",
@@ -507,7 +510,7 @@ Contact.prototype = UFX.Thing()
 				UFX.draw("[ r", theta, "z", this.R, this.R,
 					"tr", -0.2, -1.1, 0.4, 0.2)
 				UFX.draw("[")
-				if (j === this.focused) UFX.draw("sh white 0 0", 0.2 * this.R)
+				if (j === this.focused) UFX.draw("sh white 0 0", Z(0.2 * this.R))
 				UFX.draw("fs #aaa f ] ss black lw 0.04 s ]")
 			}
 		},
@@ -573,7 +576,7 @@ Tiles.prototype = UFX.Thing()
 			words.setfont(context, 0.7 * this.th, "Architects Daughter", true)
 			let drawtileat = (pos, label, glow) => {
 				UFX.draw("[ t", pos, "tr", -this.tw / 2, -this.th / 2, this.tw, this.th, "[")
-				if (glow) UFX.draw("sh white 0 0", this.dw * 0.3)
+				if (glow) UFX.draw("sh white 0 0", Z(this.dw * 0.3))
 				UFX.draw("fs #676 f ] ss black lw", this.dw * 0.04, "s")
 				UFX.draw("fs black ft0", label, "]")
 			}

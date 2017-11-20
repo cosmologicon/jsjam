@@ -69,14 +69,14 @@ levels[2] = {
 		"Turn the thing that wraps around itself by how much the minute hand moves in one hundred minutes.",
 	],
 	controls: [
-		["Knob", { x: 600, y: 600, w: 300, h: 300, min: 1, max: 10, setting: 6, }],
-		["Knob", { x: 900, y: 600, w: 300, h: 300, min: 1, max: 10, setting: 6, }],
-		["Button", { x: 1450, y: 120, w: 100, h: 100, shape: "circle", color: "red", }],
-		["Button", { x: 1450, y: 220, w: 100, h: 100, shape: "star", color: "orange", }],
-		["Button", { x: 1450, y: 320, w: 100, h: 100, shape: "square", color: "yellow", }],
-		["Button", { x: 1450, y: 420, w: 100, h: 100, shape: "circle", color: "green", }],
-		["Button", { x: 1450, y: 520, w: 100, h: 100, shape: "star", color: "blue", }],
-		["Coil", { x: 600, y: 100, w: 400, h: 400, min: 1, max: 5, setting: 2, }],
+		["Knob", { x: 700, y: 540, w: 300, h: 300, min: 1, max: 10, setting: 6, }],
+		["Knob", { x: 960, y: 540, w: 300, h: 300, min: 1, max: 10, setting: 6, }],
+		["Button", { x: 1350, y: 160, w: 120, h: 120, shape: "circle", color: "red", }],
+		["Button", { x: 1350, y: 280, w: 120, h: 120, shape: "star", color: "orange", }],
+		["Button", { x: 1350, y: 400, w: 120, h: 120, shape: "square", color: "yellow", }],
+		["Button", { x: 1350, y: 520, w: 120, h: 120, shape: "circle", color: "green", }],
+		["Button", { x: 1350, y: 640, w: 120, h: 120, shape: "star", color: "blue", }],
+		["Coil", { x: 800, y: 150, w: 400, h: 400, min: 1, max: 5, setting: 2, }],
 	],
 	winsequence: [
 		[[6], [6], [0], [0], [4], [0], [0], [2]],
@@ -93,13 +93,22 @@ levels[3] = {
 	steps: [
 		"Put the letters in the order you sing them.",
 		"Set the thing that turns to the number of words in this instruction.", // instruction
+		"See those things you use to turn on the lights in your house? Change each one starting at the right and going left.",
 	],
 	controls: [
-		["Tiles", { x: 700, y: 700, w: 400, h: 100, labels: "CBDEA", }],
-		["Knob", { x: 1200, y: 500, w: 300, h: 300, min: 10, max: 15, setting: 10, }],
+		["Tiles", { x: 700, y: 700, w: 500, h: 160, labels: "CBDEA", }],
+		["Knob", { x: 1100, y: 300, w: 400, h: 400, min: 12, max: 20, setting: 12, }],
+		["Switch", { x: 700, y: 180, w: 100, h: 200, }],
+		["Switch", { x: 800, y: 180, w: 100, h: 200, on: true, }],
+		["Switch", { x: 900, y: 180, w: 100, h: 200, }],
+		["Switch", { x: 1000, y: 180, w: 100, h: 200, }],
 	],
 	winsequence: [
-		[[[4, 1, 0, 2, 3]], [10]],
+		[[[4, 1, 0, 2, 3]], [12], [false], [true], [false], [false]],
+		[[[4, 1, 0, 2, 3]], [12], [false], [true], [false], [true]],
+		[[[4, 1, 0, 2, 3]], [12], [false], [true], [true], [true]],
+		[[[4, 1, 0, 2, 3]], [12], [false], [false], [true], [true]],
+		[[[4, 1, 0, 2, 3]], [12], [true], [false], [true], [true]],
 	],
 	fakescrews: true,
 	intro: [
@@ -124,11 +133,15 @@ levels[4] = {
 		["VSlider", { x: 1180, y: 110, w: 180, h: 300, min: 0, max: 5, setting: 4 }],
 		["VSlider", { x: 1280, y: 110, w: 180, h: 300, min: 0, max: 5, setting: 4 }],
 		["VSlider", { x: 1380, y: 110, w: 180, h: 300, min: 0, max: 5, setting: 0 }],
-		["ChargeButton", { x: 1000, y: 580, w: 100, h: 100, colors: ["red", "orange", "yellow", "white"], color: "blue", shape: "circle" }],
+		["ChargeButton", { x: 720, y: 580, w: 160, h: 160, colors: ["red", "orange", "yellow", "white"], color: "blue", shape: "circle" }],
+		["Switch", { x: 700, y: 180, w: 100, h: 200, }],
+		["Switch", { x: 800, y: 180, w: 100, h: 200, }],
+		["Switch", { x: 900, y: 180, w: 100, h: 200, }],
+		["Contact", { x: 1200, y: 540, w: 260, h: 260, labels: "AMQRTZ", }],
 	],
 	winsequence: [
-		[[3], [2], [4], [0], [0]],
-		[[3], [2], [4], [0], [[3, 3.999]]],
+		[[3], [2], [4], [0], [0], [false], [false], [false], [[]]],
+		[[3], [2], [4], [0], [[3, 3.999]], [false], [false], [false], [[]]],
 	],
 	fakescrews: true,
 	intro: [
@@ -182,7 +195,7 @@ let controlset = [
 levels[5] = {
 	t: 100,
 	steps: [
-		"See those things you use to turn on the lights in your house? Change each one that's pointing toward the floor so that it's pointing toward the ceiling.",
+		"Change each light changer that's pointing toward the floor so that it's pointing toward the ceiling.",
 		"Change the turn thing on the right to the average of the other two.",  // average
 		"Make a line between the two letters whose small forms are mirror images of each other.",
 		"Hold each circle until its light is the same color as a fire truck.",

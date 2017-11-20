@@ -13,6 +13,7 @@ UFX.scenes.play = {
 		let ldata = levels[progress.current]
 		this.t0 = this.t = ldata.t
 		this.todo = ldata.winsequence.slice()
+		this.tounlock = ldata.unlock
 		let y = 160
 		this.statements = ldata.steps.map(text => {
 			let s = new Statement(text, [40, y], { width: 540 })
@@ -101,8 +102,14 @@ UFX.scenes.play = {
 		}
 		if (this.done.nclick > 0) {
 			this.checkstate(true)
+			console.log(this.tounlock)
+			if (this.todo.length == 0 && this.tounlock) progress.unlock(this.tounlock)
 			UFX.scene.swap("menu")
-			UFX.scene.push(this.todo.length == 0 ? "win" : "fail")
+			if (this.todo.length == 0) {
+				UFX.scene.push("win")
+			} else {
+				UFX.scene.push("fail")
+			}
 		}
 	},
 	setfocused: function (pos) {

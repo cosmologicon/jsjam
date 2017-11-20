@@ -32,7 +32,7 @@ let lesson = {
 		if (!words.onlist(word) && progress.current == 3) {
 			UFX.scene.push("talk", [
 				"Yes, I was right! This word is not one of the most used words. When you find a word like that, it will turn red in the steps, so you know it's bad.",
-				"When you get to a step that has a bad word, the whole step is bad. You should NOT do that step. Just act like the step is not even there. Okay?",
+				"We only want to do steps that use the ten hundred words people use most often. So when you get to a step that has a bad word, the whole step is bad. You should NOT do that step. Just act like the step is not even there. Okay?",
 			])
 		}
 	},
