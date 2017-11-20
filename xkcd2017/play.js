@@ -151,14 +151,20 @@ UFX.scenes.play = {
 		this.grabbing = false
 	},
 	checkstate: function (final) {
-		if (this.todo.length <= (final ? 0 : 1)) return
 		let state = this.lcontrols.map(control => control.state())
 		if (DEBUG) {
 			console.log(JSON.stringify(state))
+		}
+		if (this.todo.length <= 0) return
+		if (DEBUG) {
 			console.log(JSON.stringify(this.todo[0]))
 			console.log(comparestate(state, this.todo[0]))
 		}
-		if (comparestate(state, this.todo[0])) this.todo.shift()
+		if (comparestate(state, this.todo[0])) {
+			if (final || this.todo.length > 1) {
+				this.todo.shift()
+			}
+		}
 	},
 	draw: function () {
 		UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#228", 1, "#006"), "fr", 0, 0, sx, sy)

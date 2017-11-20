@@ -144,49 +144,75 @@ let controlset = [
 	["Screw", { x: 620, y: 810, w: 70, h: 70, min: 0, max: 3 }],
 	["Screw", { x: 1510, y: 100, w: 70, h: 70, min: 0, max: 3 }],
 	["Screw", { x: 1510, y: 810, w: 70, h: 70, min: 0, max: 3 }],
-	["Contact", { x: 1200, y: 500, w: 300, h: 300, labels: "ABCDE", }],
-	["Coil", { x: 640, y: 120, w: 280, h: 280, min: 2, max: 4, setting: 3 }],
-	["Button", { x: 1000, y: 200, w: 100, h: 100, color: "red", shape: "triangle" }],
-	["Button", { x: 1100, y: 200, w: 100, h: 100, color: "yellow", shape: "triangle" }],
-	["Button", { x: 1200, y: 200, w: 100, h: 100, color: "blue", shape: "triangle" }],
-	["Button", { x: 1000, y: 300, w: 100, h: 100, color: "red", shape: "square" }],
-	["Button", { x: 1100, y: 300, w: 100, h: 100, color: "yellow", shape: "square" }],
-	["Button", { x: 1200, y: 300, w: 100, h: 100, color: "blue", shape: "square" }],
-	["Button", { x: 1000, y: 400, w: 100, h: 100, color: "red", shape: "star" }],
-	["Button", { x: 1100, y: 400, w: 100, h: 100, color: "yellow", shape: "star" }],
-	["Button", { x: 1200, y: 400, w: 100, h: 100, color: "blue", shape: "star" }],
-	["Switch", { x: 650, y: 150, w: 100, h: 200, labels: "25", }],
-	["Switch", { x: 750, y: 150, w: 100, h: 200, labels: "35", }],
-	["Switch", { x: 850, y: 150, w: 100, h: 200, labels: "14", on: true, }],
-	["Switch", { x: 950, y: 150, w: 100, h: 200, labels: "25", }],
-	["ChargeButton", { x: 1000, y: 580, w: 100, h: 100, colors: ["red", "yellow", "blue", "white"], color: "red", shape: "circle" }],
-	["ChargeButton", { x: 1100, y: 580, w: 100, h: 100, colors: ["red", "yellow", "blue", "white"], color: "yellow", shape: "circle" }],
-	["ChargeButton", { x: 1200, y: 580, w: 100, h: 100, colors: ["red", "yellow", "blue", "white"], color: "blue", shape: "circle" }],
-	["Knob", { x: 640, y: 420, w: 280, h: 280, min: 1, max: 8, setting: 3, }],
-	["Knob", { x: 840, y: 420, w: 280, h: 280, min: 1, max: 8, setting: 7, }],
-	["Knob", { x: 1040, y: 420, w: 280, h: 280, min: 1, max: 8, setting: 1, }],
+	["Contact", { x: 900, y: 600, w: 260, h: 260, labels: "ABCDE", }],
+	["Coil", { x: 620, y: 100, w: 320, h: 320, min: 2, max: 4, setting: 3 }],
+	["Button", { x: 1250, y: 350, w: 100, h: 100, color: "red", shape: "triangle" }],
+	["Button", { x: 1350, y: 350, w: 100, h: 100, color: "yellow", shape: "triangle" }],
+	["Button", { x: 1450, y: 350, w: 100, h: 100, color: "blue", shape: "triangle" }],
+	["Button", { x: 1250, y: 450, w: 100, h: 100, color: "red", shape: "square" }],
+	["Button", { x: 1350, y: 450, w: 100, h: 100, color: "yellow", shape: "square" }],
+	["Button", { x: 1450, y: 450, w: 100, h: 100, color: "blue", shape: "square" }],
+	["Button", { x: 1250, y: 550, w: 100, h: 100, color: "red", shape: "star" }],
+	["Button", { x: 1350, y: 550, w: 100, h: 100, color: "yellow", shape: "star" }],
+	["Button", { x: 1450, y: 550, w: 100, h: 100, color: "blue", shape: "star" }],
+	["Switch", { x: 1050, y: 120, w: 100, h: 200, labels: "25", }],
+	["Switch", { x: 1150, y: 120, w: 100, h: 200, labels: "34", }],
+	["Switch", { x: 1250, y: 120, w: 100, h: 200, labels: "14", on: true, }],
+	["Switch", { x: 1350, y: 120, w: 100, h: 200, labels: "35", }],
+	["ChargeButton", { x: 650, y: 600, w: 100, h: 100, colors: ["red", "yellow", "blue", "white"], color: "red", shape: "circle" }],
+	["ChargeButton", { x: 800, y: 600, w: 100, h: 100, colors: ["red", "yellow", "blue", "white"], color: "yellow", shape: "circle" }],
+	["ChargeButton", { x: 725, y: 720, w: 100, h: 100, colors: ["red", "yellow", "blue", "white"], color: "blue", shape: "circle" }],
+	["Knob", { x: 660, y: 360, w: 180, h: 180, min: 1, max: 8, setting: 3, }],
+	["Knob", { x: 820, y: 360, w: 180, h: 180, min: 1, max: 8, setting: 7, }],
+	["Knob", { x: 980, y: 360, w: 180, h: 180, min: 1, max: 8, setting: 1, }],
+	["Tiles", { x: 1200, y: 720, w: 320, h: 120, labels: "ENSW", }],
 ]
 
 /*
 		[
-			[null, true], [null, true], [null, true], [null, true], [], [3],
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
 			[0], [0], [0], [0], [0], [0], [0], [0], [0],
 			[false], [false], [true], [false],
 			[0], [0], [0],
 			[3], [7], [1],
+			[[0, 1, 2, 3]],
 		],
 */
 
 levels[5] = {
 	t: 100,
 	steps: [
+		"See those things you use to turn on the lights in your house? Change each one that's pointing toward the floor so that it's pointing toward the ceiling.",
 		"Change the turn thing on the right to the average of the other two.",  // average
 		"Make a line between the two letters whose small forms are mirror images of each other.",
-		"See those things you use to turn on the lights in your house? Change each one that's pointing toward the floor so that it's pointing toward the ceiling.",
 		"Hold each circle until its light is the same color as a fire truck.",
 	],
 	controls: controlset,
 	winsequence: [
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[true], [true], [true], [true],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[[1, 3]]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[true], [true], [true], [true],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[[1, 3]]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[true], [true], [true], [true],
+			[[1,2]], [[1,2]], [[1,2]],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
 	],
 	intro: [
 		"Did you ever hear the story of how we came to use only the ten hundred most used words? It happened a long time ago.",
@@ -199,13 +225,28 @@ levels[5] = {
 levels[6] = {
 	t: 100,
 	steps: [
-		"Make it so that each number chosen by a light changers is larger than the number chosen by the light changer immediately to its left.",
-		"Remove three of the four tiny metal things that hold the plate in place. Leave only the one on the top left.",
-		"Touch the two three-sided shapes whose colors are before and after orange on a colorful sky track that appears after a storm.",  // orange
-		"Set all three turns things to their largest values, then set them all to their lowest settings.",  // values
+		"Change exactly two of the light changers so that the numbers chosen add up to ten.",
+		"Touch the two shapes that a horse-shaped piece in a well-known board game could reach from the red star.",
+		"Change each of the three turn things to their current number taken away from ten.", // current
 	],
 	controls: controlset,
 	winsequence: [
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [true], [false], [false],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [1], [0], [0], [0], [1], [0], [0], [0],
+			[false], [true], [false], [false],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
 	],
 	fakescrews: false,
 	intro: [
@@ -220,10 +261,34 @@ levels[7] = {
 		"Wind the gray spring all the way up to the right. Also, at the very end of these steps, bring it all the way back to its starting position.",
 		"Make it so every light changer with both an even and an odd number is set to the even one.",  // odd
 		"Make a bridge between the pair of letters that aren't part of the word BED.",
-		"Touch the red and blue shapes whose number of points is equal to the number of letters in their colors.",  // equal
+		"Touch the red and blue shapes whose number of points equal the number of letters in their colors.",  // equal
 	],
 	controls: controlset,
 	winsequence: [
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [[3.9, 4.1]],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [false],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[[0, 2]]], [[3.9, 4.1]],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [false],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[[0, 2]]], [[2.9, 3.1]],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [false],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
 	],
 	fakescrews: false,
 	intro: [
@@ -235,12 +300,29 @@ levels[7] = {
 levels[8] = {
 	t: 100,
 	steps: [
-		"Change exactly two of the light changers so that the numbers chosen add up to ten.",
-		"Touch the two shapes that a horse-shaped piece in a well-known board game could reach from the red star.",
-		"Change each of the three turn things to their current number taken away from ten.", // current
+		"Set all three turn things to their largest values, then set them to their lowest settings.",  // values
+		"Make it so each light changer number is larger than the changer number immediately to its left.",
+		"Remove three of the four tiny metal things that hold the plate in place. Leave the top left one.",
+		"Touch the two three-sided shapes whose colors are next to orange on a colorful sky track after a storm.",  // orange
 	],
 	controls: controlset,
 	winsequence: [
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [true],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, false], [null, false], [null, false], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [true],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
 	],
 	fakescrews: false,
 	intro: [
@@ -251,20 +333,37 @@ levels[8] = {
 levels[9] = {
 	t: 100,
 	steps: [
+		"Make the letters say the word that means the latest happenings.", //  latest
 		"Hold each of the circles until their lights match the colors of the circles themselves.",  // match
-		"Find the five shapes that together form the letter that begins the thing made of wooden blocks that you hit to make music. Touch them one time each, in any order.",
+		"Find the five shapes that together form the letter that begins the wooden block thing you hit to make music. Touch them one time each.",
 		"Consider the three turn things to be one number (in the hundreds), and make that number be twice as big.",
 	],
 	controls: controlset,
 	winsequence: [
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[1], [0], [1], [0], [1], [0], [1], [0], [1],
+			[false], [false], [true], [false],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[1], [0], [1], [0], [1], [0], [1], [0], [1],
+			[false], [false], [true], [false],
+			[0], [0], [0],
+			[7], [4], [2],
+			[[0, 1, 2, 3]],
+		],
 	],
 	fakescrews: false,
 	intro: [
 	],
-	unlock: "BONUS",
+	unlock: "EXTRA",
 }
 
-levels.BONUS = {
+levels.EXTRA = {
 	t: 100,
 	steps: [
 		"Hold the third circle until its second light is on, and the first circle until its fourth light is on.",
@@ -274,10 +373,82 @@ levels.BONUS = {
 	],
 	controls: controlset,
 	winsequence: [
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [true],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [false],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [true],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [false],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [true],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [false],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [true],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [false],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
+		[
+			[null, true], [null, true], [null, true], [null, true], [[]], [3],
+			[0], [0], [0], [0], [0], [0], [0], [0], [0],
+			[false], [false], [true], [true],
+			[0], [0], [0],
+			[3], [7], [1],
+			[[0, 1, 2, 3]],
+		],
 	],
 	fakescrews: false,
 	intro: [
-		"You don't have to play this one. You've already beaten the game. This one is just extra, for fun. But if you do try it, you should know that it doesn't work the same way as the others. Can you figure out what you're supposed to do? I hope you're lucky!",
+		"You don't have to play this one, just so you know. You've already beaten the game. This one is just extra, for fun. But if you do try it, you should know that it doesn't work the same way as the others. Can you figure out what you're supposed to do? I hope you're lucky!",
 	],
 }
 
