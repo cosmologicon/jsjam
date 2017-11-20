@@ -36,6 +36,8 @@ UFX.scenes.load = {
 		if (this.loaded && pstate.down) {
 			UFX.scene.swap("play")
 			playsound("begin")
+			playmusic("lift")
+
 		}
 	},
 	draw: function () {
@@ -88,6 +90,10 @@ UFX.scenes.load = {
 			"sh black", Z(5), Z(5), 0,
 			"ft0", t, "]")
 
+		UFX.draw("[ t 180 860 font 30px~'Mouse~Memoirs'",
+			"fs", UFX.draw.lingrad(0, -10, 0, 10, 0, "#aac", 1, "#77a"),
+			"sh black", Z(2), Z(2), 0,
+			"ft0", "Music:~The~Lift,~Kevin~MacLeod~(CC-BY)", "]")
 		UFX.draw("]")
 	},
 }
@@ -109,7 +115,13 @@ function playsound(aname) {
 	source.connect(acontext.destination)
 	source.start(0)
 }
-
+function playmusic(aname) {
+	let source = acontext.createBufferSource()
+	source.buffer = UFX.resource.data[aname]
+	source.loop = true
+	source.connect(acontext.destination)
+	source.start(0)
+}
 UFX.resource.loadwebfonts("Architects Daughter", "Passion One", "Mouse Memoirs")
 UFX.resource.load({
 	wordlist: "1000.dicin.txt",
@@ -117,7 +129,7 @@ UFX.resource.load({
 
 let afiles = {}
 ;["badword", "begin", "charge1", "charge2", "charge3", "charge4", "fail", "goodword", "grab",
-	"grabword", "release", "saynext", "tick", "unscrew", "win"].forEach(aname => {
+	"grabword", "release", "righttrack", "saynext", "tick", "unscrew", "win", "lift"].forEach(aname => {
 	afiles[aname] = "sound/" + aname + ".ogg"
 })
 UFX.resource.loadaudiobuffer(acontext, afiles)

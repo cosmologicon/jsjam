@@ -40,7 +40,7 @@ else progress.load()
 
 
 levels[1] = {
-	t: 40,
+	t: 30,
 	steps: [
 		"Turn the thing you can turn as high as it can go.",
 		"Slide the thing you can slide all the way to the bottom.",
@@ -54,7 +54,7 @@ levels[1] = {
 		[[10], [0]],
 	],
 	intro: [
-		"hi. you're new here. I'll show you how we do things. See those steps? Follow each step exactly, and then pick Done."
+		"Hi. Looks like you're new here. I'll show you how we do things. See those steps? Follow each step exactly, and then pick Done."
 	],
 	fakescrews: true,
 	hidelesson: true,
@@ -62,7 +62,7 @@ levels[1] = {
 }
 
 levels[2] = {
-	t: 100,
+	t: 45,
 	steps: [
 		"Press the shape that there's one of, once for each leg on two birds.",
 		"Raise the left turn thing by half the number on the right turn thing.",
@@ -89,7 +89,7 @@ levels[2] = {
 }
 
 levels[3] = {
-	t: 100,
+	t: 45,
 	steps: [
 		"Put the letters in the order you sing them.",
 		"Set the thing that turns to the number of words in this instruction.", // instruction
@@ -121,7 +121,7 @@ levels[3] = {
 
 
 levels[4] = {
-	t: 100,
+	t: 60,
 	steps: [
 		"Change the second switch from the left twice.",  // switch
 		"Move exactly one slider exactly two spaces, so that three of the sliders form a straight line.",
@@ -193,7 +193,7 @@ let controlset = [
 */
 
 levels[5] = {
-	t: 100,
+	t: 80,
 	steps: [
 		"Change each light changer that's pointing toward the floor so that it's pointing toward the ceiling.",
 		"Change the turn thing on the right to the average of the other two.",  // average
@@ -236,7 +236,7 @@ levels[5] = {
 }
 
 levels[6] = {
-	t: 100,
+	t: 50,
 	steps: [
 		"Change exactly two of the light changers so that the numbers chosen add up to ten.",
 		"Touch the two shapes that a horse-shaped piece in a well-known board game could reach from the red star.",
@@ -263,13 +263,14 @@ levels[6] = {
 	],
 	fakescrews: false,
 	intro: [
+		"Long story short, talking like this turned out to be a much better way of explaining things than anyone expected. And since you don't have all those big words filling up your brain, there's more room for the important things, like television. People are much happier now.",
+		"Also it's a lot easier to write a game that understands what a person is saying if the person only has ten hundred words to choose from. So that's nice too!",
 	],
 	unlock: 7,
 }
 
-
 levels[7] = {
-	t: 100,
+	t: 50,
 	steps: [
 		"Wind the gray spring all the way up to the right. Also, at the very end of these steps, bring it all the way back to its starting position.",
 		"Make it so every light changer with both an even and an odd number is set to the even one.",  // odd
@@ -305,13 +306,14 @@ levels[7] = {
 	],
 	fakescrews: false,
 	intro: [
+		"But, as you can see, we always have to watch out for these less often used words. They keep showing up here and there. It's just the way we humans are: we keep making more and more words no matter how much we don't need them. No matter how much trouble they cause.",
 	],
 	unlock: 8,
 }
 
 
 levels[8] = {
-	t: 100,
+	t: 60,
 	steps: [
 		"Set all three turn things to their largest values, then set them to their lowest settings.",  // values
 		"Make it so each light changer number is larger than the changer number immediately to its left.",
@@ -339,6 +341,8 @@ levels[8] = {
 	],
 	fakescrews: false,
 	intro: [
+		"So that's what we're building here, in case you were wondering. A computer that can remove these less often used words from the world, all by itself.",
+		"Once the computer is finished, we won't have to worry about ever seeing those strange words ever again!",
 	],
 	unlock: 9,
 }
@@ -372,6 +376,12 @@ levels[9] = {
 	],
 	fakescrews: false,
 	intro: [
+		"Okay, this is the last set of steps. Once you finish here we can send the computer all over the world!",
+	],
+	outro: [
+		"Good job!",
+		"Thank you for playing!",
+		"The end.",
 	],
 	unlock: "EXTRA",
 }
@@ -463,6 +473,12 @@ levels.EXTRA = {
 	intro: [
 		"You don't have to play this one, just so you know. You've already beaten the game. This one is just extra, for fun. But if you do try it, you should know that it doesn't work the same way as the others. Can you figure out what you're supposed to do? I hope you're lucky!",
 	],
+	outro: [
+		"Oh no! What have you done? You've changed the computer... now it's set to ADD strange words everywhere! It was supposed to remove them!",
+		"Oh well. The whole idea of talking like this was fun for a while, but I knew it would never last.",
+		"One thing's for sure. We're about to have a lot more to say.",
+		"True ending.",
+	],
 }
 
 levels.test = {
@@ -516,7 +532,7 @@ UFX.scenes.menu = {
 		})
 		this.easy = new Switch({ x: 100, y: 650, w: 100, h: 200, on: !progress.easy, labels: ["EASY", "NORMAL"] })
 		this.easyballoon = new WordBalloon(
-			"If you set it to EASY, you can take as much time as you want, and you can check a word just by pointing to it.",
+			"If you set it to EASY, you can take as much time as you want, and you can check a word just by pointing to it. You will also hear a tone if you are on the right track.",
 			[800, 200], { width: 1000, })
 		this.controls.push(this.easy)
 		lesson.reset()

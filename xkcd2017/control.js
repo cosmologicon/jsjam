@@ -261,7 +261,7 @@ Coil.prototype = UFX.Thing()
 			for (let j = 0 ; j < nseg ; ++j) {
 				UFX.draw("c", Rs[j][2], Rs[j+1][0], Rs[j+1][1])
 			}
-			UFX.draw("ss black lw 10 s ss #588 lw 6 s")
+			UFX.draw("ss black lw 10 s ss #888 lw 6 s")
 			if (this.focused == 1) UFX.draw("sh white 0 0", Z(0.5 * this.r))
 			UFX.draw("b o", this.xyset(), this.r, "fs orange f ss black lw 3 s")
 			UFX.draw("]")

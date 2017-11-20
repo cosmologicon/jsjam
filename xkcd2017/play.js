@@ -58,6 +58,7 @@ UFX.scenes.play = {
 		
 		this.dolesson = !ldata.hidelesson
 		if (ldata.intro) UFX.scene.push("talk", ldata.intro)
+		this.outro = ldata.outro
 	},
 	think: function (dt) {
 		this.t = clamp(this.t - dt, 0, this.t0)
@@ -108,6 +109,9 @@ UFX.scenes.play = {
 			if (this.todo.length == 0 && this.tounlock) progress.unlock(this.tounlock)
 			UFX.scene.swap("menu")
 			if (this.todo.length == 0) {
+				if (this.outro) {
+					UFX.scene.push("talk", this.outro)
+				}
 				UFX.scene.push("win")
 				playsound("win")
 			} else {
@@ -172,6 +176,7 @@ UFX.scenes.play = {
 			console.log(comparestate(state, this.todo[0]))
 		}
 		if (comparestate(state, this.todo[0])) {
+			if (progress.easy) playsound("righttrack")
 			if (final || this.todo.length > 1) {
 				this.todo.shift()
 			}
