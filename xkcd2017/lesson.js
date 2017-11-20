@@ -4,7 +4,7 @@ let lesson = {
 	r: 80,
 	pos: [100, 800],
 	f: 0,
-	rate: 0.5,
+	rate: 1,
 	reset: function () {
 		this.f = 0
 		this.currentword = null
@@ -29,6 +29,12 @@ let lesson = {
 		this.currentword = null
 		this.f = 0
 		UFX.scenes.play.dropword()
+		if (!words.onlist(word) && progress.current == 3) {
+			UFX.scene.push("talk", [
+				"Yes, I was right! This word is not one of the most used words. When you find a word like that, it will turn red in the steps, so you know it's bad.",
+				"When you get to a step that has a bad word, the whole step is bad. You should NOT do that step. Just act like the step is not even there. Okay?",
+			])
+		}
 	},
 	islearned: function (word) {
 		return !!this.learned[word.toLowerCase()]

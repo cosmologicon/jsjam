@@ -55,6 +55,7 @@ UFX.scenes.play = {
 
 		lesson.reset()
 		
+		this.dolesson = !ldata.hidelesson
 		if (ldata.intro) UFX.scene.push("talk", ldata.intro)
 	},
 	think: function (dt) {
@@ -95,7 +96,9 @@ UFX.scenes.play = {
 		} else {
 			lesson.learn(null)
 		}
-		lesson.think(dt)
+		if (this.dolesson) {
+			lesson.think(dt)
+		}
 		if (this.done.nclick > 0) {
 			this.checkstate(true)
 			UFX.scene.swap("menu")
@@ -118,6 +121,7 @@ UFX.scenes.play = {
 		this.controls.forEach((control, j) => {
 			if (j != this.jpoint) control.focused = null
 		})
+		if (!this.dolesson) return
 
 		this.wjpoint = null
 		this.wkpoint = null
@@ -146,6 +150,11 @@ UFX.scenes.play = {
 	checkstate: function (final) {
 		if (this.todo.length <= (final ? 0 : 1)) return
 		let state = this.lcontrols.map(control => control.state())
+		if (DEBUG) {
+			console.log(JSON.stringify(state))
+			console.log(JSON.stringify(this.todo[0]))
+			console.log(comparestate(state, this.todo[0]))
+		}
 		if (comparestate(state, this.todo[0])) this.todo.shift()
 	},
 	draw: function () {
@@ -163,7 +172,7 @@ UFX.scenes.play = {
 			"ft0 time:",
 			"t", 0, 60, "ft0", this.t.toFixed(this.t >= 10 ? 0 : 1),
 		"]")
-		draw(lesson)
+		if (this.dolesson) draw(lesson)
 		if (this.grabbing && this.wpoint) {
 			this.statements[this.wjpoint].drawat(this.pos, this.wkpoint)
 		}

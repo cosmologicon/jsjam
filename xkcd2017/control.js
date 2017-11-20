@@ -399,7 +399,7 @@ ChargeButton.prototype = UFX.Thing()
 			this.colors.forEach((color, j) => {
 				let theta = 0.5 * (j - (n - 1) / 2)
 				UFX.draw("[ r", theta, "t", 0, -0.8, "b o 0 0 0.15 fs black f",
-					"fs", color, "alpha", (j < this.nlit() ? 1 : 0.4), "b o 0 0 0.12 f ]")
+					"fs", color, "alpha", (j == this.nlit() - 1 ? 1 : 0.4), "b o 0 0 0.12 f ]")
 			})
 			UFX.draw("]")
 		},
@@ -539,7 +539,10 @@ Contact.prototype = UFX.Thing()
 		connect: function (x, y) {
 			this.taken[x] = true
 			this.taken[y] = true
-			this.connections.push([x, y])
+			let connection = [x, y]
+			connection.sort()
+			this.connections.push(connection)
+			this.connections.sort()
 		},
 		state: function () {
 			return this.connections
