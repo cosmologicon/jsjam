@@ -33,7 +33,10 @@ UFX.scenes.load = {
 	},
 	think: function (dt) {
 		let pstate = UFX.pointer()
-		if (this.loaded && pstate.down) UFX.scene.swap("play")
+		if (this.loaded && pstate.down) {
+			UFX.scene.swap("play")
+			playsound("begin")
+		}
 	},
 	draw: function () {
 		UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#228", 1, "#006"), "fr", 0, 0, sx, sy)
@@ -95,23 +98,27 @@ UFX.resource.onloading = function (f) {
 UFX.resource.onload = function () {
 	UFX.scenes.load.loaded = true
 	words.makelist(UFX.resource.data.wordlist)
-	
-	function aplay (buffer) {
-		let source = acontext.createBufferSource()
-		source.buffer = buffer
-		source.connect(acontext.destination)
-		source.start(0)
-	}
-	for (let aname in afiles) {
-		UFX.resource.data[aname].play = () => aplay(UFX.resource.data[aname])
-	}
 }
+function playsound(aname) {
+	if (!UFX.resource.data[aname]) {
+		console.log("missing sound", aname)
+		return
+	}
+	let source = acontext.createBufferSource()
+	source.buffer = UFX.resource.data[aname]
+	source.connect(acontext.destination)
+	source.start(0)
+}
+
 UFX.resource.loadwebfonts("Architects Daughter", "Passion One", "Mouse Memoirs")
 UFX.resource.load({
 	wordlist: "1000.dicin.txt",
 })
-let afiles = {
-	dune: "sound/dune.ogg",
-}
+
+let afiles = {}
+;["badword", "begin", "charge1", "charge2", "charge3", "charge4", "fail", "goodword", "grab",
+	"grabword", "release", "saynext", "tick", "unscrew", "win"].forEach(aname => {
+	afiles[aname] = "sound/" + aname + ".ogg"
+})
 UFX.resource.loadaudiobuffer(acontext, afiles)
 

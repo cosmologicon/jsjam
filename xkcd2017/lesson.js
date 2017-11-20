@@ -25,7 +25,9 @@ let lesson = {
 		}
 	},
 	complete: function (word) {
-		this.learned[word.toLowerCase()] = 1
+		word = word.toLowerCase()
+		if (this.learned[word]) return
+		this.learned[word] = 1
 		this.currentword = null
 		this.f = 0
 		UFX.scenes.play.dropword()
@@ -35,6 +37,7 @@ let lesson = {
 				"We only want to do steps that use the ten hundred words people use most often. So when you get to a step that has a bad word, the whole step is bad. You should NOT do that step. Just act like the step is not even there. Okay?",
 			])
 		}
+		playsound(words.onlist(word) ? "goodword" : "badword")
 	},
 	islearned: function (word) {
 		return !!this.learned[word.toLowerCase()]

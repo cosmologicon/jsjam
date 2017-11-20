@@ -548,6 +548,7 @@ UFX.scenes.menu = {
 			} else {
 				progress.current = progress.unlocked[this.jpoint]
 				UFX.scene.swap("play")
+				playsound("begin")
 			}
 		}
 		canvas.style.cursor = this.jpoint == null ? "default" : "pointer"

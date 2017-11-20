@@ -74,8 +74,10 @@ UFX.scenes.play = {
 			this.setfocused(pos)
 			if (this.jpoint !== null && pstate.down) {
 				this.grabbing = true
+				playsound("grab")
 			} else if (this.wjpoint !== null && pstate.down) {
 				this.grabbing = true
+				playsound("grabword")
 			}
 		}
 
@@ -86,6 +88,7 @@ UFX.scenes.play = {
 			if (pstate.up) {
 				this.grabbing = false
 				if (this.jpoint !== null) {
+					playsound("release")
 					this.controls[this.jpoint].release()
 					this.checkstate()
 				}
@@ -102,13 +105,14 @@ UFX.scenes.play = {
 		}
 		if (this.done.nclick > 0) {
 			this.checkstate(true)
-			console.log(this.tounlock)
 			if (this.todo.length == 0 && this.tounlock) progress.unlock(this.tounlock)
 			UFX.scene.swap("menu")
 			if (this.todo.length == 0) {
 				UFX.scene.push("win")
+				playsound("win")
 			} else {
 				UFX.scene.push("fail")
+				playsound("fail")
 			}
 		}
 	},
@@ -256,7 +260,11 @@ UFX.scenes.talk = {
 		if (this.ttext > 0.4 && pstate.down) {
 			this.ttext = 0
 			if (this.balloons.length) this.balloons.shift()
-			if (!this.balloons.length) UFX.scene.pop()
+			if (!this.balloons.length) {
+				UFX.scene.pop()
+			} else {
+				playsound("saynext")
+			}
 		}
 	},
 	draw: function () {

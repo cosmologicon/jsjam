@@ -169,6 +169,7 @@ Knob.prototype = UFX.Thing()
 				return dx * Math.sin(theta) - dy * Math.cos(theta)
 			})
 			let jmax = ds.indexOf(Math.max.apply(Math, ds))
+			if (this.range[jmax] != this.setting) playsound("tick")
 			this.setting = this.range[jmax]
 		},
 	})
@@ -215,6 +216,7 @@ VSlider.prototype = UFX.Thing()
 			let [x, y] = this.relativepos(pos)
 			let ds = this.range.map(j => Math.abs(y - this.fracpos([0, this.heightof(j)])[1]))
 			let jmin = ds.indexOf(Math.min.apply(Math, ds))
+			if (this.range[jmin] != this.setting) playsound("tick")
 			this.setting = this.range[jmin]
 		},
 	})
@@ -325,7 +327,10 @@ Screw.prototype = UFX.Thing()
 			let dsetting = (theta - this.setting + 100.5) % 1 - 0.5
 			if (Math.abs(dsetting) > 0.2) return
 			this.setting = clamp(this.setting + dsetting, this.min, this.max)
-			if (this.setting == this.min) this.screwed = false
+			if (this.screwed && this.setting == this.min) {
+				this.screwed = false
+				playsound("unscrew")
+			}
 		},
 		state: function () {
 			return this.screwed
@@ -413,8 +418,10 @@ ChargeButton.prototype = UFX.Thing()
 			if (x * x + y * y <= this.r * this.r) return 1
 		},
 		grabify: function (pos, kpoint, dt) {
+			let waslit = this.nlit()
 			let dsetting = dt
 			this.setting = clamp(this.setting + dsetting, this.min, this.max)
+			if (waslit != this.nlit()) playsound("charge" + this.nlit())
 		},
 	})
 
@@ -606,6 +613,7 @@ Tiles.prototype = UFX.Thing()
 			}
 			this.focused = this.focusat(pos)
 			if (this.focused !== null && this.focused !== undefined && this.focused !== this.grabbed) {
+				playsound("tick")
 				this.align(this.grabbed, this.focused)
 			}
 			this.holdpos = this.dcenterpos(pos)
