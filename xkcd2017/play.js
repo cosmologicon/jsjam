@@ -20,7 +20,7 @@ UFX.scenes.play = {
 			return s
 		})
 		this.statements.push(
-			new Statement("Cut the Red Power Stick", [800, 120], { size: 70, width: 900, center: true })
+			new Statement("Simple Machines", [800, 120], { size: 70, width: 900, center: true })
 		)
 		this.done = new Button({ x: 420, y: 710, w: 160, h: 160, shape: "star", color: "#aa6", label: "DONE", })
 		this.lcontrols = ldata.controls.map(cdata => {
@@ -60,7 +60,7 @@ UFX.scenes.play = {
 	},
 	think: function (dt) {
 		this.t = clamp(this.t - dt, 0, this.t0)
-		if (this.t == 0) {
+		if (!progress.easy && this.t == 0) {
 			UFX.scene.swap("menu")
 			UFX.scene.push("timeup")
 			return
@@ -140,6 +140,9 @@ UFX.scenes.play = {
 		this.statements.forEach((statement, j) => {
 			if (j != this.wjpoint) statement.focused = null
 		})
+		if (progress.easy && this.wpoint) {
+			lesson.complete(this.wpoint.text)
+		}
 	},
 	dropword: function () {
 		this.wjpoint = null
@@ -168,11 +171,13 @@ UFX.scenes.play = {
 		this.controls.forEach(draw)
 		this.statements.forEach(draw)
 		words.setfont(context, 60, "Passion One", false)
-		UFX.draw("[ tab center top fs orange sh black", Z(6), Z(6), 0, "t", 300, 730,
-			"ft0 time:",
-			"t", 0, 60, "ft0", this.t.toFixed(this.t >= 10 ? 0 : 1),
-		"]")
-		if (this.dolesson) draw(lesson)
+		if (!progress.easy) {
+			UFX.draw("[ tab center top fs orange sh black", Z(6), Z(6), 0, "t", 300, 730,
+				"ft0 time:",
+				"t", 0, 60, "ft0", this.t.toFixed(this.t >= 10 ? 0 : 1),
+			"]")
+			if (this.dolesson) draw(lesson)
+		}
 		if (this.grabbing && this.wpoint) {
 			this.statements[this.wjpoint].drawat(this.pos, this.wkpoint)
 		}

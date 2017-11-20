@@ -8,16 +8,17 @@ let progress = {
 		this.unlocked = ["1"]
 		this.current = "1"
 		this.done = {}
+		this.easy = false
 		this.save()
 	},
 	save: function () {
-		localStorage.xkcd2017save = JSON.stringify([this.unlocked, this.current, this.done])
+		localStorage.xkcd2017save = JSON.stringify([this.unlocked, this.current, this.done, this.easy])
 	},
 	load: function () {
 		if (!localStorage.xkcd2017save) {
 			this.reset()
 		} else {
-			;[this.unlocked, this.current, this.done] = JSON.parse(localStorage.xkcd2017save)
+			;[this.unlocked, this.current, this.done, this.easy] = JSON.parse(localStorage.xkcd2017save)
 		}
 	},
 	unlock: function (levelname) {
@@ -57,6 +58,7 @@ levels[1] = {
 	],
 	fakescrews: true,
 	hidelesson: true,
+	unlock: 2,
 }
 
 levels[2] = {
@@ -83,6 +85,7 @@ levels[2] = {
 	],
 	fakescrews: true,
 	hidelesson: true,
+	unlock: 3,
 }
 
 levels[3] = {
@@ -104,6 +107,7 @@ levels[3] = {
 		"Let's see if it should be here. Grab that word and drag it down to the word check area. Hold it there for a second.",
 		"Again, that's the long word at the end of the second step.",
 	],
+	unlock: 4,
 }
 
 
@@ -131,32 +135,36 @@ levels[4] = {
 		"Great, you figured out how to ignore the words that should not be there.",
 		"I see two more words like that in this set of steps. Remember, ignore any step that has a bad word. And if you're not sure about a word, use the word help area and see if it turns red.",
 	],
+	unlock: 5,
 }
 
 // Controls starting at level 5 on.
 let controlset = [
-	["Screw", { x: 620, y: 100, w: 70, h: 70, min: 0, max: 4 }],
-	["Screw", { x: 620, y: 810, w: 70, h: 70, min: 0, max: 4 }],
-	["Screw", { x: 1510, y: 100, w: 70, h: 70, min: 0, max: 4 }],
-	["Screw", { x: 1510, y: 810, w: 70, h: 70, min: 0, max: 4 }],
+	["Screw", { x: 620, y: 100, w: 70, h: 70, min: 0, max: 3 }],
+	["Screw", { x: 620, y: 810, w: 70, h: 70, min: 0, max: 3 }],
+	["Screw", { x: 1510, y: 100, w: 70, h: 70, min: 0, max: 3 }],
+	["Screw", { x: 1510, y: 810, w: 70, h: 70, min: 0, max: 3 }],
 	["Contact", { x: 1200, y: 500, w: 300, h: 300, labels: "ABCDE", }],
 	["Coil", { x: 640, y: 120, w: 280, h: 280, min: 2, max: 4, setting: 3 }],
 	["Button", { x: 1000, y: 200, w: 100, h: 100, color: "red", shape: "triangle" }],
-	["Button", { x: 1000, y: 300, w: 100, h: 100, color: "red", shape: "square" }],
-	["Button", { x: 1000, y: 400, w: 100, h: 100, color: "red", shape: "star" }],
 	["Button", { x: 1100, y: 200, w: 100, h: 100, color: "yellow", shape: "triangle" }],
-	["Button", { x: 1100, y: 300, w: 100, h: 100, color: "yellow", shape: "square" }],
-	["Button", { x: 1100, y: 400, w: 100, h: 100, color: "yellow", shape: "star" }],
 	["Button", { x: 1200, y: 200, w: 100, h: 100, color: "blue", shape: "triangle" }],
+	["Button", { x: 1000, y: 300, w: 100, h: 100, color: "red", shape: "square" }],
+	["Button", { x: 1100, y: 300, w: 100, h: 100, color: "yellow", shape: "square" }],
 	["Button", { x: 1200, y: 300, w: 100, h: 100, color: "blue", shape: "square" }],
+	["Button", { x: 1000, y: 400, w: 100, h: 100, color: "red", shape: "star" }],
+	["Button", { x: 1100, y: 400, w: 100, h: 100, color: "yellow", shape: "star" }],
 	["Button", { x: 1200, y: 400, w: 100, h: 100, color: "blue", shape: "star" }],
-	["Switch", { x: 650, y: 150, w: 100, h: 200, labels: "AB", }],
-	["Switch", { x: 750, y: 150, w: 100, h: 200, labels: "AB", }],
-	["Switch", { x: 850, y: 150, w: 100, h: 200, labels: "AB", on: true, }],
-	["Switch", { x: 950, y: 150, w: 100, h: 200, labels: "AB", }],
+	["Switch", { x: 650, y: 150, w: 100, h: 200, labels: "25", }],
+	["Switch", { x: 750, y: 150, w: 100, h: 200, labels: "35", }],
+	["Switch", { x: 850, y: 150, w: 100, h: 200, labels: "14", on: true, }],
+	["Switch", { x: 950, y: 150, w: 100, h: 200, labels: "25", }],
 	["ChargeButton", { x: 1000, y: 580, w: 100, h: 100, colors: ["red", "yellow", "blue", "white"], color: "red", shape: "circle" }],
 	["ChargeButton", { x: 1100, y: 580, w: 100, h: 100, colors: ["red", "yellow", "blue", "white"], color: "yellow", shape: "circle" }],
 	["ChargeButton", { x: 1200, y: 580, w: 100, h: 100, colors: ["red", "yellow", "blue", "white"], color: "blue", shape: "circle" }],
+	["Knob", { x: 640, y: 420, w: 280, h: 280, min: 1, max: 8, setting: 3, }],
+	["Knob", { x: 840, y: 420, w: 280, h: 280, min: 1, max: 8, setting: 7, }],
+	["Knob", { x: 1040, y: 420, w: 280, h: 280, min: 1, max: 8, setting: 1, }],
 ]
 
 /*
@@ -165,50 +173,44 @@ let controlset = [
 			[0], [0], [0], [0], [0], [0], [0], [0], [0],
 			[false], [false], [true], [false],
 			[0], [0], [0],
+			[3], [7], [1],
 		],
 */
 
 levels[5] = {
 	t: 100,
 	steps: [
+		"Change the turn thing on the right to the average of the other two.",  // average
 		"Make a line between the two letters whose small forms are mirror images of each other.",
 		"See those things you use to turn on the lights in your house? Change each one that's pointing toward the floor so that it's pointing toward the ceiling.",
 		"Hold each circle until its light is the same color as a fire truck.",
 	],
 	controls: controlset,
 	winsequence: [
-		[
-			[null, true], [null, true], [null, true], [null, true], [[1, 3]], [3],
-			[0], [0], [0], [0], [0], [0], [0], [0], [0]
-			[false], [false], [true], [false],
-			[0], [0], [0],
-		],
 	],
 	intro: [
 		"Did you ever hear the story of how we came to use only the ten hundred most used words? It happened a long time ago.",
 		"It started as a sort of game, to make yourself think in new and interesting ways.",
 		"It seems like it would make it hard to explain things, but once you get used to it, it comes pretty easily, doesn't it?",
 	],
+	unlock: 6,
 }
 
 levels[6] = {
 	t: 100,
 	steps: [
+		"Make it so that each number chosen by a light changers is larger than the number chosen by the light changer immediately to its left.",
 		"Remove three of the four tiny metal things that hold the plate in place. Leave only the one on the top left.",
 		"Touch the two three-sided shapes whose colors are before and after orange on a colorful sky track that appears after a storm.",  // orange
+		"Set all three turns things to their largest values, then set them all to their lowest settings.",  // values
 	],
 	controls: controlset,
 	winsequence: [
-		[
-			[null, true], [null, false], [null, false], [null, false], [], [3],
-			[0], [0], [0], [0], [0], [0], [0], [0], [0],
-			[false], [false], [true], [false],
-			[0], [0], [0],
-		],
 	],
 	fakescrews: false,
 	intro: [
 	],
+	unlock: 7,
 }
 
 
@@ -218,25 +220,15 @@ levels[7] = {
 		"Wind the gray spring all the way up to the right. Also, at the very end of these steps, bring it all the way back to its starting position.",
 		"Make it so every light changer with both an even and an odd number is set to the even one.",  // odd
 		"Make a bridge between the pair of letters that aren't part of the word BED.",
+		"Touch the red and blue shapes whose number of points is equal to the number of letters in their colors.",  // equal
 	],
 	controls: controlset,
 	winsequence: [
-		[
-			[null, true], [null, false], [null, false], [null, false], [], [[3.9, 4.1]],
-			[0], [0], [0], [0], [0], [0], [0], [0], [0],
-			[false], [false], [true], [false],
-			[0], [0], [0],
-		],
-		[
-			[null, true], [null, false], [null, false], [null, false], [[0, 2]], [[3.9, 4.1]],
-			[0], [0], [0], [0], [0], [0], [0], [0], [0],
-			[false], [false], [true], [false],
-			[0], [0], [0],
-		],
 	],
 	fakescrews: false,
 	intro: [
 	],
+	unlock: 8,
 }
 
 
@@ -245,19 +237,15 @@ levels[8] = {
 	steps: [
 		"Change exactly two of the light changers so that the numbers chosen add up to ten.",
 		"Touch the two shapes that a horse-shaped piece in a well-known board game could reach from the red star.",
+		"Change each of the three turn things to their current number taken away from ten.", // current
 	],
 	controls: controlset,
 	winsequence: [
-		[
-			[null, true], [null, false], [null, false], [null, false], [], [[3]],
-			[0], [0], [0], [0], [0], [0], [0], [0], [0],
-			[false], [false], [true], [false],
-			[0], [0], [0],
-		],
 	],
 	fakescrews: false,
 	intro: [
 	],
+	unlock: 9,
 }
 
 levels[9] = {
@@ -265,18 +253,31 @@ levels[9] = {
 	steps: [
 		"Hold each of the circles until their lights match the colors of the circles themselves.",  // match
 		"Find the five shapes that together form the letter that begins the thing made of wooden blocks that you hit to make music. Touch them one time each, in any order.",
+		"Consider the three turn things to be one number (in the hundreds), and make that number be twice as big.",
 	],
 	controls: controlset,
 	winsequence: [
-		[
-			[null, true], [null, false], [null, false], [null, false], [], [[3]],
-			[1], [0], [1], [0], [1], [0], [1], [0], [1],
-			[false], [false], [true], [false],
-			[0], [0], [0],
-		],
 	],
 	fakescrews: false,
 	intro: [
+	],
+	unlock: "BONUS",
+}
+
+levels.BONUS = {
+	t: 100,
+	steps: [
+		"Hold the third circle until its second light is on, and the first circle until its fourth light is on.",
+		"Put the letters in order from last to first, then switch the last and first two.",
+		"Wind up the spring until it's in the direction of the hour hand at nine.",
+		"Join the letter that's the same when it flips left to right to any other letter.",
+	],
+	controls: controlset,
+	winsequence: [
+	],
+	fakescrews: false,
+	intro: [
+		"You don't have to play this one. You've already beaten the game. This one is just extra, for fun. But if you do try it, you should know that it doesn't work the same way as the others. Can you figure out what you're supposed to do? I hope you're lucky!",
 	],
 }
 
@@ -319,16 +320,21 @@ UFX.scenes.menu = {
 	start: function () {
 		this.t = 0
 		this.f = 1
-		this.title = new Statement("Cut the Red Power Stick", [800, 120], { size: 70, width: 900, center: true })
+		this.title = new Statement("Simple Machines", [800, 120], { size: 70, width: 900, center: true })
 		this.controls = progress.unlocked.map((levelname, j) => {
-			let w = 150, h = 150
+			let w = 250, h = 250
 			let jx = j % 5, jy = Math.floor(j / 5)
 			return new Button({
 				w: w, h: h, label: "" + levelname, color: UFX.random.color(), shape: "star",
-				x: 800 + (jx - 2) * 300,
-				y: 200 + jy * 300,
+				x: -w/2 + 700 + (jx - 2) * 250 + jy * 125,
+				y: -h/2 + 250 + jy * 250,
 			})
 		})
+		this.easy = new Switch({ x: 100, y: 650, w: 100, h: 200, on: !progress.easy, labels: ["EASY", "NORMAL"] })
+		this.easyballoon = new WordBalloon(
+			"If you set it to EASY, you can take as much time as you want, and you can check a word just by pointing to it.",
+			[800, 200], { width: 1000, })
+		this.controls.push(this.easy)
 		lesson.reset()
 	},
 	think: function (dt) {
@@ -352,13 +358,18 @@ UFX.scenes.menu = {
 			if (j != this.jpoint) control.focused = null
 		})
 		if (this.t > 0.5 && pstate.down && this.jpoint !== null) {
-			progress.current = progress.unlocked[this.jpoint]
-			UFX.scene.swap("play")
+			if (this.controls[this.jpoint] === this.easy) {
+				this.easy.release()
+				progress.easy = !this.easy.on
+			} else {
+				progress.current = progress.unlocked[this.jpoint]
+				UFX.scene.swap("play")
+			}
 		}
 		canvas.style.cursor = this.jpoint == null ? "default" : "pointer"
 	},
 	draw: function () {
-		UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#228", 1, "#006"), "fr", 0, 0, sx, sy)
+		UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#aaa", 1, "#777"), "fr", 0, 0, sx, sy)
 		UFX.draw("[ z", sx / sx0, sy / sy0)
 		function draw(obj) {
 			context.save()
@@ -367,6 +378,11 @@ UFX.scenes.menu = {
 		}
 		this.controls.forEach(draw)
 		draw(this.title)
+
+		if (this.controls[this.jpoint] === this.easy) {
+			this.easyballoon.draw()
+		}
+
 		UFX.draw("]")
 
 		let alpha = this.f

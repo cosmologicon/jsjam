@@ -43,7 +43,7 @@ UFX.scenes.load = {
 		UFX.draw("[ t 800 150 font 150px~'Mouse~Memoirs'",
 			"fs", UFX.draw.lingrad(0, -40, 0, 40, 0, "#aac", 1, "#77a"),
 			"sh black", Z(10), Z(10), 0,
-			"ft0 Cut~the~Red~Power~Stick ]")
+			"ft0 Simple~Machines ]")
 		UFX.draw("[ t 400 350 font 80px~'Passion~One'",
 			"fs", UFX.draw.lingrad(0, -30, 0, 30, 0, "#cca", 1, "#a77"),
 			"sh black", Z(7), Z(7), 0,
@@ -78,6 +78,12 @@ UFX.scenes.load = {
 			"t 0 70 ft0 well-known~stick~person",
 			"t 0 70 ft0 word~&~art~page",
 			"]")
+
+		let t = this.f == 1 ? "Ready~to~start" : "Getting~the~game...~" + (this.f * 100).toFixed(0) + "%"
+		UFX.draw("[ t 800 800 font 80px~'Mouse~Memoirs'",
+			"fs", UFX.draw.lingrad(0, -20, 0, 20, 0, "#aac", 1, "#77a"),
+			"sh black", Z(5), Z(5), 0,
+			"ft0", t, "]")
 
 		UFX.draw("]")
 	},

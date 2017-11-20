@@ -52,6 +52,8 @@ let Shaped = {
 		UFX.draw("z", this.r, this.r)
 		if (this.shape == "circle") {
 			UFX.draw("b o 0 0 0.5")
+		} else if (this.shape == "triangle") {
+			UFX.draw("( m 0 -0.6 l -0.6 0.4 l 0.6 0.4 )")
 		} else if (this.shape == "square") {
 			UFX.draw("rr -0.45 -0.45 0.9 0.9 0.1")
 		} else if (this.shape == "star") {
@@ -416,7 +418,7 @@ ChargeButton.prototype = UFX.Thing()
 
 function Switch(obj) {
 	this.setup(obj)
-	this.on = false
+	this.on = obj.on || false
 	this.labels = obj.labels || "  "
 	if (this.labels.split) this.labels = this.labels.split("")
 }
@@ -429,8 +431,8 @@ Switch.prototype = UFX.Thing()
 			UFX.draw("[ t", this.w / 2, this.h / 2)
 			words.setfont(context, 0.2 * this.h, "Architects Daughter", true)
 			UFX.draw("tab center middle fs black")
-			if (this.labels[0] != " ") UFX.draw("ft", this.labels[0], 0, -0.35 * this.h)
-			if (this.labels[1] != " ") UFX.draw("ft", this.labels[1], 0, 0.35 * this.h)
+			if (this.labels[0] != " ") UFX.draw("ft", this.labels[0], 0, 0.35 * this.h)
+			if (this.labels[1] != " ") UFX.draw("ft", this.labels[1], 0, -0.35 * this.h)
 			UFX.draw("tr", -0.25 * this.w, -0.05 * this.h, 0.5 * this. w, 0.1 * this.h, "[")
 			if (this.focused === 1) UFX.draw("sh white 0 0", this.w * 0.2)
 			UFX.draw("fs #999 f ] lw", this.w * 0.02, "ss black s")
