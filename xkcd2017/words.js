@@ -32,6 +32,8 @@ let words = {
 	makelist: function () {
 		this.list = {}
 		__WORDS.split("|").forEach(word => this.list[word.toLowerCase()] = 1)
+		this.list["it's"] = 1
+		this.list["that's"] = 1
 	},
 	onlist: function (word) {
 		return !!this.list[word.toLowerCase()]

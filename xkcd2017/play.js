@@ -65,6 +65,7 @@ UFX.scenes.play = {
 		if (!progress.easy && this.t == 0) {
 			UFX.scene.swap("menu")
 			UFX.scene.push("timeup")
+			playsound("fail")
 			return
 		}
 		let pstate = UFX.pointer()

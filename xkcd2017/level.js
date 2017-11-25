@@ -124,15 +124,15 @@ levels[4] = {
 	t: 60,
 	steps: [
 		"Change the second switch from the left twice.",  // switch
-		"Move exactly one slider exactly two spaces, so that three of the sliders form a straight line.",
+		"Move exactly one slider exactly three spaces, so that three of the sliders form a straight line.",
 		"Connect one of the letters to the letter that comes exactly three letters after it.",  // connect
 		"Hold the blue circle until its yellow light becomes lit.",
 	],
 	controls: [
-		["VSlider", { x: 1080, y: 110, w: 180, h: 300, min: 0, max: 5, setting: 3 }],
-		["VSlider", { x: 1180, y: 110, w: 180, h: 300, min: 0, max: 5, setting: 4 }],
-		["VSlider", { x: 1280, y: 110, w: 180, h: 300, min: 0, max: 5, setting: 4 }],
-		["VSlider", { x: 1380, y: 110, w: 180, h: 300, min: 0, max: 5, setting: 0 }],
+		["VSlider", { x: 1080, y: 110, w: 180, h: 300, min: 0, max: 6, setting: 3 }],
+		["VSlider", { x: 1180, y: 110, w: 180, h: 300, min: 0, max: 6, setting: 5 }],
+		["VSlider", { x: 1280, y: 110, w: 180, h: 300, min: 0, max: 6, setting: 5 }],
+		["VSlider", { x: 1380, y: 110, w: 180, h: 300, min: 0, max: 6, setting: 0 }],
 		["ChargeButton", { x: 720, y: 580, w: 160, h: 160, colors: ["red", "orange", "yellow", "white"], color: "blue", shape: "circle" }],
 		["Switch", { x: 700, y: 180, w: 100, h: 200, }],
 		["Switch", { x: 800, y: 180, w: 100, h: 200, }],
@@ -140,8 +140,8 @@ levels[4] = {
 		["Contact", { x: 1200, y: 540, w: 260, h: 260, labels: "AMQRTZ", }],
 	],
 	winsequence: [
-		[[3], [2], [4], [0], [0], [false], [false], [false], [[]]],
-		[[3], [2], [4], [0], [[3, 3.999]], [false], [false], [false], [[]]],
+		[[3], [2], [5], [0], [0], [false], [false], [false], [[]]],
+		[[3], [2], [5], [0], [[3, 3.999]], [false], [false], [false], [[]]],
 	],
 	fakescrews: true,
 	intro: [
@@ -240,7 +240,7 @@ levels[6] = {
 	steps: [
 		"Change exactly two of the light changers so that the numbers chosen add up to ten.",
 		"Touch the two shapes that a horse-shaped piece in a well-known board game could reach from the red star.",
-		"Change each of the three turn things to their current number taken away from ten.", // current
+		"Change each of the three turn things to their current number taken away from eight.", // current
 	],
 	controls: controlset,
 	winsequence: [

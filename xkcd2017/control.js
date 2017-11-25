@@ -317,7 +317,7 @@ Screw.prototype = UFX.Thing()
 		focusat: function (pos) {
 			if (!this.screwed) return
 			let [dx, dy] = this.dcenterpos(pos)
-			if (dx * dx + dy * dy <= this.R * this.R) return 1
+			if (dx * dx + dy * dy <= 4 * this.R * this.R) return 1
 		},
 		grabify: function (pos, kpoint) {
 			if (!this.screwed) return
@@ -373,7 +373,7 @@ Button.prototype = UFX.Thing()
 	.addcomp({
 		focusat: function (pos) {
 			let [x, y] = this.dcenterpos(pos)
-			if (x * x + y * y <= this.r * this.r) return 1
+			if (x * x + y * y <= 0.75 * 0.75 * this.r * this.r) return 1
 		},
 		grabify: function (pos, kpoint) {
 		},
@@ -532,7 +532,7 @@ Contact.prototype = UFX.Thing()
 				if (this.taken[j] || j === this.start) continue
 				let theta = j / this.n * tau, S = Math.sin(theta), C = Math.cos(theta)
 				let dx = x - S, dy = y + C
-				if (dx * dx + dy * dy < 0.2 * 0.2) return j
+				if (dx * dx + dy * dy < 0.6 * 0.6) return j
 			}
 		},
 		grabify: function (pos, kpoint) {
