@@ -441,8 +441,16 @@ Switch.prototype = UFX.Thing()
 			UFX.draw("[ t", this.w / 2, this.h / 2)
 			words.setfont(context, 0.2 * this.h, "Architects Daughter", true)
 			UFX.draw("tab center middle fs black")
-			if (this.labels[0] != " ") UFX.draw("ft", this.labels[0], 0, 0.35 * this.h)
-			if (this.labels[1] != " ") UFX.draw("ft", this.labels[1], 0, -0.35 * this.h)
+			if (this.labels[0] != " ") {
+				this.labels[0].split("\n").forEach((label, j, labels) => {
+					UFX.draw("ft", label, 0, (0.35 + 0.2 * (j - (labels.length - 1) / 2)) * this.h)
+				})
+			}
+			if (this.labels[1] != " ") {
+				this.labels[1].split("\n").forEach((label, j, labels) => {
+					UFX.draw("ft", label, 0, (-0.35 + 0.2 * (j - (labels.length - 1) / 2)) * this.h)
+				})
+			}
 			UFX.draw("tr", -0.25 * this.w, -0.05 * this.h, 0.5 * this. w, 0.1 * this.h, "[")
 			if (this.focused === 1) UFX.draw("sh white 0 0", Z(this.w * 0.2))
 			UFX.draw("fs #999 f ] lw", this.w * 0.02, "ss black s")

@@ -2,41 +2,65 @@
 
 let levels = {}
 
-let progress = {
-	current: null,
-	reset: function () {
-		this.unlocked = ["1"]
-		this.current = "1"
-		this.done = {}
-		this.easy = false
-		this.save()
+let Serializable = {
+	init: function (name, version) {
+		this._savename = name
+		this._versionname = name + "_version"
+		this._version = "" + version
+	},
+	getobj: function () {
+		let obj = {}
+		for (let s in this) {
+			if (this.hasOwnProperty(s)) obj[s] = this[s]
+		}
+		return obj
 	},
 	save: function () {
-		localStorage.xkcd2017save = JSON.stringify([this.unlocked, this.current, this.done, this.easy])
+		localStorage[this._savename] = JSON.stringify(this.getobj())
+		localStorage[this._versionname] = this._version
 	},
 	load: function () {
-		if (!localStorage.xkcd2017save) {
+		let obj = JSON.parse(localStorage[this._savename])
+		for (let s in obj) this[s] = obj[s]
+	},
+	start: function (forcereset) {
+		if (forcereset || localStorage[this._versionname] != this._version) {
 			this.reset()
+			this.save()
 		} else {
-			;[this.unlocked, this.current, this.done, this.easy] = JSON.parse(localStorage.xkcd2017save)
+			this.load()
 		}
 	},
-	unlock: function (levelname) {
-		if (this.unlocked.includes(levelname)) return
-		this.unlocked.push(levelname)
-		this.save()
-	},
-	do: function (thing) {
-		this.done[thing] = 1
-		this.save()
-	},
-	unlockall: function () {
-		for (let levelname in levels) this.unlock(levelname)
-	},
+	reset: function () {},
 }
-if (window.location.href.includes("RESET")) progress.reset()
-else progress.load()
-
+function SaveState(forcereset) {
+	this.start(forcereset)
+}
+SaveState.prototype = UFX.Thing()
+	.addcomp(Serializable, "xkcd2017save", 1)
+	.addcomp({
+		reset: function () {
+			this.current = "1"
+			this.unlocked = ["1"]
+		},
+		unlock: function (levelname) {
+			if (this.unlocked.includes(levelname)) return
+			this.unlocked.push(levelname)
+			this.save()
+		},
+		unlockall: function () {
+			for (let levelname in levels) this.unlock(levelname)
+		},
+	})
+	.addcomp({
+		reset: function () {
+			this.easy = false
+			this.sound = 4
+			this.music = 4
+			this.fullscreen = false
+		},
+	})
+let savestate = new SaveState(window.location.href.includes("RESET"))
 
 
 levels[1] = {
@@ -521,20 +545,29 @@ UFX.scenes.menu = {
 		this.t = 0
 		this.f = 1
 		this.title = new Statement("Simple Machines", [800, 120], { size: 70, width: 900, center: true })
-		this.controls = progress.unlocked.map((levelname, j) => {
+		this.controls = savestate.unlocked.map((levelname, j) => {
 			let w = 250, h = 250
 			let jx = j % 5, jy = Math.floor(j / 5)
 			return new Button({
 				w: w, h: h, label: "" + levelname, color: UFX.random.color(), shape: "star",
-				x: -w/2 + 700 + (jx - 2) * 250 + jy * 125,
-				y: -h/2 + 250 + jy * 250,
+				x: -w/2 + 700 + (jx - 2) * 150 + jy * 125,
+				y: -h/2 + 250 + jy * 150,
 			})
 		})
-		this.easy = new Switch({ x: 100, y: 650, w: 100, h: 200, on: !progress.easy, labels: ["EASY", "NORMAL"] })
-		this.easyballoon = new WordBalloon(
+		this.settings = [
+			new Switch({ x: 100, y: 650, w: 100, h: 200, on: !savestate.easy, labels: ["EASY", "NORMAL"] }),
+			new VSlider({ x: 200, y: 650, w: 100, h: 200, min: 0, max: 5, setting: savestate.sound, label: "SOUND" }),
+			new VSlider({ x: 300, y: 650, w: 100, h: 200, min: 0, max: 5, setting: savestate.music, label: "MUSIC" }),
+			new Switch({ x: 400, y: 650, w: 100, h: 200, on: savestate.fullscreen, labels: ["WINDOW", "FULL\nSCREEN"] }),
+		]
+		let settingtexts = [
 			"If you set it to EASY, you can take as much time as you want, and you can check a word just by pointing to it. You will also hear a tone if you are on the right track.",
-			[800, 200], { width: 1000, })
-		this.controls.push(this.easy)
+			"How loud the sounds are.",
+			"How loud the music is..",
+			"Whether the game takes up the whole screen.",
+		]
+		this.balloons = settingtexts.map(text => new WordBalloon(text, [800, 200], { width: 1000, }))
+		this.controls = this.controls.concat(this.settings)
 		lesson.reset()
 	},
 	think: function (dt) {
@@ -544,30 +577,64 @@ UFX.scenes.menu = {
 		let pos = this.pos = pstate.pos ? pstate.pos.slice() : [0, 0]
 		pos[0] *= sx0 / sx
 		pos[1] *= sy0 / sy
-		this.jpoint = null
-		for (let j = 0 ; j < this.controls.length ; ++j) {
-			let control = this.controls[j]
-			let k = control.focusat(pos)
-			if (k !== null && k !== undefined) {
-				this.jpoint = j
-				control.focused = k
-				break
+		if (!this.grabbing) {
+			this.jpoint = null
+			this.point = null
+			for (let j = 0 ; j < this.controls.length ; ++j) {
+				let control = this.controls[j]
+				let k = control.focusat(pos)
+				if (k !== null && k !== undefined) {
+					this.point = control
+					this.jpoint = j
+					this.kpoint = k
+					control.focused = k
+					break
+				}
 			}
 		}
 		this.controls.forEach((control, j) => {
 			if (j != this.jpoint) control.focused = null
 		})
 		if (this.t > 0.5 && pstate.down && this.jpoint !== null) {
-			if (this.controls[this.jpoint] === this.easy) {
-				this.easy.release()
-				progress.easy = !this.easy.on
+			if (this.settings.includes(this.point)) {
+				switch (this.settings.indexOf(this.point)) {
+					case 0:
+						this.point.release()
+						savestate.easy = !this.point.on
+						break
+					case 1: case 2:
+						this.grabbing = true
+						break
+					case 3:
+						this.point.release()
+						if (savestate.fullscreen != this.point.on) UFX.scene.push("gofull")
+						savestate.fullscreen = this.point.on
+						break
+				}
+				savestate.save()
 			} else {
-				progress.current = progress.unlocked[this.jpoint]
+				this.point.release()
+				savestate.current = savestate.unlocked[this.jpoint]
 				UFX.scene.swap("play")
 				playsound("begin")
 			}
 		}
+		if (this.grabbing) {
+			this.setvolume()
+			this.point.grabify(pos, this.kpoint, dt)
+			if (pstate.up) {
+				this.point.release()
+				this.grabbing = false
+			}
+		}
 		canvas.style.cursor = this.jpoint == null ? "default" : "pointer"
+	},
+	setvolume: function () {
+		let level = obj => Math.pow(obj.setting / obj.max, 1.8)
+		savestate.sound = this.settings[1].setting
+		savestate.music = this.settings[2].setting
+		UFX.audio.setgain("sound", level(this.settings[1]))
+		UFX.audio.setgain("music", level(this.settings[2]))
 	},
 	draw: function () {
 		UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#aaa", 1, "#777"), "fr", 0, 0, sx, sy)
@@ -580,14 +647,60 @@ UFX.scenes.menu = {
 		this.controls.forEach(draw)
 		draw(this.title)
 
-		if (this.controls[this.jpoint] === this.easy) {
-			this.easyballoon.draw()
+		if (this.settings.includes(this.point)) {
+			let balloon = this.balloons[this.settings.indexOf(this.point)]
+			balloon.draw()
 		}
 
 		UFX.draw("]")
 
 		let alpha = this.f
 		if (alpha) UFX.draw("fs", "rgba(255,255,255," + alpha + ")", "f0")
+	},
+}
+
+// UFX.scene.push("gofull") will pause and give the player 3 seconds to confirm going fullscreen.
+UFX.scenes.gofull = {
+	start: function () {
+		if (UFX.maximize.getfullscreenelement() === canvas) {
+			UFX.maximize.setoptions({ fullscreen: false })
+			document.exitFullscreen()
+			UFX.scene.pop()
+			return
+		}
+		this.readyfullscreen()
+		this.t = 0
+		this.paused = false
+	},
+	pause: function () {
+	},
+	stop: function () {
+	},
+	readyfullscreen: function () {
+		canvas.addEventListener("mouseup", this.request, { passive: false })
+		canvas.addEventListener("touchend", this.request, { passive: false })
+	},
+	unreadyfullscreen: function () {
+		canvas.removeEventListener("mouseup", this.request)
+		canvas.removeEventListener("touchend", this.request)
+		if (UFX.scene.top() === this) UFX.scene.pop()
+	},
+	request: function (event) {
+		UFX.scenes.gofull.unreadyfullscreen()
+		console.log("requesting fullscreen")
+		UFX.maximize.setoptions({ fullscreen: true })
+	},
+	think: function (dt) {
+		this.t += dt
+		if (!this.paused && this.t > 0.4) {
+			this.pause()
+			this.paused = true
+		}
+		if (this.t > 3) this.unreadyfullscreen()
+	},
+	draw: function () {
+		if (!this.paused) return
+		UFX.draw("fs #aff f0")
 	},
 }
 

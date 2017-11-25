@@ -10,7 +10,7 @@ function comparestate(x, y) {
 
 UFX.scenes.play = {
 	start: function () {
-		let ldata = levels[progress.current]
+		let ldata = levels[savestate.current]
 		this.t0 = this.t = ldata.t
 		this.todo = ldata.winsequence.slice()
 		this.tounlock = ldata.unlock
@@ -62,7 +62,7 @@ UFX.scenes.play = {
 	},
 	think: function (dt) {
 		this.t = clamp(this.t - dt, 0, this.t0)
-		if (!progress.easy && this.t == 0) {
+		if (!savestate.easy && this.t == 0) {
 			UFX.scene.swap("menu")
 			UFX.scene.push("timeup")
 			playsound("fail")
@@ -107,7 +107,7 @@ UFX.scenes.play = {
 		}
 		if (this.done.nclick > 0) {
 			this.checkstate(true)
-			if (this.todo.length == 0 && this.tounlock) progress.unlock(this.tounlock)
+			if (this.todo.length == 0 && this.tounlock) savestate.unlock(this.tounlock)
 			UFX.scene.swap("menu")
 			if (this.todo.length == 0) {
 				if (this.outro) {
@@ -156,7 +156,7 @@ UFX.scenes.play = {
 		this.statements.forEach((statement, j) => {
 			if (j != this.wjpoint) statement.focused = null
 		})
-		if (progress.easy && this.wpoint) {
+		if (savestate.easy && this.wpoint) {
 			lesson.complete(this.wpoint.text)
 		}
 	},
@@ -177,7 +177,7 @@ UFX.scenes.play = {
 			console.log(comparestate(state, this.todo[0]))
 		}
 		if (comparestate(state, this.todo[0])) {
-			if (progress.easy) playsound("righttrack")
+			if (savestate.easy) playsound("righttrack")
 			if (final || this.todo.length > 1) {
 				this.todo.shift()
 			}
@@ -194,7 +194,7 @@ UFX.scenes.play = {
 		this.controls.forEach(draw)
 		this.statements.forEach(draw)
 		words.setfont(context, 60, "Passion One", false)
-		if (!progress.easy) {
+		if (!savestate.easy) {
 			UFX.draw("[ tab center top fs orange sh black", Z(6), Z(6), 0, "t", 300, 730,
 				"ft0 time:",
 				"t", 0, 60, "ft0", this.t.toFixed(this.t >= 10 ? 0 : 1),

@@ -11,20 +11,36 @@ let sy0 = canvas.height = 900
 let context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 UFX.scene.init({ minups: 5, maxups: 120 })
+
 let sx, sy
+canvas.requestFullscreen = canvas.requestFullscreen
+	|| canvas.mozRequestFullScreen
+	|| canvas.webkitRequestFullScreen
+document.exitFullscreen = document.exitFullscreen
+	|| document.webkitExitFullscreen
+	|| document.mozCancelFullScreen
+	|| document.msExitFullscreen
+window.addEventListener("mozfullscreenchange", UFX.maximize.onfullscreenchange)
+window.addEventListener("webkitfullscreenchange", UFX.maximize.onfullscreenchange)
+UFX.maximize.getfullscreenelement = (() => document.fullscreenElement
+	|| document.mozFullScreenElement
+	|| document.webkitFullscreenElement
+	|| document.msFullscreenElement)
 UFX.maximize.onadjust = function () {
 	sx = canvas.width
 	sy = canvas.height
 }
 let Z = a => a * sx / sx0
 UFX.maximize.fill(canvas, "aspect")
+
 let acontext = new AudioContext()
 if (DEBUG) {
-	progress.unlockall()
+	savestate.unlockall()
 	UFX.key.init()
 	UFX.key.watchlist = "backspace esc 0 1 2 3 4 5 6".split(" ")
 }
 UFX.pointer(canvas)
+UFX.audio.init()
 
 UFX.scenes.load = {
 	start: function () {
@@ -104,23 +120,19 @@ UFX.resource.onloading = function (f) {
 UFX.resource.onload = function () {
 	UFX.scenes.load.loaded = true
 	words.makelist(UFX.resource.data.wordlist)
+	UFX.audio.makegainnode({ name: "music" })
+	UFX.audio.makegainnode({ name: "sound" })
 }
 function playsound(aname) {
-	if (!UFX.resource.data[aname]) {
-		console.log("missing sound", aname)
+	try {
+		UFX.audio.playbuffer(aname, { output: "sound", })
+	} catch (e) {
+		console.error("missing sound", aname)
 		return
 	}
-	let source = acontext.createBufferSource()
-	source.buffer = UFX.resource.data[aname]
-	source.connect(acontext.destination)
-	source.start(0)
 }
 function playmusic(aname) {
-	let source = acontext.createBufferSource()
-	source.buffer = UFX.resource.data[aname]
-	source.loop = true
-	source.connect(acontext.destination)
-	source.start(0)
+	UFX.audio.playbuffer(aname, { output: "music", loop: true, })
 }
 UFX.resource.loadwebfonts("Architects Daughter", "Passion One", "Mouse Memoirs")
 UFX.resource.load({
@@ -132,5 +144,5 @@ let afiles = {}
 	"grabword", "release", "righttrack", "saynext", "tick", "unscrew", "win", "lift"].forEach(aname => {
 	afiles[aname] = "sound/" + aname + ".ogg"
 })
-UFX.resource.loadaudiobuffer(acontext, afiles)
+UFX.audio.loadbuffers(afiles)
 
