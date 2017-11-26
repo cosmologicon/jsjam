@@ -51,6 +51,39 @@ let SquarePanel = {
 		}
 	},
 }
+
+function drawshape(r, shape, color, shadow, glow) {
+	let path
+	if (shape == "circle") {
+		path = "b o 0 0 0.5"
+	} else if (shape == "triangle") {
+		path = "( m 0 -0.6 l -0.6 0.4 l 0.6 0.4 )"
+	} else if (shape == "square") {
+		path = "rr -0.45 -0.45 0.9 0.9 0.1"
+	} else if (shape == "star") {
+		// from math import *
+		// rthetas = [(0.3 if j % 2 else 0.6, j * pi / 5) for j in range(1, 10)]
+		// " ".join("l %.3f %.3f" % (r * sin(theta), -r * cos(theta)) for r, theta in rthetas)
+		path = "( m 0 -0.6 l 0.176 -0.243 l 0.571 -0.185 l 0.285 0.093 l 0.353 0.485 l 0.000 0.300 l -0.353 0.485 l -0.285 0.093 l -0.571 -0.185 l -0.176 -0.243 )"
+	} else if (shape == "rectangle") {
+		let [w, h] = r
+		h /= w
+		path = ["rr -0.45", -0.45 * h, "0.9", 0.9 * h, 0.1 * Math.sqrt(h)]
+	}
+	UFX.draw("[ z", r, r, "[")
+	if (shadow) {
+		UFX.draw("sh rgba(0,0,0,0.25)", Z(0.04 * r), Z(0.08 * r), Z(0.1 * r))
+	}
+	UFX.draw(path, "fs", color, "f ]")
+	if (glow) {
+		UFX.draw("[ sh white 0 0", Z(0.2 * r), "fs", color, path, "f ]")
+	}
+	let grad = UFX.draw.radgrad(-0.1, -0.2, 0, -0.1, -0.2, 0.25, 0, "rgba(255,255,255,0.4)", 1, "rgba(255,255,255,0)")
+	UFX.draw("[", path, "clip fs", grad, "fr -1 -1 2 2 ]")
+	UFX.draw("[ ss black lw",  4 / r, path, "s ]")
+	UFX.draw("]")
+}
+
 let Shaped = {
 	setup: function (obj) {
 		this.shape = obj.shape
@@ -58,28 +91,9 @@ let Shaped = {
 	},
 	draw: function () {
 		UFX.draw("[ t", this.w / 2, this.h / 2)
-		UFX.draw("z", this.r, this.r)
-		if (this.shape == "circle") {
-			UFX.draw("b o 0 0 0.5")
-		} else if (this.shape == "triangle") {
-			UFX.draw("( m 0 -0.6 l -0.6 0.4 l 0.6 0.4 )")
-		} else if (this.shape == "square") {
-			UFX.draw("rr -0.45 -0.45 0.9 0.9 0.1")
-		} else if (this.shape == "star") {
-			UFX.draw("( m", 0, -0.6)
-			for (let j = 1 ; j < 10 ; ++j) {
-				let r = j % 2 ? 0.3 : 0.6
-				UFX.draw("l", r * Math.sin(j * tau / 10), -r * Math.cos(j * tau / 10))
-			}
-			UFX.draw(")")
-		}
-		UFX.draw("z", 1 / this.r, 1 / this.r, "[")
-		UFX.draw("sh rgba(0,0,0,0.25)", Z(0.04 * this.r), Z(0.08 * this.r), Z(0.1 * this.r))
-		UFX.draw("fs", this.color, "f")
-		if (this.focused == 1) UFX.draw("sh white 0 0", Z(0.2 * this.r))
-		UFX.draw("fs", this.color, "f ]")
-		UFX.draw("lw 3 ss black s")
+		drawshape(this.r, this.shape, this.color, true, this.focused == 1)
 		UFX.draw("]")
+		return
 	},
 }
 let Labeled = {
