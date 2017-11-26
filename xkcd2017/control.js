@@ -15,11 +15,20 @@ let WorldBound = {
 let Focusable = {
 	setup: function (obj) {
 		this.focused = null
+		this.onrelease = obj.onrelease
+		this.ongrabify = obj.ongrabify
+		this.autodrop = obj.autodrop
+		this.hovertext = obj.hovertext
 		this.setmethodmode("state", "getarray")
 	},
 	focusat: function () {
 	},
+	grabify: function () {
+		if (this.ongrabify) this.ongrabify()
+		if (this.autodrop) this.release()
+	},
 	release: function () {
+		if (this.onrelease) this.onrelease()
 	},
 }
 let SquarePanel = {

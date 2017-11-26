@@ -39,6 +39,13 @@ let lesson = {
 		}
 		playsound(words.onlist(word) ? "goodword" : "badword")
 	},
+	learnall: function (statement) {
+		statement.texts.forEach(text => {
+			if (text.isword) {
+				this.learned[text.text.toLowerCase()] = 1
+			}
+		})
+	},
 	islearned: function (word) {
 		return !!this.learned[word.toLowerCase()]
 	},
