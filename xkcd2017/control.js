@@ -67,8 +67,10 @@ function drawshape(r, shape, color, shadow, glow) {
 		path = "( m 0 -0.6 l 0.176 -0.243 l 0.571 -0.185 l 0.285 0.093 l 0.353 0.485 l 0.000 0.300 l -0.353 0.485 l -0.285 0.093 l -0.571 -0.185 l -0.176 -0.243 )"
 	} else if (shape == "rectangle") {
 		let [w, h] = r
-		h /= w
-		path = ["rr -0.45", -0.45 * h, "0.9", 0.9 * h, 0.1 * Math.sqrt(h)]
+		r = Math.sqrt(w * h)
+		h /= r
+		w /= r
+		path = ["rr", -0.45 * w, -0.45 * h, 0.9 * w, 0.9 * h, 0.1]
 	}
 	UFX.draw("[ z", r, r, "[")
 	if (shadow) {
@@ -78,7 +80,7 @@ function drawshape(r, shape, color, shadow, glow) {
 	if (glow) {
 		UFX.draw("[ sh white 0 0", Z(0.2 * r), "fs", color, path, "f ]")
 	}
-	let grad = UFX.draw.radgrad(-0.1, -0.2, 0, -0.1, -0.2, 0.25, 0, "rgba(255,255,255,0.4)", 1, "rgba(255,255,255,0)")
+	let grad = UFX.draw.radgrad(-0.1, -0.2, 0, -0.1, -0.2, 0.5, 0, "rgba(255,255,255,0.3)", 1, "rgba(0,0,0,0.3)")
 	UFX.draw("[", path, "clip fs", grad, "fr -1 -1 2 2 ]")
 	UFX.draw("[ ss black lw",  4 / r, path, "s ]")
 	UFX.draw("]")
@@ -405,6 +407,50 @@ Button.prototype = UFX.Thing()
 		},
 		state: function () {
 			return this.nclick
+		},
+	})
+
+function ButtonArray(obj) {
+	this.setup(obj)
+	this.nclick = 0
+}
+ButtonArray.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+	.addcomp({
+		setup: function (obj) {
+			this.nx = obj.nx || 1
+			this.ny = obj.ny || 1
+			this.n = this.nx * this.ny
+			this.on = (obj.on || []).slice()
+			while (this.on.length < this.n) this.on.push(false)
+			this.r = [this.w / this.nx, this.h / this.ny]
+		},
+		draw: function () {
+			for (let jy = 0, j = 0 ; jy < this.ny ; ++jy) {
+				for (let jx = 0 ; jx < this.nx ; ++jx, ++j) {
+					let color = this.on[j] ? "#ccc" : "#555"
+					UFX.draw("[ t", this.w / this.nx * (jx + 0.5), this.h / this.ny * (jy + 0.5))
+					drawshape(this.r, "rectangle", color, true, j === this.focused)
+					UFX.draw("]")
+				}
+			}
+		},
+		focusat: function (pos) {
+			let [x, y] = this.relativepos(pos)
+			let jx = Math.floor(this.nx * x / this.w)
+			let jy = Math.floor(this.ny * y / this.h)
+			if (jx < 0 || jx >= this.nx || jy < 0 || jy >= this.ny) return null
+			return jx + this.nx * jy
+		},
+		grabify: function (pos, kpoint) {
+		},
+		release: function () {
+			this.on[this.focused] = !this.on[this.focused]
+		},
+		state: function () {
+			return this.on.map((on, j) => j).filter(j => this.on[j])
 		},
 	})
 
