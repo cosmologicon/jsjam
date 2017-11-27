@@ -14,25 +14,37 @@ UFX.scenes.play = {
 		this.t0 = this.t = ldata.t
 		this.todo = ldata.winsequence.slice()
 		this.tounlock = ldata.unlock
-		let y = 160
+		let y = 120
 		this.statements = ldata.steps.map(text => {
-			let s = new Statement(text, [40, y], { width: 540 })
-			y = s.ymax + 20
+			let s = new Statement(text, [80, y], { width: 440, size: 40, })
+			y = s.ymax + 40
 			return s
 		})
-		this.statements.push(
-			new Statement("Simple Machines", [800, 120], { size: 70, width: 900, center: true })
-		)
-		this.done = new Button({ x: 420, y: 710, w: 160, h: 160, shape: "star", color: "#aa6", label: "DONE", })
+		let title = new Statement("Simple Machines", [1260, 120], { size: 60, width: 900, center: true })
+		this.statements.push(title)
+		this.done = new Button({
+			x: 390, y: 810, w: 144, h: 144, centered: true,
+			shape: "circle", color: "#77f", label: "DONE",
+		})
 		this.lcontrols = ldata.controls.map(cdata => {
 			let [cname, opts] = cdata
 			return new (window[cname])(opts)
 		})
 		this.controls = [
+			new Cable({ x: 560, y: 280, x1: 630, y1: 280 }),
+			new Cable({ x: 560, y: 600, x1: 630, y1: 600 }),
+			new Cable({ x: 390, y: 750, x1: 390, y1: 700 }),
+			new Cable({ x: 450, y: 800, x1: 630, y1: 800 }),
+			new Cable({ x: 950, y: 45, x1: 1040, y1: 45, width: 25, }),
+			new Cable({ x: 560, y: 80, x1: 670, y1: 80, width: 25, }),
+			new Cable({ x: 1100, y: 90, x1: 1100, y1: 130 }),
+			new Cable({ x: 1200, y: 90, x1: 1200, y1: 130 }),
+			new Readout({ x: 20, y: 40, w: 560, h: 680, bcolor: "#bbb", }),
+			new Readout({ x: 660, y: 20, w: 300, h: 80, text: "Stage " + savestate.current, }),
+			title.panel(),
+			new Panel({ x: 620, y: 120, w: 960, h: 760 }),
+			new Panel({ x: 320, y: 740, w: 140, h: 140 }),
 			this.done,
-			this.statements.slice(-1)[0].panel(),
-			new Panel({ x: 20, y: 100, w: 600, h: 600 }),
-			new Panel({ x: 620, y: 100, w: 960, h: 780 }),
 		]
 		if (ldata.fakescrews) {
 			this.controls.push(
@@ -61,12 +73,14 @@ UFX.scenes.play = {
 		this.outro = ldata.outro
 	},
 	think: function (dt) {
-		this.t = clamp(this.t - dt, 0, this.t0)
-		if (!savestate.easy && this.t == 0) {
-			UFX.scene.swap("menu")
-			UFX.scene.push("timeup")
-			playsound("fail")
-			return
+		if (this.t0) {
+			this.t = clamp(this.t - dt, 0, this.t0)
+			if (this.t == 0) {
+				UFX.scene.swap("menu")
+				UFX.scene.push("timeup")
+				playsound("fail")
+				return
+			}
 		}
 		let pstate = UFX.pointer()
 		let pos = this.pos = pstate.pos ? pstate.pos.slice() : [0, 0]
@@ -194,7 +208,7 @@ UFX.scenes.play = {
 		this.controls.forEach(draw)
 		this.statements.forEach(draw)
 		words.setfont(context, 60, "Passion One", false)
-		if (!savestate.easy) {
+		if (this.t0) {
 			UFX.draw("[ tab center top fs orange sh black", Z(6), Z(6), 0, "t", 300, 730,
 				"ft0 time:",
 				"t", 0, 60, "ft0", this.t.toFixed(this.t >= 10 ? 0 : 1),

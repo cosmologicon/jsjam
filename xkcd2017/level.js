@@ -67,7 +67,6 @@ let savestate = new SaveState(window.location.href.includes("RESET"))
 
 
 levels[1] = {
-	t: 30,
 	steps: [
 		"Turn the thing you can turn as high as it can go.",
 		"Slide the thing you can slide all the way to the bottom.",
@@ -89,7 +88,6 @@ levels[1] = {
 }
 
 levels[2] = {
-	t: 45,
 	steps: [
 		"Press the shape that there's one of, once for each leg on two birds.",
 		"Raise the left turn thing by half the number on the right turn thing.",
@@ -116,7 +114,6 @@ levels[2] = {
 }
 
 levels[3] = {
-	t: 45,
 	steps: [
 		"Put the letters in the order you sing them.",
 		"Set the thing that turns to the number of words in this instruction.", // instruction
@@ -148,7 +145,6 @@ levels[3] = {
 
 
 levels[4] = {
-	t: 60,
 	steps: [
 		"Change the second switch from the left twice.",  // switch
 		"Move exactly one slider exactly three spaces, so that three of the sliders form a straight line.",
@@ -220,7 +216,6 @@ let controlset = [
 */
 
 levels[5] = {
-	t: 80,
 	steps: [
 		"Change each light changer that's pointing toward the floor so that it's pointing toward the ceiling.",
 		"Change the turn thing on the right to the average of the other two.",  // average
@@ -263,7 +258,6 @@ levels[5] = {
 }
 
 levels[6] = {
-	t: 50,
 	steps: [
 		"Change exactly two of the light changers so that the numbers chosen add up to ten.",
 		"Touch the two shapes that a horse-shaped piece in a well-known board game could reach from the red star.",
@@ -297,7 +291,6 @@ levels[6] = {
 }
 
 levels[7] = {
-	t: 50,
 	steps: [
 		"Wind the gray spring all the way up to the right. Also, at the very end of these steps, bring it all the way back to its starting position.",
 		"Make it so every light changer with both an even and an odd number is set to the even one.",  // odd
@@ -340,7 +333,6 @@ levels[7] = {
 
 
 levels[8] = {
-	t: 60,
 	steps: [
 		"Set all three turn things to their largest values, then set them to their lowest settings.",  // values
 		"Make it so each light changer number is larger than the changer number immediately to its left.",
@@ -375,7 +367,6 @@ levels[8] = {
 }
 
 levels[9] = {
-	t: 100,
 	steps: [
 		"Make the letters say the word that means the latest happenings.", //  latest
 		"Hold each of the circles until their lights match the colors of the circles themselves.",  // match
@@ -414,7 +405,6 @@ levels[9] = {
 }
 
 levels.EXTRA = {
-	t: 100,
 	steps: [
 		"Hold the third circle until its second light is on, and the first circle until its fourth light is on.",
 		"Put the letters in order from last to first, then switch the last and first two.",

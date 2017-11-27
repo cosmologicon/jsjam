@@ -73,13 +73,23 @@ let MenuControls = {
 let SettingsControls = {
 	start: function () {
 		this.controls = this.controls.concat([
+			new Panel({ x: 20, y: 660, w: 370, h: 220 }),
 			new Switch({
-				x: 100, y: 650, w: 100, h: 200, on: !savestate.easy, labels: ["EASY", "NORMAL"],
+				x: 50, y: 670, w: 80, h: 200, on: !savestate.easy, labels: ["EASY", "NORMAL"], labelsize: 0.1,
 				autodrop: true, onrelease: () => savestate.easy = !savestate.easy,
 				hovertext: "If you set it to EASY, you will hear a tone if you are on the right track.",
 			}),
+			new Switch({
+				x: 130, y: 670, w: 80, h: 200, on: savestate.fullscreen, labels: ["WINDOW", "FULL\nSCREEN"], labelsize: 0.1,
+				autodrop: true, hovertext: "Whether the game takes up the whole screen.",
+				onrelease: function () {
+					// this.on is not yet updated when this callback is called.
+					savestate.fullscreen = !this.on
+					UFX.scene.push("gofull", savestate.fullscreen)
+				}
+			}),
 			new VSlider({
-				x: 200, y: 650, w: 100, h: 200, min: 0, max: 5, setting: savestate.sound, label: "SOUND",
+				x: 200, y: 670, w: 100, h: 180, min: 0, max: 5, setting: savestate.sound, label: "SOUND",
 				ongrabify: function () { 
 					savestate.sound = this.setting
 					UFX.audio.setgain("sound", Math.pow(this.setting / this.max, 1.7))
@@ -87,21 +97,12 @@ let SettingsControls = {
 				hovertext: "Slide up and down to control how loud the sounds are."
 			}),
 			new VSlider({
-				x: 300, y: 650, w: 100, h: 200, min: 0, max: 5, setting: savestate.sound, label: "MUSIC",
+				x: 270, y: 670, w: 100, h: 180, min: 0, max: 5, setting: savestate.sound, label: "MUSIC",
 				ongrabify: function () { 
 					savestate.music = this.setting
 					UFX.audio.setgain("music", Math.pow(this.setting / this.max, 1.7))
 				},
 				hovertext: "Slide up and down to control how loud the music is."
-			}),
-			new Switch({
-				x: 400, y: 650, w: 100, h: 200, on: savestate.fullscreen, labels: ["WINDOW", "FULL\nSCREEN"],
-				autodrop: true, hovertext: "Whether the game takes up the whole screen.",
-				onrelease: function () {
-					// this.on is not yet updated when this callback is called.
-					savestate.fullscreen = !this.on
-					UFX.scene.push("gofull", savestate.fullscreen)
-				}
 			}),
 			new Button({
 				x: 1400, y: 700, w: 200, h: 200,
@@ -125,37 +126,45 @@ UFX.scenes.load = UFX.Thing()
 		start: function () {
 			this.f = 0
 			this.loaded = false
-			this.playbutton = new Button({
-				x: 700, y: 700, w: 200, h: 200,
-				shape: "square", color: "white", label: "Start~the~game", autodrop: true,
+			this.readout = new Readout({
+				x: 800, y: 820, w: 400, h: 140, centered: true,
+				text: "Getting the game....",
+			})
+			this.playbutton = new ButtonArray({
+				x: 800, y: 820, w: 400, h: 140, centered: true, on: [true],
+				shape: "square", color: "white", label: "Start~the~game", labelfontsize: 40, autodrop: true,
 				onrelease: () => {
 					UFX.scene.swap("play")
 					playsound("begin")
 					playmusic("lift")
 				},
 			})
+			this.controls.push(this.readout)
 		},
 		think: function (dt) {
 			if (this.loaded && this.playbutton) {
-				this.controls.push(this.playbutton)
+				this.controls[this.controls.indexOf(this.readout)] = this.playbutton
 				this.playbutton = null
 			}
+			this.readout.text = "Getting the\ngame... " + (this.f * 100).toFixed(0) + "%"
 		},
 		draw: function () {
 			UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#228", 1, "#006"), "fr", 0, 0, sx, sy)
 			UFX.draw("[ z", sx / sx0, sy / sy0, "tab center middle")
 			context.lineJoin = "round"
 			context.lineCap = "round"
-			UFX.draw("[ t 800 150 font 150px~'Mouse~Memoirs'",
-				"fs", UFX.draw.lingrad(0, -40, 0, 40, 0, "#aac", 1, "#77a"),
-				"sh black", Z(10), Z(10), 0,
-				"ft0 Simple~Machines ]")
+			UFX.draw.text("Simple Machines", [800, 150], 150, "Mouse Memoirs", {
+				fill: "#77f", shade: 2, shadow: ["black", Z(1), Z(1), 0], })
+			UFX.draw.text("by team\nUniverse Factory", [400, 350], 80, "Passion One", {
+				lineheight: 1.2, fill: "#cca", shade: 4, shadow: ["black", Z(1), Z(1), 0], })
+/*
 			UFX.draw("[ t 400 350 font 80px~'Passion~One'",
 				"fs", UFX.draw.lingrad(0, -30, 0, 30, 0, "#cca", 1, "#a77"),
 				"sh black", Z(7), Z(7), 0,
 				"ft0 by~team",
 				"t 0 100 ft0 Universe~Factory",
 				"]")
+*/
 			UFX.draw("[ t 1200 350 font 80px~'Passion~One'",
 				"fs", UFX.draw.lingrad(0, -30, 0, 30, 0, "#cca", 1, "#a77"),
 				"sh black", Z(7), Z(7), 0,
@@ -185,13 +194,6 @@ UFX.scenes.load = UFX.Thing()
 				"t 0 70 ft0 word~&~art~page",
 				"]")
 
-			if (this.f < 1) {
-				let t = "Getting~the~game...~" + (this.f * 100).toFixed(0) + "%"
-				UFX.draw("[ t 800 800 font 80px~'Mouse~Memoirs'",
-					"fs", UFX.draw.lingrad(0, -20, 0, 20, 0, "#aac", 1, "#77a"),
-					"sh black", Z(5), Z(5), 0,
-					"ft0", t, "]")
-			}
 			this.drawcontrols()
 			this.drawhover()
 			UFX.draw("]")

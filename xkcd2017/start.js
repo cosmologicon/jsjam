@@ -10,6 +10,8 @@ let sx0 = canvas.width = 1600
 let sy0 = canvas.height = 900
 let context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
+context.miterLimit = 2.5
+context.lineCap = "round"
 UFX.scene.init({ minups: 5, maxups: 120 })
 
 let sx, sy
@@ -68,10 +70,7 @@ function playsound(aname) {
 function playmusic(aname) {
 	UFX.audio.playbuffer(aname, { output: "music", loop: true, })
 }
-UFX.resource.loadwebfonts("Architects Daughter", "Passion One", "Mouse Memoirs")
-UFX.resource.load({
-	wordlist: "1000.dicin.txt",
-})
+UFX.resource.loadwebfonts("Architects Daughter", "Passion One", "Mouse Memoirs", "VT323")
 
 let afiles = {}
 ;["badword", "begin", "charge1", "charge2", "charge3", "charge4", "fail", "goodword", "grab",

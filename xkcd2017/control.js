@@ -35,7 +35,12 @@ let SquarePanel = {
 	setup: function (obj) {
 		this.w = obj.w
 		this.h = obj.h
+		if (obj.centered) {
+			this.x -= this.w / 2
+			this.y -= this.h / 2
+		}
 		this.drawpanel = obj.drawpanel || false
+		this.panelcolor = obj.panelcolor || "gray"
 	},
 	centerpos: function () {
 		return [this.x + this.w / 2, this.y + this.h / 2]
@@ -47,7 +52,10 @@ let SquarePanel = {
 	},
 	draw: function () {
 		if (this.drawpanel) {
-			UFX.draw("rr", 4, 4, this.w - 8, this.h - 8, 5, "fs #666 f lw 3 ss #111 s")
+			UFX.draw("[ t", this.w / 2, this.h / 2)
+			drawshape([this.w, this.h], "panel", this.panelcolor, false, false)
+//			UFX.draw("rr", 4, 4, this.w - 8, this.h - 8, 5, "fs #666 f lw 3 ss #111 s")
+			UFX.draw("]")
 		}
 	},
 }
@@ -71,6 +79,13 @@ function drawshape(r, shape, color, shadow, glow) {
 		h /= r
 		w /= r
 		path = ["rr", -0.45 * w, -0.45 * h, 0.9 * w, 0.9 * h, 0.1]
+	} else if (shape == "panel") {
+		let [w, h] = r
+		r = Math.sqrt(w * h)
+		h /= r
+		w /= r
+		let c = 0.03 / Math.sqrt(r / 400)
+		path = ["rr", -0.5 * w, -0.5 * h, w, h, c]
 	}
 	UFX.draw("[ z", r, r, "[")
 	if (shadow) {
@@ -81,7 +96,7 @@ function drawshape(r, shape, color, shadow, glow) {
 		UFX.draw("[ sh white 0 0", Z(0.2 * r), "fs", color, path, "f ]")
 	}
 	let grad = UFX.draw.radgrad(-0.1, -0.2, 0, -0.1, -0.2, 0.5, 0, "rgba(255,255,255,0.3)", 1, "rgba(0,0,0,0.3)")
-	UFX.draw("[", path, "clip fs", grad, "fr -1 -1 2 2 ]")
+	UFX.draw("[", path, "clip fs", grad, "fr -5 -5 10 10 ]")
 	UFX.draw("[ ss black lw",  4 / r, path, "s ]")
 	UFX.draw("]")
 }
@@ -99,14 +114,21 @@ let Shaped = {
 	},
 }
 let Labeled = {
+	init: function (defaultanchor) {
+		this.defaultlabelanchor = defaultanchor || [0.5, 0.5]
+	},
 	setup: function (obj) {
 		this.label = obj.label || null
+		this.labelanchor = obj.labelanchor || this.defaultlabelanchor
+		this.labelfontsize = obj.labelfontsize
 	},
 	draw: function () {
 		if (!this.label) return
-		words.setfont(context, 0.3 * this.r, "Architects Daughter", true)
-		UFX.draw("[ t", this.w / 2, this.h / 2, "tab center middle")
-		UFX.draw("fs white ss black lw", 0.05 * this.r, "sft0", this.label)
+		let [dx, dy] = this.labelanchor
+		let h = this.labelfontsize || 0.3 * this.r
+		words.setfont(context, h, "Architects Daughter", true)
+		UFX.draw("[ t", this.w * dx, this.h * dy, "tab center middle")
+		UFX.draw("fs white ss black lw", h / 6, "sft0", this.label)
 		UFX.draw("]")
 	},
 }
@@ -136,16 +158,6 @@ let Ranged = {
 		return (this.setting - this.min) / (this.max - this.min)
 	},
 }
-
-function Panel(obj) {
-	obj.drawpanel = true
-	this.setup(obj)
-}
-Panel.prototype = UFX.Thing()
-	.addcomp(WorldBound)
-	.addcomp(Focusable)
-	.addcomp(SquarePanel)
-
 
 function Knob(obj) {
 	this.setup(obj)
@@ -201,12 +213,14 @@ Knob.prototype = UFX.Thing()
 
 function VSlider(obj) {
 	this.setup(obj)
+	this.r = this.w * 0.7
 }
 VSlider.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Focusable)
 	.addcomp(SquarePanel)
 	.addcomp(Graduated)
+	.addcomp(Labeled, [0.5, 1])
 	.addcomp({
 		heightof: function (j) {
 			return (j - this.min) / (this.max - this.min) * 0.7 + 0.15
@@ -423,8 +437,13 @@ ButtonArray.prototype = UFX.Thing()
 			this.nx = obj.nx || 1
 			this.ny = obj.ny || 1
 			this.n = this.nx * this.ny
-			this.on = (obj.on || []).slice()
-			while (this.on.length < this.n) this.on.push(false)
+			if (obj.on === true) {
+				this.on = []
+				while (this.on.length < this.n) this.on.push(true)
+			} else {
+				this.on = (obj.on || []).slice()
+				while (this.on.length < this.n) this.on.push(false)
+			}
 			this.r = [this.w / this.nx, this.h / this.ny]
 		},
 		draw: function () {
@@ -453,6 +472,7 @@ ButtonArray.prototype = UFX.Thing()
 			return this.on.map((on, j) => j).filter(j => this.on[j])
 		},
 	})
+	.addcomp(Labeled)
 
 function ChargeButton(obj) {
 	obj.min = 0
@@ -499,6 +519,7 @@ function Switch(obj) {
 	this.setup(obj)
 	this.on = obj.on || false
 	this.labels = obj.labels || "  "
+	this.labelsize = obj.labelsize || 0.2
 	if (this.labels.split) this.labels = this.labels.split("")
 }
 Switch.prototype = UFX.Thing()
@@ -508,18 +529,18 @@ Switch.prototype = UFX.Thing()
 	.addcomp({
 		draw: function () {
 			UFX.draw("[ t", this.w / 2, this.h / 2)
-			words.setfont(context, 0.2 * this.h, "Architects Daughter", true)
-			UFX.draw("tab center middle fs black")
-			if (this.labels[0] != " ") {
-				this.labels[0].split("\n").forEach((label, j, labels) => {
-					UFX.draw("ft", label, 0, (0.35 + 0.2 * (j - (labels.length - 1) / 2)) * this.h)
-				})
-			}
-			if (this.labels[1] != " ") {
-				this.labels[1].split("\n").forEach((label, j, labels) => {
-					UFX.draw("ft", label, 0, (-0.35 + 0.2 * (j - (labels.length - 1) / 2)) * this.h)
-				})
-			}
+			let h = this.labelsize * this.h
+			words.setfont(context, h, "Architects Daughter", true)
+			this.labels.forEach((label, jlabel) => {
+				if (label != " ") {
+					let h0 = [0.35, -0.35][jlabel] * this.h
+					let color = this.on == (jlabel == 1) ? "#ffa" : "#999"
+					UFX.draw("tab center middle fs", color, "ss black lw", 0.15 * h)
+					label.split("\n").forEach((label, j, labels) => {
+						UFX.draw("sft", label, 0, h0 + (j - (labels.length - 1) / 2) * h)
+					})
+				}
+			})
 			UFX.draw("tr", -0.25 * this.w, -0.05 * this.h, 0.5 * this. w, 0.1 * this.h, "[")
 			if (this.focused === 1) UFX.draw("sh white 0 0", Z(this.w * 0.2))
 			UFX.draw("fs #999 f ] lw", this.w * 0.02, "ss black s")
@@ -707,4 +728,78 @@ Tiles.prototype = UFX.Thing()
 			return this.order
 		},
 	})
+
+// Not controls (not interactable)
+
+function Panel(obj) {
+	obj.drawpanel = true
+	this.setup(obj)
+}
+Panel.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+
+
+function Readout(obj) {
+	obj.drawpanel = true
+	this.setup(obj)
+}
+Readout.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+	.addcomp({
+		setup: function (obj) {
+			this.text = obj.text
+			this.color = obj.color || "green"
+			this.bcolor = obj.bcolor || "black"
+			this.font = obj.font || "VT323"
+		},
+		draw: function () {
+			UFX.draw("[ t", this.w / 2, this.h / 2)
+			let d = 0.1 * Math.sqrt(this.w * this.h)
+			drawshape([this.w - d, this.h - d], "panel", this.bcolor, false, false)
+			if (this.text) {
+				let nlines = this.text.split("\n").length
+				let h = this.h * 0.7 / nlines
+				UFX.draw("tab center middle")
+				UFX.draw.text(this.text, [0, 0], h, "VT323", {
+					align: "center",
+					baseline: "middle",
+					fill: "#7f7",
+					shadow: ["#7f7", 0, 0, Z(3)],
+					hdivide: true,
+				})
+			}
+			UFX.draw("]")
+		},
+	})
+
+function Cable(obj) {
+	this.setup(obj)
+}
+Cable.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp({
+		setup: function (obj) {
+			this.x1 = obj.x1
+			this.y1 = obj.y1
+			this.dx = this.x1 - this.x
+			this.dy = this.y1 - this.y
+			this.d = Math.sqrt(this.dx * this.dx + this.dy * this.dy)
+			this.theta = Math.atan2(-this.dx, this.dy)
+			this.width = obj.width || 50
+			this.grad = UFX.draw.lingrad(-0.5, 0, 0.5, 0, 0, "black", 0.2, "gray", 0.5, "gray", 0.7, "#aaa", 0.9, "gray")
+		},
+		draw: function () {
+			UFX.draw("[ linecap butt r", this.theta, "b m 0 0 l 0", this.d, "zx", this.width)
+			UFX.draw("ss black lw 1 s")
+			UFX.draw("ss", this.grad, "lw 0.8 s")
+			UFX.draw("]")
+		},
+	})
+
+
 
