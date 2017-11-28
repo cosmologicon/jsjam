@@ -7,6 +7,23 @@ let Lives = {
 	},
 }
 
+let SceneControl = {
+	start: function () {
+		this.pos = [0, 0]
+	},
+	think: function (dt, jthink) {
+		if (jthink != 0) return
+		let pstate = UFX.pointer()
+		let pos = this.pos = pstate.pos = pstate.pos ? pstate.pos.slice() : [0, 0]
+		pos[0] *= sx0 / sx
+		pos[1] *= sy0 / sy
+		this.control(pstate)
+	},
+	control: function (pstate) {
+	},
+}
+
+
 let MenuControls = {
 	start: function () {
 		this.controls = []
@@ -105,8 +122,9 @@ let SettingsControls = {
 				hovertext: "Slide up and down to control how loud the music is."
 			}),
 			new Button({
-				x: 1400, y: 700, w: 200, h: 200,
-				shape: "square", color: "white", label: "About", autodrop: true,
+				x: 1400, y: 700, w: 160, h: 160,
+				shape: "circle", color: "orange", label: "About", autodrop: true,
+				drawpanel: true,
 				onrelease: () => {
 					UFX.scene.push("about")
 					playsound("begin")
@@ -132,9 +150,10 @@ UFX.scenes.load = UFX.Thing()
 			})
 			this.playbutton = new ButtonArray({
 				x: 800, y: 820, w: 400, h: 140, centered: true, on: [true],
-				shape: "square", color: "white", label: "Start~the~game", labelfontsize: 40, autodrop: true,
+				shape: "square", color: "white", label: "Start the game", labelfontsize: 40, autodrop: true,
 				onrelease: () => {
-					UFX.scene.swap("play")
+					UFX.scene.iswap("play")
+					UFX.scene.push("startgame")
 					playsound("begin")
 					playmusic("lift")
 				},
@@ -219,7 +238,8 @@ UFX.scenes.menu = UFX.Thing()
 					autodrop: true,
 					onrelease: function () {
 						savestate.current = levelname
-						UFX.scene.swap("play")
+						UFX.scene.iswap("play")
+						UFX.scene.push("startlevel")
 						playsound("begin")
 					},
 				}))
@@ -237,8 +257,8 @@ UFX.scenes.menu = UFX.Thing()
 			this.drawhover()
 			UFX.draw("]")
 
-			let alpha = this.f
-			if (alpha) UFX.draw("fs", "rgba(255,255,255," + alpha + ")", "f0")
+//			let alpha = this.f
+//			if (alpha) UFX.draw("fs", "rgba(255,255,255," + alpha + ")", "f0")
 		},
 	})
 

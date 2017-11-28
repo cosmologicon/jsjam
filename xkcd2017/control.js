@@ -126,10 +126,11 @@ let Labeled = {
 		if (!this.label) return
 		let [dx, dy] = this.labelanchor
 		let h = this.labelfontsize || 0.3 * this.r
-		words.setfont(context, h, "Architects Daughter", true)
-		UFX.draw("[ t", this.w * dx, this.h * dy, "tab center middle")
-		UFX.draw("fs white ss black lw", h / 6, "sft0", this.label)
-		UFX.draw("]")
+		UFX.draw.text(this.label, [this.w * dx, this.h * dy], h, "Architects Daughter", {
+			bold: "bold",
+			tab: "center middle",
+			fill: "white", owidth: 2,
+		})
 	},
 }
 let Graduated = {

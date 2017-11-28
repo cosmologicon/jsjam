@@ -76,7 +76,7 @@ UFX.scenes.play = {
 		if (this.t0) {
 			this.t = clamp(this.t - dt, 0, this.t0)
 			if (this.t == 0) {
-				UFX.scene.swap("menu")
+				UFX.scene.iswap("menu")
 				UFX.scene.push("timeup")
 				playsound("fail")
 				return
@@ -127,9 +127,11 @@ UFX.scenes.play = {
 				if (this.outro) {
 					UFX.scene.push("talk", this.outro)
 				}
+				UFX.scene.iswap("menu")
 				UFX.scene.push("win")
 				playsound("win")
 			} else {
+				UFX.scene.iswap("menu")
 				UFX.scene.push("fail")
 				playsound("fail")
 			}
@@ -226,42 +228,141 @@ UFX.scenes.play = {
 	},
 }
 
+let SceneTransition = {
+	init: function (tmove, wait, twait) {
+		this.tmove = tmove || 0.5
+		this.wait = wait
+		this.twait = twait || 0
+	},
+	start: function () {
+		this.f = 0
+		this.done = false
+	},
+	think: function (dt) {
+		if (this.done) {
+			this.f = clamp(this.f - dt / this.tmove, 0, 1)
+			if (this.f == 0) UFX.scene.pop()
+		} else {
+			this.f = clamp(this.f + dt / this.tmove, 0, 1)
+		}
+	},
+	control: function (pstate) {
+		if (!this.done && this.t >= this.tmove + this.twait) {
+			if (!this.wait || pstate.down) this.done = true
+		}
+	},
+}
+
+let DrawUnderscene = {
+	init: function (oldscene) {
+		this.oldscene = oldscene
+	},
+	draw: function () {
+		if (this.f >= 1) return
+		if (this.done) {
+			UFX.scene.top(1).draw()
+		} else {
+			UFX.scenes[this.oldscene].draw()
+		}
+	},
+}
+
+let DrawCurtain = {
+	init: function (curtaincolor) {
+		this.curtaincolor = curtaincolor || "black"
+	},
+	draw: function () {
+		let alpha = clamp(this.f, 0, 1)
+		UFX.draw("[ fs", this.curtaincolor, "alpha", alpha, "f0 ]")
+	},
+}
+
+let DrawDoor = {
+	draw: function () {
+		let h = 600 * this.f
+		let screw = "fs #555 b o 0 0 30 f lw 5 ss black s b m 0 -30 l 0 30 lw 12 s"
+
+		UFX.draw("[ z", sx / sx0, sy / sy0,
+			"[ t", 0, -150 + h,
+				"fs #666 fr -50 -500 1700 400",
+				"( m -50 -100 l 400 -100 l 600 100 l 1000 100 l 1200 -100 l 1650 -100",
+				"l 1650 -300 l 1150 -300 l 950 -100 l 650 -100 l 450 -300 l -50 -300 )",
+				"fs gray ss black lw 20 f s",
+				"[ t 425 -200", screw, "]",
+				"[ t 625 0", screw, "]",
+				"[ t 975 0", screw, "]",
+				"[ t 1175 -200", screw, "]",
+			"]",
+			"[ t", 0, 1050 - h,
+				"fs #666 fr -50 100 1700 400",
+				"( m -50 -100 l 400 -100 l 600 100 l 1000 100 l 1200 -100 l 1650 -100",
+				"l 1650 100 l 1250 100 l 1050 300 l 550 300 l 350 100 l -50 100 )",
+				"fs gray ss black lw 20 f s",
+				"[ t 375 0", screw, "]",
+				"[ t 575 200", screw, "]",
+				"[ t 1025 200", screw, "]",
+				"[ t 1225 0", screw, "]",
+			"]",
+		"]")
+	},
+}
+
 let ShowMessage = {
 	init: function (message) {
 		this.message = message
 	},
-	start: function () {
-		this.t = 0
-		this.f = 0
-	},
-	think: function (dt) {
-		this.f = clamp(this.f + 2 * dt, 0, 1)
-		let pstate = UFX.pointer()
-		if (this.f == 1 && pstate.down) {
-			UFX.scene.pop()
-		}
-	},
 	draw: function () {
-		UFX.scenes.play.draw()
-		let alpha = 0.9 * this.f
-		UFX.draw("fs", "rgba(80,80,80," + alpha + ")", "f0")
 		if (this.f < 1) return
-		UFX.draw("[ z", sx / sx0, sy / sy0, "tab center middle")
-		UFX.draw("t", 800, 450, "r", 0.1)
-		UFX.draw("font bold~120px~'Architects~Daughter'",
-			"fs", UFX.draw.lingrad(0, -50, 0, 50, 0, "#fbb", 1, "#c77"),
-			"sh black", Z(9), Z(9), 0,
-			"ft0", this.message)
+		UFX.draw("[ z", sx / sx0, sy / sy0)
+		UFX.draw.text(this.message, [800, 450], 120, "Architects Daughter", {
+			align: "center",
+			baseline: "middle",
+			bold: true,
+			fill: "#fbb",
+			shade: 2,
+			shadow: ["black", Z(1), Z(1), 0],
+		})
 		UFX.draw("]")
 	},
 }
 
+UFX.scenes.startgame = UFX.Thing()
+	.addcomp(Lives)
+	.addcomp(SceneControl)
+	.addcomp(SceneTransition, 0.4, false, 0.3)
+	.addcomp(DrawUnderscene, "load")
+	.addcomp(DrawDoor)
+
+UFX.scenes.startlevel = UFX.Thing()
+	.addcomp(Lives)
+	.addcomp(SceneControl)
+	.addcomp(SceneTransition, 0.4, false, 0.3)
+	.addcomp(DrawUnderscene, "menu")
+	.addcomp(DrawDoor)
+
 UFX.scenes.fail = UFX.Thing()
-	.addcomp(ShowMessage, "Job~not~done~right")
-UFX.scenes.win = UFX.Thing()
-	.addcomp(ShowMessage, "Job~done~right!")
+	.addcomp(Lives)
+	.addcomp(SceneControl)
+	.addcomp(SceneTransition, 0.3, true)
+	.addcomp(DrawUnderscene, "play")
+	.addcomp(DrawDoor)
+	.addcomp(ShowMessage, "Job not done right")
+
 UFX.scenes.timeup = UFX.Thing()
-	.addcomp(ShowMessage, "Out~of~time")
+	.addcomp(Lives)
+	.addcomp(SceneControl)
+	.addcomp(SceneTransition, 0.3, true)
+	.addcomp(DrawUnderscene, "play")
+	.addcomp(DrawDoor)
+	.addcomp(ShowMessage, "Out of time")
+
+UFX.scenes.win = UFX.Thing()
+	.addcomp(Lives)
+	.addcomp(SceneControl)
+	.addcomp(SceneTransition, 0.3, true)
+	.addcomp(DrawUnderscene, "play")
+	.addcomp(DrawDoor)
+	.addcomp(ShowMessage, "Job done right!")
 
 UFX.scenes.talk = {
 	start: function (texts) {

@@ -288,14 +288,15 @@ UFX._draw.text = function (text, pos, fontsize, fontname, opts) {
 	opts = opts || {}
 	this.save()
 	this.translate(pos[0], pos[1])
-	var bold = opts.bold == true ? "bold" : (opts.bold || "")
-	if (bold) bold += " "
 	var italic = opts.italic == true ? "italic" : (opts.italic || "")
 	if (italic) italic += " "
-	this.font = italic + fontsize + "px " + bold + "'" + fontname + "'"
+	var bold = opts.bold === true ? "bold" : (opts.bold || "")
+	if (bold) bold += " "
+	this.font = italic + bold + fontsize + "px " + "'" + fontname + "'"
 	if (opts.tab) {
-		this.textAlign = opts.tab[0]
-		this.textBaseline = opts.tab[1]
+		var tab = opts.tab.split(" ")
+		this.textAlign = tab[0]
+		this.textBaseline = tab[1]
 	}
 	if (opts.align) this.textAlign = opts.align
 	if (opts.baseline) this.textBaseline = opts.baseline
@@ -313,7 +314,7 @@ UFX._draw.text = function (text, pos, fontsize, fontname, opts) {
 	if (fill) this.fillStyle = opts.fill === true ? "white" : opts.fill
 	if (stroke) {
 		this.strokeStyle = opts.stroke || "black"
-		this.lineWidth = ("owidth" in opts ? owidth.opts : 1) * fontsize / 18
+		this.lineWidth = ("owidth" in opts ? opts.owidth : 1) * fontsize / 18
 	}
 	var shadow = opts.shadow || ["black", 0, 0, 0]
 	if (shadow == ["black", 0, 0, 0]) shadow = null
