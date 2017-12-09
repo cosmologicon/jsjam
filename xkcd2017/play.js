@@ -69,15 +69,14 @@ UFX.scenes.play = {
 		lesson.reset()
 		
 		this.dolesson = !ldata.hidelesson
-		if (ldata.intro) UFX.scene.push("talk", ldata.intro)
+		if (ldata.intro) UFX.scene.ipush("talk", ldata.intro)
 		this.outro = ldata.outro
 	},
 	think: function (dt) {
 		if (this.t0) {
 			this.t = clamp(this.t - dt, 0, this.t0)
 			if (this.t == 0) {
-				UFX.scene.iswap("menu")
-				UFX.scene.push("timeup")
+				UFX.scene.push("timeup", "menu")
 				playsound("fail")
 				return
 			}
@@ -122,17 +121,14 @@ UFX.scenes.play = {
 		if (this.done.nclick > 0) {
 			this.checkstate(true)
 			if (this.todo.length == 0 && this.tounlock) savestate.unlock(this.tounlock)
-			UFX.scene.swap("menu")
 			if (this.todo.length == 0) {
+				UFX.scene.push("win", "menu")
 				if (this.outro) {
 					UFX.scene.push("talk", this.outro)
 				}
-				UFX.scene.iswap("menu")
-				UFX.scene.push("win")
 				playsound("win")
 			} else {
-				UFX.scene.iswap("menu")
-				UFX.scene.push("fail")
+				UFX.scene.push("fail", "menu")
 				playsound("fail")
 			}
 		}
@@ -234,11 +230,23 @@ let SceneTransition = {
 		this.wait = wait
 		this.twait = twait || 0
 	},
-	start: function () {
+	start: function (newscene) {
 		this.f = 0
 		this.done = false
+		this.newscene = newscene
 	},
 	think: function (dt) {
+		if (this.f == 1 && this.newscene) {
+			let iof = obj => Object.keys(UFX.scenes).filter(name => obj === UFX.scenes[name])[0]
+			UFX.scene.iflip()
+			UFX.scene.iswap(this.newscene)
+			let myindex = UFX.scene.indexOf(this)
+			while (myindex) {
+				UFX.scene.iflip(myindex, myindex - 1)
+				--myindex
+			}
+			this.newscene = null
+		}
 		if (this.done) {
 			this.f = clamp(this.f - dt / this.tmove, 0, 1)
 			if (this.f == 0) UFX.scene.pop()
@@ -247,23 +255,16 @@ let SceneTransition = {
 		}
 	},
 	control: function (pstate) {
-		if (!this.done && this.t >= this.tmove + this.twait) {
+		if (!this.newscene && !this.done && this.t >= this.tmove + this.twait) {
 			if (!this.wait || pstate.down) this.done = true
 		}
 	},
 }
 
 let DrawUnderscene = {
-	init: function (oldscene) {
-		this.oldscene = oldscene
-	},
 	draw: function () {
 		if (this.f >= 1) return
-		if (this.done) {
-			UFX.scene.top(1).draw()
-		} else {
-			UFX.scenes[this.oldscene].draw()
-		}
+		UFX.scene.top(1).draw()
 	},
 }
 
@@ -330,21 +331,21 @@ UFX.scenes.startgame = UFX.Thing()
 	.addcomp(Lives)
 	.addcomp(SceneControl)
 	.addcomp(SceneTransition, 0.4, false, 0.3)
-	.addcomp(DrawUnderscene, "load")
+	.addcomp(DrawUnderscene)
 	.addcomp(DrawDoor)
 
 UFX.scenes.startlevel = UFX.Thing()
 	.addcomp(Lives)
 	.addcomp(SceneControl)
 	.addcomp(SceneTransition, 0.4, false, 0.3)
-	.addcomp(DrawUnderscene, "menu")
+	.addcomp(DrawUnderscene)
 	.addcomp(DrawDoor)
 
 UFX.scenes.fail = UFX.Thing()
 	.addcomp(Lives)
 	.addcomp(SceneControl)
 	.addcomp(SceneTransition, 0.3, true)
-	.addcomp(DrawUnderscene, "play")
+	.addcomp(DrawUnderscene)
 	.addcomp(DrawDoor)
 	.addcomp(ShowMessage, "Job not done right")
 
@@ -352,7 +353,7 @@ UFX.scenes.timeup = UFX.Thing()
 	.addcomp(Lives)
 	.addcomp(SceneControl)
 	.addcomp(SceneTransition, 0.3, true)
-	.addcomp(DrawUnderscene, "play")
+	.addcomp(DrawUnderscene)
 	.addcomp(DrawDoor)
 	.addcomp(ShowMessage, "Out of time")
 
@@ -360,7 +361,7 @@ UFX.scenes.win = UFX.Thing()
 	.addcomp(Lives)
 	.addcomp(SceneControl)
 	.addcomp(SceneTransition, 0.3, true)
-	.addcomp(DrawUnderscene, "play")
+	.addcomp(DrawUnderscene)
 	.addcomp(DrawDoor)
 	.addcomp(ShowMessage, "Job done right!")
 

@@ -58,6 +58,14 @@ let SquarePanel = {
 			UFX.draw("]")
 		}
 	},
+	panel: function (d) {
+		if (d === undefined) d = 10
+		return new Panel({
+			x: this.x - d, y: this.y - d,
+			w: this.w + 2 * d, h: this.h + 2 * d,
+		})
+	},
+
 }
 
 function drawshape(r, shape, color, shadow, glow) {
@@ -740,6 +748,30 @@ Panel.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Focusable)
 	.addcomp(SquarePanel)
+
+function Sign(obj) {
+	obj.drawpanel = true
+	obj.centered = true
+	this.setup(obj)
+}
+Sign.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Focusable)
+	.addcomp(SquarePanel)
+	.addcomp({
+		setup: function (obj) {
+			this.text = obj.text
+			this.fontsize = obj.fontsize || 20
+			this.fontname = obj.fontname || "sans-serif"
+			this.drawopts = obj.drawopts || {}
+			this.drawopts.tab = "center middle"
+			this.shadow = this.drawopts.shadow
+		},
+		draw: function () {
+			if (this.shadow) this.drawopts.shadow = [this.shadow[0], Z(this.shadow[1]), Z(this.shadow[2]), Z(this.shadow[3])]
+			UFX.draw.text(this.text, [this.w/2, this.h/2], this.fontsize, this.fontname, this.drawopts)
+		},
+	})
 
 
 function Readout(obj) {

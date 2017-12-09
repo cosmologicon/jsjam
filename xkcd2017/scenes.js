@@ -122,7 +122,7 @@ let SettingsControls = {
 				hovertext: "Slide up and down to control how loud the music is."
 			}),
 			new Button({
-				x: 1400, y: 700, w: 160, h: 160,
+				x: 1420, y: 770, w: 160, h: 160, centered: true,
 				shape: "circle", color: "orange", label: "About", autodrop: true,
 				drawpanel: true,
 				onrelease: () => {
@@ -145,20 +145,39 @@ UFX.scenes.load = UFX.Thing()
 			this.f = 0
 			this.loaded = false
 			this.readout = new Readout({
-				x: 800, y: 820, w: 400, h: 140, centered: true,
+				x: 800, y: 770, w: 400, h: 140, centered: true,
 				text: "Getting the game....",
 			})
 			this.playbutton = new ButtonArray({
-				x: 800, y: 820, w: 400, h: 140, centered: true, on: [true],
+				x: 800, y: 770, w: 400, h: 140, centered: true, on: [true],
 				shape: "square", color: "white", label: "Start the game", labelfontsize: 40, autodrop: true,
 				onrelease: () => {
-					UFX.scene.iswap("play")
-					UFX.scene.push("startgame")
+					UFX.scene.push("startgame", "play")
 					playsound("begin")
 					playmusic("lift")
 				},
 			})
-			this.controls.push(this.readout)
+			this.controls.push(this.playbutton.panel(), this.readout)
+
+			this.controls.push(new Sign({ x: 500, y: 120, w: 800, h: 170,
+				text: "Simple Machines", fontsize: 150, fontname: "Mouse Memoirs",
+				drawopts: { fill: "#77f", owidth: 1, shade: 3, }
+			}))
+
+			this.controls.push(new Sign({ x: 400, y: 340, w: 440, h: 180,
+				text: "by team\nUniverse Factory", fontsize: 60, fontname: "Passion One",
+				drawopts: { fill: "#cca", lineheight: 1.2, owidth: 1, shade: 3, }
+			}))
+			this.controls.push(new Sign({ x: 1200, y: 360, w: 440, h: 180,
+				text: "for the\nxkcd game jam", fontsize: 60, fontname: "Passion One",
+				drawopts: { fill: "#cca", lineheight: 1.2, owidth: 1, shade: 3, }
+			}))
+			this.controls.unshift(
+				new Cable({ x: 360, y: 770, x1: 1400, y1: 770, width: 40, }),
+				new Cable({ x: 460, y: 200, x1: 460, y1: 260 }),
+				new Cable({ x: 300, y: 420, x1: 300, y1: 700 }),
+				new Cable({ x: 600, y: 360, x1: 1050, y1: 360, width: 40, }))
+
 		},
 		think: function (dt) {
 			if (this.loaded && this.playbutton) {
@@ -172,48 +191,31 @@ UFX.scenes.load = UFX.Thing()
 			UFX.draw("[ z", sx / sx0, sy / sy0, "tab center middle")
 			context.lineJoin = "round"
 			context.lineCap = "round"
-			UFX.draw.text("Simple Machines", [800, 150], 150, "Mouse Memoirs", {
-				fill: "#77f", shade: 2, shadow: ["black", Z(1), Z(1), 0], })
-			UFX.draw.text("by team\nUniverse Factory", [400, 350], 80, "Passion One", {
-				lineheight: 1.2, fill: "#cca", shade: 4, shadow: ["black", Z(1), Z(1), 0], })
-/*
-			UFX.draw("[ t 400 350 font 80px~'Passion~One'",
-				"fs", UFX.draw.lingrad(0, -30, 0, 30, 0, "#cca", 1, "#a77"),
-				"sh black", Z(7), Z(7), 0,
-				"ft0 by~team",
-				"t 0 100 ft0 Universe~Factory",
-				"]")
-*/
-			UFX.draw("[ t 1200 350 font 80px~'Passion~One'",
-				"fs", UFX.draw.lingrad(0, -30, 0, 30, 0, "#cca", 1, "#a77"),
-				"sh black", Z(7), Z(7), 0,
-				"ft0 for~the",
-				"t 0 100 ft0 xkcd~game~jam",
-				"]")
-			UFX.draw("[ t 400 450 ss blue lw 10",
-				"b m -220 70 l -100 -50 l -120 40 l 80 -45 l 30 40 l 200 -60 l 140 30",
-				"sh black", Z(2), Z(2), 0, "s",
-				"]")
-			UFX.draw("[ t 1200 450 ss blue lw 10 hflip vflip",
-				"b m -220 70 l -100 -50 l -120 40 l 80 -45 l 30 40 l 200 -60 l 140 30",
-				"sh black", Z(2), Z(2), 0, "s",
-				"]")
-			UFX.draw("[ t 400 550 font bold~60px~'Architects~Daughter' r -0.2",
-				"fs", UFX.draw.lingrad(0, -20, 0, 20, 0, "#55f", 1, "#33c"),
-				"sh black", Z(5), Z(5), 0,
-				"ft0 Everything",
-				"t 0 70 ft0 Making~Place",
-				"]")
-			UFX.draw("[ t 1200 550 font bold~60px~'Architects~Daughter' r 0.1",
-				"fs", UFX.draw.lingrad(0, -20, 0, 20, 0, "#55f", 1, "#33c"),
-				"sh black", Z(5), Z(5), 0,
-				"ft0 game~making~event",
-				"t 0 70 ft0 that~gets~ideas~from",
-				"t 0 70 ft0 well-known~stick~person",
-				"t 0 70 ft0 word~&~art~page",
-				"]")
-
 			this.drawcontrols()
+
+			UFX.draw("[ t 400 385 ss blue lw 6",
+				"b m -220 70 l -100 -50 l -120 40 l 80 -45 l 30 40 l 200 -60 l 140 30",
+				"sh black", Z(2), Z(2), 0, "s",
+				"]")
+			UFX.draw("[ t 1200 400 ss blue lw 6 hflip vflip",
+				"b m -220 70 l -100 -50 l -120 40 l 80 -45 l 30 40 l 200 -60 l 140 30",
+				"sh black", Z(2), Z(2), 0, "s",
+				"]")
+			UFX.draw.text("Everything Making Place", [400, 410], 55, "Architects Daughter", {
+				tab: "center top",
+				bold: true, angle: -0.1, fill: "#55f", shade: 2, shadow: ["black", Z(1), Z(1), 0],
+				width: 400, owidth: 1,
+			})
+			UFX.draw.text("well-known stick person word and art page", [1000, 420], 55, "Architects Daughter", {
+				tab: "center top",
+				bold: true, angle: 0.1, fill: "#55f", shade: 2, shadow: ["black", Z(1), Z(1), 0],
+				width: 400, owidth: 1,
+			})
+			UFX.draw.text("game making event", [1300, 420], 55, "Architects Daughter", {
+				tab: "center top",
+				bold: true, angle: -0.2, fill: "#55f", shade: 2, shadow: ["black", Z(1), Z(1), 0],
+				width: 200, owidth: 1,
+			})
 			this.drawhover()
 			UFX.draw("]")
 		},
@@ -227,7 +229,12 @@ UFX.scenes.menu = UFX.Thing()
 	.addcomp({
 		start: function () {
 			this.f = 1
-			this.title = new Statement("Simple Machines", [800, 120], { size: 70, width: 900, center: true })
+			this.controls.push(new Sign({ x: 500, y: 120, w: 800, h: 170,
+				text: "Simple Machines", fontsize: 150, fontname: "Mouse Memoirs",
+				drawopts: { fill: "#77f", owidth: 1, shade: 3, }
+			}))
+
+
 			savestate.unlocked.map((levelname, j) => {
 				let w = 250, h = 250
 				let jx = j % 5, jy = Math.floor(j / 5)
@@ -238,8 +245,7 @@ UFX.scenes.menu = UFX.Thing()
 					autodrop: true,
 					onrelease: function () {
 						savestate.current = levelname
-						UFX.scene.iswap("play")
-						UFX.scene.push("startlevel")
+						UFX.scene.push("startlevel", "play")
 						playsound("begin")
 					},
 				}))
@@ -253,12 +259,8 @@ UFX.scenes.menu = UFX.Thing()
 			UFX.draw("fs", UFX.draw.lingrad(0, 0, sx, sy, 0, "#aaa", 1, "#777"), "fr", 0, 0, sx, sy)
 			UFX.draw("[ z", sx / sx0, sy / sy0)
 			this.drawcontrols()
-			draw(this.title)
 			this.drawhover()
 			UFX.draw("]")
-
-//			let alpha = this.f
-//			if (alpha) UFX.draw("fs", "rgba(255,255,255," + alpha + ")", "f0")
 		},
 	})
 
