@@ -23,10 +23,17 @@ function Box(x, y) {
 	})
 }
 
-let boxes = [
-]
-for (let j = 0 ; j < 24 ; ++j) {
-	boxes.push(new Box(60 + 60 * (j % 6), 400 + 80 * Math.floor(j / 6) + 10 * j))
+let boxes = []
+for (let k = 0 ; k < 4 ; ++k) {
+	let x0 = [800, 150, 1600-150, 800][k]
+	let y0 = [80, 450, 450, 900-80][k]
+	let nx = [3, 2, 2, 3][k]
+	let ny = 6 / nx
+	for (let j = 0 ; j < 6 ; ++j) {
+		let x = x0 + 120 * (j % nx - (nx - 1) / 2)
+		let y = y0 + 120 * (Math.floor(j / nx) - (ny - 1) / 2)
+		boxes.push(new Box(x, y))
+	}
 }
 
 let jbox = null
@@ -39,6 +46,7 @@ let sinks = colors.map((color, jcolor) => {
 		x: 800 + 150 * Math.sin(theta),
 		y: 450 - 150 * Math.cos(theta),
 		r: 80,
+		f: 0,
 	}
 })
 
@@ -109,7 +117,10 @@ function think(dt) {
 		sinks.forEach(sink => {
 			if (sink.color != ball.color) return
 			let dx = sink.x - ball.x, dy = sink.y - ball.y
-			if (Math.hypot(dx, dy) < sink.r - ball.r) ball.alive = false
+			if (Math.hypot(dx, dy) < sink.r - ball.r) {
+				ball.alive = false
+				sink.f += 0.3
+			}
 		})
 		let over = false
 		boxes.forEach((box, jbox) => {
@@ -128,7 +139,11 @@ function think(dt) {
 	})
 	balls = balls.filter(ball => ball.alive)
 
-
+	sinks.forEach(sink => {
+		sink.f = Math.min(Math.max(sink.f - dt, 0), 2)
+	})
+}
+function draw() {
 
 	UFX.draw("fs black f0 [ z", canvas.width / 1600, canvas.height / 900)
 	UFX.draw("[ fs lg~0~0~1600~900~0~rgb(0,0,100)~1~rgb(0,0,50) fr 0 0 1600 900 ]")
@@ -148,16 +163,17 @@ function think(dt) {
 		"ft0 goal~of~the~same~color. t 0 50",
 	"]")
 	sinks.forEach(sink => {
+		let a = 0.2 + Math.min(sink.f / 1, 1) * 0.8
 		UFX.draw("[ t", sink.x, sink.y,
 			"fs", sink.color, "b o 0 0", sink.r, "f",
-			"[ fs black alpha 0.7 f ]",
+			"[ fs black alpha", 1 - a, "f ]",
 			"ss", sink.color, "lw", 4, "s",
 		"]")
 	})
 
 	balls.forEach(ball => {
 		UFX.draw("[ t", ball.x, ball.y,
-			"fs", ball.color, "b o 0 0", ball.r, "f",
+			"fs", ball.color, "ss black lw 1 b o 0 0", ball.r, "f s",
 		"]")
 	})
 	boxes.forEach((box, jbox) => {
@@ -167,6 +183,9 @@ function think(dt) {
 			"tab center middle font 80px~'Boogaloo' fs black ft0 " + jbox,
 		"]")
 	})
+	if (sinks.every(sink => sink.f > 1)) {
+		UFX.draw("[ tab center middle t 800 450 font 400px~'Boogaloo' fs yellow ss black lw 30 sft0 YOU~WIN! ]")
+	}
 
 
 
@@ -177,7 +196,7 @@ function think(dt) {
 }
 UFX.resource.loadwebfonts("Boogaloo")
 UFX.resource.onload = function () {
-	UFX.ticker.init(think, null, {
+	UFX.ticker.init(think, draw, {
 		ups: 120,
 		maxupf: 12,
 	})
