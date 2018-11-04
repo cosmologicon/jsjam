@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<title>0h2018 game jam entry</title>
+<title>Black Box: 0h2018 game jam entry</title>
 <script src="http://ufx.space/UFX.js"></script>
 <canvas id=canvas></canvas>
 <script>
@@ -11,22 +11,164 @@ let context = canvas.getContext("2d")
 UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
 
+
+let colors = ["red", "blue", "yellow", "white"]
+
+function Box(x, y) {
+	this.x = x
+	this.y = y
+	this.bounce = {}
+	colors.forEach(color => {
+		this.bounce[color] = UFX.random.angle()
+	})
+}
+
+let boxes = [
+]
+for (let j = 0 ; j < 24 ; ++j) {
+	boxes.push(new Box(60 + 60 * (j % 6), 400 + 80 * Math.floor(j / 6) + 10 * j))
+}
+
+let jbox = null
+
+
+let sinks = colors.map((color, jcolor) => {
+	let theta = jcolor / 4 * tau
+	return {
+		color: color,
+		x: 800 + 150 * Math.sin(theta),
+		y: 450 - 150 * Math.cos(theta),
+		r: 80,
+	}
+})
+
+function Ball(x, y, vx, vy, color) {
+	this.x = x
+	this.y = y
+	this.vx = vx
+	this.vy = vy
+	this.r = 10
+	this.color = color
+	this.over = false
+	this.alive = true
+}
+
+let streams = [
+	{ x0: 300, y0: -100, vx: 0, vy: 500, jcolor0: 0, jcolor1: 1, },
+	{ x0: 500, y0: 1000, vx: 0, vy: -500, jcolor0: 2, jcolor1: 3, },
+	{ x0: 1100, y0: -100, vx: 0, vy: 500, jcolor0: 0, jcolor1: 2, },
+	{ x0: 1300, y0: 1000, vx: 0, vy: -500, jcolor0: 1, jcolor1: 3, },
+	{ x0: -100, y0: 200, vx: 500, vy: 0, jcolor0: 0, jcolor1: 3, },
+	{ x0: 1700, y0: 700, vx: -500, vy: 0, jcolor0: 1, jcolor1: 2, },
+]
+let tstream = 0
+let jstream = 0
+
+
+let balls = []
+
 function think(dt) {
 	let pstate = UFX.pointer(canvas)
 	let pos = pstate.pos ? [pstate.pos[0] * 1600 / canvas.width, pstate.pos[1] * 900 / canvas.height] : [-100, -100]
 
+	if (pstate.down) {
+		if (jbox === null) {
+			boxes.forEach((box, j) => {
+				let d = Math.hypot(box.x - pos[0], box.y - pos[1])
+				if (d < 50) jbox = j
+			})
+		}
+	}
+	if (pstate.up) {
+		jbox = null
+	}
+	
+	if (jbox !== null) {
+		let box = boxes[jbox]
+		box.x = pos[0]
+		box.y = pos[1]
+	}
+
+	tstream += dt
+	if (tstream > 0.4) {
+		tstream -= 0.4
+		jstream = 1 - jstream
+		let field = jstream ? "jcolor0" : "jcolor1"
+		streams.forEach(stream => {
+			balls.push(new Ball(stream.x0, stream.y0, stream.vx, stream.vy, colors[stream[field]]))
+		})
+	}
+
+	balls.forEach(ball => {
+		ball.x += dt * ball.vx
+		ball.y += dt * ball.vy
+		if (ball.x < -100 && ball.vx < 0) ball.alive = false
+		if (ball.y < -100 && ball.vy < 0) ball.alive = false
+		if (ball.x > 1700 && ball.vx > 0) ball.alive = false
+		if (ball.y > 1000 && ball.vy > 0) ball.alive = false
+		sinks.forEach(sink => {
+			if (sink.color != ball.color) return
+			let dx = sink.x - ball.x, dy = sink.y - ball.y
+			if (Math.hypot(dx, dy) < sink.r - ball.r) ball.alive = false
+		})
+		let over = false
+		boxes.forEach((box, jbox) => {
+			let dx = ball.x - box.x, dy = ball.y - box.y
+			if (Math.hypot(dx, dy) < 40) {
+				over = true
+				if (ball.over) return
+				let vx = ball.vx, vy = ball.vy
+				let a = Math.atan2(vy, vx)
+				a += box.bounce[ball.color]
+				ball.vx = 500 * Math.cos(a)
+				ball.vy = 500 * Math.sin(a)
+			}
+		})
+		ball.over = over
+	})
+	balls = balls.filter(ball => ball.alive)
 
 
 
 	UFX.draw("fs black f0 [ z", canvas.width / 1600, canvas.height / 900)
-	UFX.draw("[ fs lg~0~0~1600~900~0~rgb(0,0,50)~1~black fr 0 0 1600 900 ]")
-	UFX.draw("[ t 500 200 r -0.2 tab center middle alpha 0.2",
-		"font 120px~'Boogaloo' fs white ft0 Game~Name",
+	UFX.draw("[ fs lg~0~0~1600~900~0~rgb(0,0,100)~1~rgb(0,0,50) fr 0 0 1600 900 ]")
+	UFX.draw("[ t 300 150 r -0.2 tab center middle alpha 0.2",
+		"font 120px~'Boogaloo' fs white ft0 Black~Box",
 		"font 60px~'Boogaloo' t 0 100 fs #7ff ft0 by~Christopher~Night",
 		"font 44px~'Boogaloo' t 0 60 fs #7ff ft0 for~0h~game~jam~2018",
 	"]")
-	let color = pstate.down ? "red" : pstate.isdown ? "orange" : "yellow"
-	UFX.draw("[ fs", color, "b o", pos, "10 f ]")
+	UFX.draw("[ t 1300 150 r 0.1 tab center middle alpha 0.2",
+		"font 50px~'Boogaloo' fs white",
+		"ft0 Drag~the~black~boxes t 0 50",
+		"ft0 to~deflect~the~balls. t 0 50",
+		"ft0 Each~black~box~deflects t 0 50",
+		"ft0 each~color~ball~by~a t 0 50",
+		"ft0 different~random~angle. t 0 50",
+		"ft0 Guide~each~ball~to~the t 0 50",
+		"ft0 goal~of~the~same~color. t 0 50",
+	"]")
+	sinks.forEach(sink => {
+		UFX.draw("[ t", sink.x, sink.y,
+			"fs", sink.color, "b o 0 0", sink.r, "f",
+			"[ fs black alpha 0.7 f ]",
+			"ss", sink.color, "lw", 4, "s",
+		"]")
+	})
+
+	balls.forEach(ball => {
+		UFX.draw("[ t", ball.x, ball.y,
+			"fs", ball.color, "b o 0 0", ball.r, "f",
+		"]")
+	})
+	boxes.forEach((box, jbox) => {
+		UFX.draw("[ t", box.x, box.y, "z", 0.5, 0.5,
+			"fs black fr -100 -100 200 200",
+			"fs #111 fr -80 -80 160 160",
+			"tab center middle font 80px~'Boogaloo' fs black ft0 " + jbox,
+		"]")
+	})
+
+
 
 	let text = UFX.ticker.getrates().replace(/ /g, "~")
 	UFX.draw("[ fs gray alpha 0.2 font 30px~'monospace' tab left bottom",
