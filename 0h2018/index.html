@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<title>0h2018 game jam entry</title>
+<script src="http://ufx.space/UFX.js"></script>
+<canvas id=canvas></canvas>
+<script>
+let tau = 2 * Math.PI
+let canvas = document.getElementById("canvas")
+canvas.width = 1600
+canvas.height = 900
+let context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+
+function think(dt) {
+	let pstate = UFX.pointer(canvas)
+	let pos = pstate.pos ? [pstate.pos[0] * 1600 / canvas.width, pstate.pos[1] * 900 / canvas.height] : [-100, -100]
+
+
+
+
+	UFX.draw("fs black f0 [ z", canvas.width / 1600, canvas.height / 900)
+	UFX.draw("[ fs lg~0~0~1600~900~0~rgb(0,0,50)~1~black fr 0 0 1600 900 ]")
+	UFX.draw("[ t 500 200 r -0.2 tab center middle alpha 0.2",
+		"font 120px~'Boogaloo' fs white ft0 Game~Name",
+		"font 60px~'Boogaloo' t 0 100 fs #7ff ft0 by~Christopher~Night",
+		"font 44px~'Boogaloo' t 0 60 fs #7ff ft0 for~0h~game~jam~2018",
+	"]")
+	let color = pstate.down ? "red" : pstate.isdown ? "orange" : "yellow"
+	UFX.draw("[ fs", color, "b o", pos, "10 f ]")
+
+	let text = UFX.ticker.getrates().replace(/ /g, "~")
+	UFX.draw("[ fs gray alpha 0.2 font 30px~'monospace' tab left bottom",
+		"ft", text, 20, 880, "]")
+	UFX.draw("]")
+}
+UFX.resource.loadwebfonts("Boogaloo")
+UFX.resource.onload = function () {
+	UFX.ticker.init(think, null, {
+		ups: 120,
+		maxupf: 12,
+	})
+}
+</script>
