@@ -15,25 +15,145 @@ UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
 
 
+function Ball(color, v0) {
+	this.color = color
+	let a = UFX.random(tau)
+	let h = UFX.random(-400, 400)
+	let S = Math.sin(a), C = Math.cos(a)
+	let v = v0 * UFX.random(0.7, 1.4)
+	this.x = S * 1000 + C * h
+	this.y = C * 1000 - S * h
+	this.vx = -S * v
+	this.vy = -C * v
+	this.alive = true
+}
+Ball.prototype.think = function (dt) {
+	this.x += this.vx * dt
+	this.y += this.vy * dt
+	let n = 0
+	while (n < 20 && (Math.abs(this.x) > 820 || Math.abs(this.y) > 470)) {
+		this.x += this.vx * dt
+		this.y += this.vy * dt
+		++n
+	}
+}
+Ball.prototype.draw = function () {
+	UFX.draw("b o", this.x, this.y, "20 lw 4 ss white s fs", this.color, "fill")
+}
+let balls = []
+for (let j = 0;  j < 5 ; ++j) balls.push(new Ball("black"))
+
+let p0 = [0, 0]
+let W = 80, H = 40
+
+let pcolors = {
+	"1,1": "white",
+	"1,-1": "white",
+	"-1,1": "red",
+	"-1,-1": "white",
+}
+let level = 1, maxlevel = 1
+let failed = false
+let numballs = 0, numcaught = 0
+let bcolor
+
+function start() {
+	bcolor = "black"
+	if (level > 1) bcolor = "#" + UFX.random.word(6, "012345")
+	numballs = Math.floor(Math.sqrt(level))
+	let v0 = 60 * level ** 0.4
+	balls = []
+	for (let j = 0 ; j < numballs ; ++j) {
+		balls.push(new Ball("black", v0))
+	}
+	pcolors = {
+		"1,1": "white",
+		"1,-1": "white",
+		"-1,1": "white",
+		"-1,-1": "white",
+	}
+	if (level > 2) pcolors[UFX.random.choice(Object.keys(pcolors))] = "clear"
+	if (level > 4) pcolors[UFX.random.choice(Object.keys(pcolors))] = "clear"
+	if (level > 8) pcolors[UFX.random.choice(Object.keys(pcolors))] = "clear"
+	if (level > 16) pcolors[UFX.random.choice(Object.keys(pcolors))] = "clear"
+	if (level > 32) pcolors[UFX.random.choice(Object.keys(pcolors))] = "clear"
+	if (level > 64) pcolors[UFX.random.choice(Object.keys(pcolors))] = "clear"
+	if (level > 3) pcolors[UFX.random.choice(Object.keys(pcolors))] = "red"
+	if (level > 9) pcolors[UFX.random.choice(Object.keys(pcolors))] = "red"
+	if (level > 27) pcolors[UFX.random.choice(Object.keys(pcolors))] = "red"
+	if (level > 81) pcolors[UFX.random.choice(Object.keys(pcolors))] = "red"
+	pcolors[UFX.random.choice(Object.keys(pcolors))] = "white"
+	failed = false
+	numcaught = 0
+}
+start()
+
 function think(dt) {
 	let pstate = UFX.pointer(canvas)
 	let pos = pstate.pos ? [pstate.pos[0] * 1600 / canvas.width, pstate.pos[1] * 900 / canvas.height] : [-100, -100]
-
-	if (pstate.down) {
+	if (pos[0] >= 0) {
+		p0 = [pos[0] - 800, pos[1] - 450]
 	}
-	if (pstate.up) {
+	p0[0] = Math.min(Math.max(p0[0], -(800 - W)), 800 - W)
+	p0[1] = Math.min(Math.max(p0[1], -(450 - H)), 450 - H)
+
+	for (let ball of balls) ball.think(dt)
+	for (let ball of balls) {
+		for (let rx of [-1, 1]) for (let ry of [-1, 1]) {
+			let dx = ball.x - (rx * p0[0])
+			let dy = ball.y - (ry * p0[1])
+			if (Math.hypot(dx, dy) < 100 && pcolors[[rx, ry]] != "clear") {
+				ball.alive = false
+				if (pcolors[[rx, ry]] == "red") {
+					failed = true
+				}
+			}
+		}
+		if (Math.hypot(ball.x, ball.y) > 2000) {
+			failed = true
+		}
+	}
+	balls = balls.filter(b => b.alive)
+	if (failed) {
+		level = 1
+		start()
+	} else if (balls.length == 0) {
+		level += 1
+		maxlevel = Math.max(maxlevel, level)
+		start()
 	}
 }
 function draw() {
 
-	UFX.draw("fs black f0 [ z", canvas.width / 1600, canvas.height / 900)
-	UFX.draw("[ fs lg~0~0~1600~900~0~rgb(0,0,100)~1~rgb(0,0,50) fr 0 0 1600 900 ]")
+	UFX.draw("fs", bcolor, "f0 [ z", canvas.width / 1600, canvas.height / 900)
+//	UFX.draw("fs black f0 [ z", canvas.width / 1600, canvas.height / 900)
+//	UFX.draw("[ fs lg~0~0~1600~900~0~rgb(0,0,100)~1~rgb(0,0,50) fr 0 0 1600 900 ]")
 	UFX.draw("[ t 600 200 r -0.2 tab center middle alpha 0.14",
-		"font 120px~'Passion~One' fs white ft0 Zero~Hour~Game",
+		"font 120px~'Passion~One' fs white ft0 Reflection",
 		"font 60px~'Passion~One' t 0 100 fs #7ff ft0 by~Christopher~Night",
 		"font 40px~'Passion~One' t 0 50 fs #7ff ft0 made~in~zero~hours,",
 		"font 40px~'Passion~One' t 0 40 fs #7ff ft0 2am~EDT~-~2am~EST,~3~Nov~2019",
 	"]")
+
+	UFX.draw("[ t 1200 200 r 0.2 tab center middle alpha 0.14",
+		"font 50px~'Passion~One' fs #ff7 ft0 collect~all~balls~to~advance",
+		"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 collecting~with~red~area~ends~game",
+		"font 50px~'Passion~One' t 0 50 fs #7ff ft0 collected:~" + numcaught + "/" + numballs,
+		"font 50px~'Passion~One' t 0 50 fs #7ff ft0 current~level:~" + level,
+		"font 50px~'Passion~One' t 0 50 fs #7ff ft0 max~level:~" + maxlevel,
+	"]")
+	
+	UFX.draw("[ t 800 450")
+	for (let ball of balls) ball.draw()
+	for (let rx of [-1, 1]) for (let ry of [-1, 1]) {
+		if (pcolors[[rx, ry]] == "clear") continue
+		UFX.draw("b o", rx * p0[0], ry * p0[1], "60")
+//		if (rx == 1 && ry == 1) UFX.draw("[ alpha 0.1 fs white f ]")
+		UFX.draw("[ alpha 0.5 fs", pcolors[[rx, ry]], "f ]")
+		UFX.draw("ss #77f lw 6 s")
+	}
+	
+	UFX.draw("]")
 
 	let text = UFX.ticker.getrates().replace(/ /g, "~")
 	UFX.draw("[ fs gray alpha 0.2 font 30px~'monospace' tab left bottom",
