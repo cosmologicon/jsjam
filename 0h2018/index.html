@@ -1,8 +1,11 @@
 <!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 <title>Black Box: 0h2018 game jam entry</title>
 <script src="http://ufx.space/UFX.js"></script>
 <canvas id=canvas></canvas>
 <script>
+"use strict"
+let EASY = window.location.href.includes("EASY")
 let tau = 2 * Math.PI
 let canvas = document.getElementById("canvas")
 canvas.width = 1600
@@ -13,6 +16,7 @@ UFX.draw.setcontext(context)
 
 
 let colors = ["red", "blue", "yellow", "white"]
+if (EASY) colors = ["red", "blue"]
 
 function Box(x, y) {
 	this.x = x
@@ -25,6 +29,7 @@ function Box(x, y) {
 
 let boxes = []
 for (let k = 0 ; k < 4 ; ++k) {
+	if (EASY && (k == 0 || k == 3)) continue
 	let x0 = [800, 150, 1600-150, 800][k]
 	let y0 = [80, 450, 450, 900-80][k]
 	let nx = [3, 2, 2, 3][k]
@@ -40,7 +45,7 @@ let jbox = null
 
 
 let sinks = colors.map((color, jcolor) => {
-	let theta = jcolor / 4 * tau
+	let theta = jcolor / colors.length * tau
 	return {
 		color: color,
 		x: 800 + 150 * Math.sin(theta),
@@ -69,6 +74,7 @@ let streams = [
 	{ x0: -100, y0: 200, vx: 500, vy: 0, jcolor0: 0, jcolor1: 3, },
 	{ x0: 1700, y0: 700, vx: -500, vy: 0, jcolor0: 1, jcolor1: 2, },
 ]
+if (EASY) streams = [{ x0: -100, y0: 200, vx: 500, vy: 0, jcolor0: 0, jcolor1: 1, }]
 let tstream = 0
 let jstream = 0
 
@@ -119,7 +125,7 @@ function think(dt) {
 			let dx = sink.x - ball.x, dy = sink.y - ball.y
 			if (Math.hypot(dx, dy) < sink.r - ball.r) {
 				ball.alive = false
-				sink.f += 0.3
+				sink.f += EASY ? 0.9 : 0.3
 			}
 		})
 		let over = false
@@ -177,10 +183,11 @@ function draw() {
 		"]")
 	})
 	boxes.forEach((box, jbox) => {
+		let letter = String.fromCharCode("A".charCodeAt(0) + jbox)
 		UFX.draw("[ t", box.x, box.y, "z", 0.5, 0.5,
 			"fs black fr -100 -100 200 200",
 			"fs #111 fr -80 -80 160 160",
-			"tab center middle font 80px~'Boogaloo' fs black ft0 " + jbox,
+			"tab center middle font 120px~'Boogaloo' fs gray ss black lw 3 sft0 " + letter,
 		"]")
 	})
 	if (sinks.every(sink => sink.f > 1)) {
