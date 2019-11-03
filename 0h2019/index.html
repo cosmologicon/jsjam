@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<title>Zero-hour game 2019</title>
+<script src="http://ufx.space/UFX.js"></script>
+<canvas id=canvas></canvas>q
+<script>
+"use strict"
+let EASY = window.location.href.includes("EASY")
+let tau = 2 * Math.PI
+let canvas = document.getElementById("canvas")
+canvas.width = 1600
+canvas.height = 900
+let context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+
+
+function think(dt) {
+	let pstate = UFX.pointer(canvas)
+	let pos = pstate.pos ? [pstate.pos[0] * 1600 / canvas.width, pstate.pos[1] * 900 / canvas.height] : [-100, -100]
+
+	if (pstate.down) {
+	}
+	if (pstate.up) {
+	}
+}
+function draw() {
+
+	UFX.draw("fs black f0 [ z", canvas.width / 1600, canvas.height / 900)
+	UFX.draw("[ fs lg~0~0~1600~900~0~rgb(0,0,100)~1~rgb(0,0,50) fr 0 0 1600 900 ]")
+	UFX.draw("[ t 600 200 r -0.2 tab center middle alpha 0.14",
+		"font 120px~'Passion~One' fs white ft0 Zero~Hour~Game",
+		"font 60px~'Passion~One' t 0 100 fs #7ff ft0 by~Christopher~Night",
+		"font 40px~'Passion~One' t 0 50 fs #7ff ft0 made~in~zero~hours,",
+		"font 40px~'Passion~One' t 0 40 fs #7ff ft0 2am~EDT~-~2am~EST,~3~Nov~2019",
+	"]")
+
+	let text = UFX.ticker.getrates().replace(/ /g, "~")
+	UFX.draw("[ fs gray alpha 0.2 font 30px~'monospace' tab left bottom",
+		"ft", text, 20, 880, "]")
+	UFX.draw("]")
+}
+UFX.resource.loadwebfonts("Boogaloo", "Passion One")
+UFX.resource.onload = function () {
+	UFX.ticker.init(think, draw, {
+		ups: 120,
+		maxupf: 12,
+	})
+}
+</script>
