@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 <title>Zero-hour game 2020</title>
+<style>
+canvas {
+	cursor: none;
+}
+</style>
 <script src="http://ufx.space/UFX.js"></script>
 <canvas id=canvas></canvas>q
 <script>
@@ -16,33 +21,148 @@ UFX.draw.setcontext(context)
 
 let pos = [0, 0]
 
-function think(dt) {
-	let pstate = UFX.pointer(canvas)
-	pos = pstate.pos ? [pstate.pos[0] * 1600 / canvas.width, pstate.pos[1] * 900 / canvas.height] : [-100, -100]
-
+function Screw(pos, r, pattern) {
+	this.pos = pos
+	this.r = r
+	this.alpha = 0
+	this.pattern = pattern
+	this.dx = 0
+	this.dy = 0
+	this.df = 0
+	this.tightening = false
+	this.f = 0
 }
+Screw.prototype.tighten = function (pos, pattern) {
+	let dx = pos[0] - this.pos[0], dy = pos[1] - this.pos[1]
+	let d = Math.hypot(dx, dy) / this.r
+	this.tightening = d < 1.2 && pattern == this.pattern
+}
+Screw.prototype.think = function (dt) {
+	if (this.tightening) {
+		this.alpha = Math.max(this.alpha - 20 * dt, 0)
+	} else {
+		this.alpha += 0.1 * dt
+	}
+	this.dx += (UFX.random(-1, 1) - 0.1 * this.dx) * dt
+	this.dy += (UFX.random(-1, 1) - 0.1 * this.dy) * dt
+	
+	this.f = Math.min(Math.max(this.alpha / 5, 0), 1)
+	this.df = 100 * this.f
+}
+Screw.prototype.draw = function () {
+	let color0 = "rgb(" + Math.round(128 + 127 * this.f ** 2) + ",128,128)"
+	UFX.draw("[ t", this.pos,
+		"t", this.df * this.dx, this.df * this.dy)
+	UFX.draw("z", this.r / 10, this.r / 10)
+	UFX.draw("b o 0 0 10 fs", color0, "ss black lw 1 f")
+	UFX.draw("[ alpha 0.15 b o -2 -2 8 fs white f ]")
+	UFX.draw("b o 0 0 10 fs gray ss black lw 1 s")
+	UFX.draw("r", -this.alpha)
+	if (this.pattern == "-") {
+		UFX.draw("lw 4 b m -6 0 l 6 0 ss black s")
+	} else if (this.pattern == "+") {
+		UFX.draw("lw 4 b m -6 0 l 6 0 ss black s b m 0 -6 l 0 6 s")
+	} else if (this.pattern == "*") {
+		UFX.draw("lw 4 [ b m -6 0 l 6 0 s ] [ r 2.1 b m -6 0 l 6 0 s ] [ r -2.1 b m -6 0 l 6 0 s ]")
+	} else if (this.pattern == "%") {
+		UFX.draw("lw 4 b m -6 0 l 6 0 ss black s b o 0 6 2 fs black f b o 0 -6 2 f")
+	} else if (this.pattern == "o") {
+		UFX.draw("lw 4 b o 0 0 6 s")
+	}
+	UFX.draw("]")
+}
+
+let screws, t = 0, best = 0, options, joption
+function start() {
+	screws = [
+		new Screw([400, 600], 60, "-"),
+		new Screw([800, 600], 60, "+"),
+		new Screw([1200, 600], 60, "-"),
+	]
+	t = 0
+	options = ["-", "+"]
+	joption = 0
+}
+start()
+
+
+
+function randomscrew(n) {
+	let x, y, dr = 200
+	while (true) {
+		x = UFX.random(50, 1550)
+		y = UFX.random(50, 850)
+		if (screws.every(screw => Math.hypot(x - screw.pos[0], y - screw.pos[1]) > dr)) break
+		dr -= 1
+	}
+	let r = 60 / (1 + n / 40)
+	let pattern = UFX.random.choice(options)
+	return new Screw([x, y], r, pattern)
+}
+
+
+function think(dt) {
+	if (screws.some(screw => screw.f == 1)) {
+		start()
+	}
+	t += dt
+	best = Math.max(best, t)
+
+	if (options.length == 2 && screws.length > 8) options.push("*")
+	if (options.length == 3 && screws.length > 16) options.push("%")
+	if (options.length == 4 && screws.length > 24) options.push("o")
+
+	if (t > screws.length * 3) {
+		screws.push(randomscrew(screws.length))
+	}
+
+	let pstate = UFX.pointer(canvas)
+	if (pstate.down) {
+		joption += 1
+		joption %= options.length
+	}
+	pos = pstate.pos ? [pstate.pos[0] * 1600 / canvas.width, pstate.pos[1] * 900 / canvas.height] : [-100, -100]
+	for (let screw of screws) {
+		screw.tighten(pos, options[joption])
+		screw.think(dt)
+	}
+}
+
+
+
 function draw() {
 
-	UFX.draw("fs", "black", "f0")
+	UFX.draw("fs", "#999", "f0")
 	UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 
-	UFX.draw("[ t", pos, "b o 0 0 20 fs gray ss white lw 2 f s ]")
-
-	UFX.draw("[ t 600 200 r -0.2 tab center middle alpha 0.14",
-		"font 120px~'Passion~One' fs white ft0 Zero~Hour~Game",
+	UFX.draw("[ t 600 200 r -0.2 tab center middle alpha 0.24",
+		"font 120px~'Passion~One' fs white ft0 Interface~Screw",
 		"font 60px~'Passion~One' t 0 100 fs #7ff ft0 by~Christopher~Night",
 		"font 40px~'Passion~One' t 0 50 fs #7ff ft0 made~in~zero~hours,",
 		"font 40px~'Passion~One' t 0 40 fs #7ff ft0 2am~EDT~-~2am~EST,~1~Nov~2020",
 	"]")
 
-	UFX.draw("[ t 1200 200 r 0.2 tab center middle alpha 0.14",
-		"font 50px~'Passion~One' fs #ff7 ft0 instructions",
-		"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 go~here",
+	UFX.draw("[ t 1200 200 r 0.2 tab center middle alpha 0.24",
+		"font 50px~'Passion~One' fs #ff7 ft0 mouse~over~to~fasten",
+		"font 50px~'Passion~One' t 0 70 fs #ff7 ft0 click~to~switch~tools",
+		"font 50px~'Passion~One' t 0 70 fs #ff7 ft0 game~over~if~any~screw",
+		"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 becomes~too~loose",
 	"]")
 	
+	for (let screw of screws) {
+		screw.draw()
+	}
+
 	let text = UFX.ticker.getrates().replace(/ /g, "~")
-	UFX.draw("[ fs gray alpha 0.2 font 30px~'monospace' tab left bottom",
+	text = "current~time:~" + Math.round(t) + "~best~time:~" + Math.round(best)
+
+	UFX.draw("[ fs black alpha 0.2 font 30px~'monospace' tab left bottom",
 		"ft", text, 20, 880, "]")
+
+
+
+	;(new Screw(pos, 20, options[joption])).draw()
+
 	UFX.draw("]")
 }
 UFX.resource.loadwebfonts("Boogaloo", "Passion One")
