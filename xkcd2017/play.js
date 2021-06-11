@@ -14,12 +14,16 @@ UFX.scenes.play = {
 		this.t0 = this.t = ldata.t
 		this.todo = ldata.winsequence.slice()
 		this.tounlock = ldata.unlock
-		let y = 120
-		this.statements = ldata.steps.map(text => {
-			let s = new Statement(text, [80, y], { width: 440, size: 40, })
-			y = s.ymax + 40
-			return s
-		})
+		let fsize = 40
+		do {
+			let y = 120
+			this.statements = ldata.steps.map(text => {
+				let s = new Statement(text, [80, y], { width: 440, size: fsize, })
+				y = s.ymax + fsize
+				return s
+			})
+			fsize -= 1
+		} while (this.statements[this.statements.length - 1].ymax > 700)
 		let title = new Statement("Simple Machines", [1260, 120], { size: 60, width: 900, center: true })
 		this.statements.push(title)
 		this.done = new Button({
@@ -211,8 +215,8 @@ UFX.scenes.play = {
 				"ft0 time:",
 				"t", 0, 60, "ft0", this.t.toFixed(this.t >= 10 ? 0 : 1),
 			"]")
-			if (this.dolesson) draw(lesson)
 		}
+		if (this.dolesson) draw(lesson)
 		if (this.grabbing && this.wpoint) {
 			this.statements[this.wjpoint].drawat(this.pos, this.wkpoint)
 		}

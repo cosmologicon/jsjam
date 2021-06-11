@@ -41,7 +41,7 @@ function draw(obj) {
 }
 
 
-let acontext = new AudioContext()
+// let acontext = new AudioContext()
 if (DEBUG) {
 	savestate.unlockall()
 	UFX.key.init()

@@ -240,8 +240,8 @@ UFX.scenes.menu = UFX.Thing()
 				let jx = j % 5, jy = Math.floor(j / 5)
 				this.controls.push(new Button({
 					w: w, h: h, label: "" + levelname, color: UFX.random.color(), shape: "star",
-					x: -w/2 + 700 + (jx - 2) * 150 + jy * 125,
-					y: -h/2 + 250 + jy * 150,
+					x: -w/2 + 700 + (jx - 2) * 250 + jy * 125,
+					y: -h/2 + 350 + jy * 200,
 					autodrop: true,
 					onrelease: function () {
 						savestate.current = levelname
