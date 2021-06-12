@@ -11,14 +11,14 @@ function rot(pos, tilt) {
 		[-y, x],
 		[-x, -y],
 		[y, -x],
-	][(tilt % 4 + 4) % 4]
+	][mod4(tilt)]
 }
 
 function connmatch(conn0, conn1) {
 	let [x0, y0, tilt0, t0, p0, j0] = conn0
 	let [x1, y1, tilt1, t1, p1, j1] = conn1
 	if (Math.hypot(x1 - x0, y1 - y0) > 3) return null
-	if ((tilt1 - tilt0 + 400) % 4 != 2) return null
+	if (mod4(tilt1 - tilt0) != 2) return null
 	if (t0 === t1 || t0.toLowerCase() !== t1.toLowerCase()) return null
 	return [x0 - x1, y0 - y1]
 }
@@ -47,25 +47,6 @@ function drawface(pface) {
 	UFX.draw("]")
 }
 
-function getoutline(w, h, nspecs, color) {
-	let tokens = ["[", "(", "m", 0, 0]
-	;[w, h, w, h].forEach((d, j) => {
-		let ns = nspecs.filter(nspec => nspec.e == j)
-		console.assert(ns.length <= 1)
-		if (ns.length == 0) {
-		} else if (ns[0].t == "r") {
-			let a = 3, b = 4
-			tokens.push("l", d/2-2, 0, "c", d/2, 0, d/2-b, a, d/2, a, "c", d/2+b, a, d/2, 0, d/2+2, 0)
-		} else if (ns[0].t == "R") {
-			let a = -3, b = 4
-			tokens.push("l", d/2-2, 0, "c", d/2, 0, d/2-b, a, d/2, a, "c", d/2+b, a, d/2, 0, d/2+2, 0)
-		}
-		tokens.push("t", d, 0, "l", 0, 0, "r", tau/4)
-	})
-	tokens.push(")", "fs", color, "f", "lw", 0.3, "ss", "black", "s", "]")
-	return tokens
-}
-
 
 function Piece(spec) {
 	this.pos = spec.pos || [0, 0]
@@ -82,7 +63,7 @@ Piece.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp({
 		dotilt: function (d, dh) {
-			this.tilt -= d
+			this.tilt = mod4(this.tilt - d)
 			let [x, y] = this.pos
 			if (d == -1) {
 				this.pos = [dh - y, x]
@@ -99,12 +80,12 @@ Piece.prototype = UFX.Thing()
 					[this.w - nspec.d, this.h],
 					[0, this.h - nspec.d],
 				][nspec.e], this.tilt)
-				let tilt = (nspec.e + this.tilt) % 4
+				let tilt = mod4(nspec.e + this.tilt)
 				return [this.pos[0] + dx, this.pos[1] + dy, tilt, nspec.t, this, j]
 			}).filter(c => c !== null)
 		},
 		frange: function () {
-			let j = (this.tilt % 4 + 4) % 4
+			let j = mod4(this.tilt)
 			let [x, y] = this.pos, w = this.w, h = this.h
 			return [
 				x - [0, h, w, 0][j],
@@ -170,6 +151,9 @@ Group.prototype = {
 		})
 		return c
 	},
+	standable: function () {
+		return this.pieces.some(piece => piece.pos[0] == 0 && piece.tilt == 0)
+	},
 	// d = -1 for left tilt, +1 for right tilt
 	dotilt: function (d) {
 		this.pieces.forEach(piece => piece.dotilt(d, (d == -1 ? this.w : this.w)))
@@ -177,7 +161,8 @@ Group.prototype = {
 		this.setup()
 	},
 	think: function (dt) {
-		this.stand = clamp(this.stand + 12 * dt * Math.sign(this.standtarget - this.stand), 0, 1)
+		let target = this.standable() ? this.standtarget : 0
+		this.stand = clamp(this.stand + 12 * dt * Math.sign(target - this.stand), 0, 1)
 		this.pieces.forEach(piece => piece.think(dt))
 	},
 	draw: function () {
