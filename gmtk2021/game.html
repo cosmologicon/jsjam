@@ -2,6 +2,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 <title>GMTK 2021 game</title>
 <script src="UFX.js"></script>
+<script src="piece.js"></script>
+<script src="play.js"></script>
 <canvas id=canvas></canvas>
 <style>
 canvas { background: black }
@@ -10,12 +12,20 @@ canvas { background: black }
 "use strict"
 let DEBUG = window.location.href.includes("DEBUG")
 let tau = 2 * Math.PI
+let clamp = (x, a, b) => x < a ? a : x > b ? b : x
 let canvas = document.getElementById("canvas")
 canvas.width = 1600
 canvas.height = 900
 let context = canvas.getContext("2d")
 UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
+UFX.key.init()
+
+function draw(obj) {
+	context.save()
+	obj.draw()
+	context.restore()
+}
 
 UFX.scenes.loading = {
 	think: function (dt) {
@@ -33,6 +43,7 @@ UFX.scenes.loading = {
 UFX.scene.init({ minups: 10, maxups: 120 })
 UFX.scene.push("loading")
 UFX.resource.onload = function () {
+	UFX.scene.swap("play")
 }
 UFX.resource.loadwebfonts("Viga")
 
