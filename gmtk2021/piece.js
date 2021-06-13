@@ -23,14 +23,36 @@ function connmatch(conn0, conn1) {
 	return [x0 - x1, y0 - y1]
 }
 function groupmatch(group0, group1) {
-	let c0s = group0.conns(), c1s = group1.conns()
-	for (let c0 of c0s) {
-		for (let c1 of c1s) {
-			let cm = connmatch(c0, c1)
-			if (cm !== null) return cm
+	let s0s = group0.spots(), s1s = group1.spots()
+	for (let [x0, y0] of s0s) {
+		for (let [x1, y1] of s1s) {
+			if (Math.hypot(x1 - x0, y1 - y0) < 1) return null
 		}
 	}
-	return null
+	let c0s = group0.conns(), c1s = group1.conns()
+	for (let c0 of c0s) {
+		if (c0[3] == "R" && !c1s.some(c1 => connmatch(c0, c1))) {
+			let x0 = c0[0], y0 = c0[1]
+			let [dx, dy] = rot([0, -5], c0[2])
+			if (s1s.some(s1 => Math.hypot(x0 + dx - s1[0], y0 + dy - s1[1]) < 1)) return null
+		}
+	}
+	for (let c1 of c1s) {
+		if (c1[3] == "R" && !c0s.some(c0 => connmatch(c0, c1))) {
+			let x1 = c1[0], y1 = c1[1]
+			let [dx, dy] = rot([0, -5], c1[2])
+			if (s0s.some(s0 => Math.hypot(x1 + dx - s0[0], y1 + dy - s0[1]) < 1)) return null
+		}
+	}
+	let cm = null
+	for (let c0 of c0s) {
+		for (let c1 of c1s) {
+			if (connmatch(c0, c1)) {
+				cm = connmatch(c0, c1)
+			}
+		}
+	}
+	return cm
 }
 
 function interp(ys, x) {
@@ -39,24 +61,28 @@ function interp(ys, x) {
 	return mix(y0, y1, x % 1)
 }
 
-function drawfeet(pfoot, stand, atilt) {
-	let dy = mix(3 * (1 - stand), 0, clamp(4 * Math.abs(zmod4(atilt)), 0, 1))
+function drawfeet(pfoot, stand, atilt, fwalk) {
+	let dy = mix(3 * (1 - stand), 0, clamp(4 * Math.abs(0.3 * zmod4(atilt)), 0, 1))
 	UFX.draw("[ t", pfoot, "t", 0, dy)
-	let ds = interp([0, 0.6, 0.6, -0.3], atilt)
-	let x = -2 - 2 * Math.sin(ds), y = -1 - 2 * Math.cos(ds)
-	UFX.draw("lw 0.7 ss black b m 0 1 q -2 -1", x, y, "s")
-	UFX.draw("[ t", x, y, "r", -2 * ds, "lw 0.2 fs white ( arc", 0, 0, 1, 0, tau/2, ") f s ]")
-	ds = interp([0, 0.3, -0.6, -0.6], atilt)
-	x = 2 - 2 * Math.sin(ds)
-	y = -1 - 2 * Math.cos(ds)
-	UFX.draw("lw 0.7 ss black b m 0 1 q 2 -1", x, y, "s")
-	UFX.draw("[ t", x, y, "r", -2 * ds, "lw 0.2 fs white ( arc", 0, 0, 1, 0, tau/2, ") f s ]")
+	let ds = interp([0, 1.2, 1.2, -0.6], atilt)
+	let x0 = 3, y0 = -1, y1 = -1, rleg = 2
+	x0 -= 5 * Math.sin(-fwalk / 2 * tau) ** 2
+	y0 -= 2 * Math.min(0, Math.sin(-fwalk * tau))
+	y1 -= 2 * Math.min(0, -Math.sin(-fwalk * tau))
+	let x = -x0 - rleg * Math.sin(ds), y = y0 - rleg * Math.cos(ds)
+	UFX.draw("lw 0.7 ss black b m -1 1 q", -x0, y0, x, y, "s")
+	UFX.draw("[ t", x, y, "r", -ds, "lw 0.2 fs white ( arc", 0, 0, 1, 0, tau/2, ") f s ]")
+	ds = interp([0, 0.6, -1.2, -1.2], atilt)
+	x = x0 - rleg * Math.sin(ds)
+	y = y1 - rleg * Math.cos(ds)
+	UFX.draw("lw 0.7 ss black b m 1 1 q", x0, y1, x, y, "s")
+	UFX.draw("[ t", x, y, "r", -ds, "lw 0.2 fs white ( arc", 0, 0, 1, 0, tau/2, ") f s ]")
 	UFX.draw("]")
 }
 
-function drawface(pface) {
+function drawface(pface, ablink) {
 	UFX.draw("[ t", pface)
-	UFX.draw("[ z 1 3 fs black b o -0.7 0 0.5 f b o 0.7 0 0.5 f ]")
+	UFX.draw("[ z 1", 3 * ablink, "fs black b o -0.7 0 0.5 f b o 0.7 0 0.5 f ]")
 	UFX.draw("ss black lw 0.5 b m -2 -2 q 0 -4 2 -2 s")
 	UFX.draw("]")
 }
@@ -65,11 +91,12 @@ function drawface(pface) {
 function Piece(spec) {
 	this.pos = spec.pos || [0, 0]
 	this.tilt = spec.tilt || 0
-	this.color = UFX.random.color()
+	this.color = spec.color || UFX.random.color()
 	let w = spec.w || 1, h = spec.h || 1
 	this.w = 10 * w
 	this.h = 10 * h
 	this.nspecs = spec.nspecs || []
+	this.pfoot = spec.pfoot || [5, 0]
 	if (spec.pspec) {
 		let j = 0
 		this.nspecs = []
@@ -87,13 +114,38 @@ function Piece(spec) {
 			}
 		})
 	}
-	this.outline = getoutline(this.w, this.h, this.nspecs, this.color)
-	this.pfoot = [5, 0]
-	this.pface = [4, 5]
+	this.pface = spec.pface
+	if (!this.pface) {
+		let x = this.w / 2, y = this.h / 2
+		this.conns().forEach(([cx, cy, tilt, t, piece, j]) => {
+			if (t == "r") {
+				let dx = cx - this.pos[0] - this.w / 2, dy = cy - this.pos[1] - this.h / 2
+				let d = Math.hypot(dx, dy)
+				x -= 1.2 * dx / d
+				y -= 1.2 * dy / d
+			}
+		})
+		this.pface = [x, y]
+	}
+	this.outline0 = getoutline(this.w, this.h, this.nspecs, this.color)
+	this.outline1 = getoutline(this.w, this.h, this.nspecs, this.color, 0.5)
+	this.tblink = UFX.random(2, 20)
 }
 Piece.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp({
+		getspec: function () {
+			return {
+				pos: this.pos,
+				tilt: this.tilt,
+				color: this.color,
+				w: this.w / 10,
+				h: this.h / 10,
+				nspecs: this.nspecs,
+				pfoot: this.pfoot,
+				pface: this.pface,
+			}
+		},
 		dotilt: function (d, dh) {
 			this.tilt = mod4(this.tilt - d)
 			let [x, y] = this.pos
@@ -102,6 +154,16 @@ Piece.prototype = UFX.Thing()
 			} else if (d == 1) {
 				this.pos = [y, dh - x]
 			}
+		},
+		spots: function () {
+			let s = []
+			for (let x = 5 ; x < this.w ; x += 10) {
+				for (let y = 5 ; y < this.h ; y += 10) {
+					let [dx, dy] = rot([x, y], this.tilt), [x0, y0] = this.pos
+					s.push([x0 + dx, y0 + dy])
+				}
+			}
+			return s
 		},
 		conns: function () {
 			return this.nspecs.map((nspec, j) => {
@@ -127,11 +189,18 @@ Piece.prototype = UFX.Thing()
 			]
 		},
 		think: function (dt) {
+			this.tblink -= dt
+			if (this.tblink < 0) this.tblink = UFX.random(2, 20)
 		},
-		draw: function (stand, atilt) {
+		draw: function (stand, atilt, glow) {
 			UFX.draw("r", this.tilt * tau / 4)
-			drawfeet(this.pfoot, stand, this.tilt + atilt)
-			UFX.draw(this.outline)
+			let fwalk = 0
+			if (mod4(this.tilt) == 0 && this.pos[1] == 0 && this.group.dwalk) {
+				fwalk = this.group.x % 10 / 10
+			}
+			if (this.pos[1] > 0) stand = 1
+			drawfeet(this.pfoot, stand, this.tilt + atilt, fwalk)
+			UFX.draw(glow && Date.now() * 0.001 * 2 % 1 < 0.3 ? this.outline1 : this.outline0)
 			if (DEBUG) {
 				UFX.draw("[")
 				this.nspecs.forEach(nspec => {
@@ -148,7 +217,7 @@ Piece.prototype = UFX.Thing()
 				})
 				UFX.draw("]")
 			}
-			drawface(this.pface)
+			drawface(this.pface, clamp(Math.abs(this.tblink - 1) * 10, 0, 1))
 		},
 	})
 
@@ -165,6 +234,12 @@ function Group(pos, pieces) {
 	this.nod = 0
 }
 Group.prototype = {
+	getspec: function () {
+		return {
+			pos: [this.x, this.y],
+			pieces: this.pieces.map(p => p.getspec()),
+		}
+	},
 	setup: function () {
 		let [x0, y0, x1, y1] = this.pieces.reduce((f, piece) => {
 			if (f == null) return piece.frange()
@@ -191,6 +266,24 @@ Group.prototype = {
 		})
 		return c
 	},
+	spots: function () {
+		let s = []
+		this.pieces.forEach(piece => {
+			piece.spots().forEach(spot => {
+				let [x, y] = spot
+				s.push([this.x + x, this.y + y])
+			})
+		})
+		return s
+	},
+	cantilt: function (d) {
+		let protrudes = t => t == "R"
+		if (d == -1) {
+			return !this.conns().some(c => c[0] == this.x && c[2] == 3 && protrudes(c[3]))
+		} else if (d == 1) {
+			return !this.conns().some(c => c[0] == this.x + this.w && c[2] == 1 && protrudes(c[3]))
+		}
+	},
 	standable: function () {
 		return this.pieces.some(piece => piece.pos[1] == 0 && piece.tilt == 0)
 	},
@@ -213,13 +306,20 @@ Group.prototype = {
 			if (this.x < this.anchor - 2) this.anchor -= 10
 			if (!this.step && this.x <= this.anchor) this.anchor -= 10
 		}
+		this.anchor = clamp(this.anchor, 0, 10 * UFX.scenes.play.w - this.w)
 		this.step = dx
 	},
 	think: function (dt) {
+		let xmax = Math.max(10 * UFX.scenes.play.w - this.w, 0)
 		let x0 = this.x
 		if (this.step != 0) {
 			this.dwalk = this.step
 			this.x += this.step * 30 * dt
+			this.x = clamp(this.x, 0, xmax)
+		} else if (this.x < 0) {
+			this.x = approach(this.x, 0, 10 * this.w * dt)
+		} else if (this.x > xmax) {
+			this.x = approach(this.x, xmax, 10 * this.w * dt)
 		} else if (this.anchor != this.x) {
 			this.x = approach(this.x, this.anchor, 30 * dt)
 			this.dwalk = Math.sign(this.anchor - this.x)
@@ -234,7 +334,7 @@ Group.prototype = {
 		let t = Math.sin(this.x / 20 * tau) ** 2
 		this.nod = approach(this.nod, Math.sign(dx) * t, 4 * dt)
 	},
-	draw: function () {
+	draw: function (glow) {
 		UFX.draw("[ t", this.x, this.y)
 		if (this.nod && this.standable()) {
 			let [xs, nstand] = this.xstand()
@@ -246,7 +346,7 @@ Group.prototype = {
 			UFX.draw("t", this.w, 0, "r", this.atilt * tau / 4, "t", -this.w, 0)
 		}
 		UFX.draw("t 0", 3 * this.stand)
-		this.pieces.forEach(piece => draw(piece, this.stand, this.atilt))
+		this.pieces.forEach(piece => draw(piece, this.stand, this.atilt, glow))
 		if (DEBUG) UFX.draw("ss red lw 0.2 sr 0 0", this.w, this.h)
 		UFX.draw("]")
 	},
@@ -287,6 +387,7 @@ function Device(spec) {
 	this.tilt = spec.tilt || 0
 	this.atilt = 0
 	this.lit = false
+	this.flit = 0
 	this.color = "gray"
 	this.w = 10
 	this.h = 5
@@ -313,10 +414,17 @@ Device.prototype = UFX.Thing()
 			this.lit = conns.some(conn => connmatch(conn, conn0))
 		},
 		think: function (dt) {
+			this.flit = approach(this.flit, (this.lit ? 1 : 0), 3 * dt)
 		},
 		draw: function () {
 			UFX.draw("r", this.tilt * tau / 4)
-			UFX.draw(this.lit ? this.outline1 : this.outline0)
+			UFX.draw("b o 5 8 2 lw 0.5 ss black fs rgba(0,0,0,0.5) f s")
+			if (this.flit > 0) {
+				let alpha = clamp(this.flit + UFX.random(-0.14, 0), 0, 1)
+				UFX.draw("[ alpha", alpha, "ss #ffffcc fs #ffffcc sh #ffffcc 0 0 20 f s ]")
+			}
+			UFX.draw("tr 1 4 8 3 fs #444444 ss black lw 0.6 s f")
+			UFX.draw(this.outline0)
 		},
 	})
 

@@ -14,6 +14,7 @@ canvas { background: black }
 <script>
 "use strict"
 let DEBUG = window.location.href.includes("DEBUG")
+let STILL = window.location.href.includes("STILL")
 let tau = 2 * Math.PI
 let clamp = (x, a, b) => x < a ? a : x > b ? b : x
 let mix = (x0, x1, a) => x0 + (x1 - x0) * a
@@ -29,6 +30,8 @@ let context = canvas.getContext("2d")
 UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
 UFX.key.init()
+UFX.key.remaparrows(true)
+UFX.key.remap({ tab: "up", enter: "space" })
 
 function draw(obj) {
 	context.save()
@@ -38,8 +41,48 @@ function draw(obj) {
 
 UFX.scene.init({ minups: 10, maxups: 120 })
 UFX.scene.push("menu")
-UFX.resource.onload = function () {
+UFX.resource.onloading = function (f) {
+	UFX.scenes.menu.fload = f
 }
+UFX.resource.onload = function () {
+	UFX.audio.playbuffer("voltaic", { name: "voltaic", output: "music", loop: true, gain: 0 })
+	UFX.audio.playbuffer("techlive", { name: "techlive", output: "music", loop: true, gain: 1 })
+}
+
+
+
 UFX.resource.loadwebfonts("Viga", "Gorditas")
+UFX.audio.init()
+UFX.audio.makegainnode({ name: "sfx", })
+UFX.audio.makegainnode({ name: "music", gain: 0.5 })
+
+// UFX.audio.setgain("sfx", volume)
+// UFX.audio.setgain("music", volume)
+
+function playsound(sname) {
+	UFX.audio.playbuffer(sname, {
+		output: "sfx",
+		gain: 1,
+	})
+}
+
+function playmusic(track) {
+	UFX.audio.setgain("techlive_gain", 1 - track, {fade: 2})
+	UFX.audio.setgain("voltaic_gain", track, {fade: 2})
+}
+UFX.audio.loadbuffers({
+	join: "join.ogg",
+	jump: "jump.ogg",
+	key: "key.ogg",
+	lose: "lose.ogg",
+	no: "no.ogg",
+	select: "select.ogg",
+	undo: "undo.ogg",
+	win: "win.ogg",
+	
+	// music
+	voltaic: "voltaic.ogg",
+	techlive: "techlive.ogg",
+})
 
 </script>

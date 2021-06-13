@@ -1,5 +1,5 @@
 
-function getoutline(w, h, nspecs, color) {
+function getoutline(w, h, nspecs, color, glow) {
 	let tokens = ["[", "(", "m", 0, 0]
 	;[w, h, w, h].forEach((d, j) => {
 		let ns = nspecs.filter(nspec => nspec.e == j).sort((n0, n1) => n0.d - n1.d)
@@ -16,11 +16,14 @@ function getoutline(w, h, nspecs, color) {
 		})
 		tokens.push("t", d, 0, "l", 0, 0, "r", tau/4)
 	})
-	tokens.push(")", "fs", color, "f", "lw", 0.3, "ss", "black", "s", "]")
+	tokens.push(")", "fs", color, "f")
+//	if (glow) tokens.push("[ fs white alpha", glow, "f ]")
+	tokens.push("lw", 0.3, "ss", (glow ? "#333333" : "black"), "s", "]")
 	return tokens
 }
 
 
+let bcolor0 = "#333355"
 let background = null
 function fillbackground0() {
 	background = document.createElement("canvas")
@@ -28,19 +31,19 @@ function fillbackground0() {
 	background.height = 900
 	let con = background.getContext("2d")
 	let color0 = "#224444"
-	UFX.draw(con, "fs", color0, "f0")
+	UFX.draw(con, "fs", bcolor0, "f0")
 	for (let j = 0 ; j < 1000 ; ++j) {
 		let s = 2.1 * Math.exp(3 * j / 1000), a = UFX.random.angle()
 		let R = UFX.random(30, 40) * s
-		let x = 800 + R * Math.cos(a), y = 450 + R * Math.sin(a) - 600 * (1 - j/1000)
+		let x = 800 + R * Math.cos(a), y = R * Math.sin(a)
 		let w = 10, h = 10, r = UFX.random.angle()
 		let nspecs = [0, 1, 2, 3].map(j => ({e: j, d: 5, t: UFX.random.choice("rR")}))
 		let color = UFX.random.color()
 		UFX.draw(con, "[ t", x, y, "z", s, s, "r", r, "t", -w/2, -h/2,
 			getoutline(w, h, nspecs, color), "]")
-		if (j % 100 == 0) UFX.draw(con, "[ fs", color0, "alpha", 0.2, "f0 ]")
+		if (j % 100 == 0) UFX.draw(con, "[ fs", bcolor0, "alpha", 0.2, "f0 ]")
 	}
-	UFX.draw(con, "[ fs", color0, "alpha", 0.8, "f0 ]")
+	UFX.draw(con, "[ fs", bcolor0, "alpha", 0.8, "f0 ]")
 }
 function drawbackground0() {
 	if (!background) fillbackground0()
@@ -48,9 +51,8 @@ function drawbackground0() {
 }
 
 
-let bcolor0 = "#224444"
 let blayers = []
-let bjfs = [0, 1, 2, 3, 4, 5, 6]
+let bjfs = [-3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
 function fillbackground() {
 	let scale0 = 2, f = 1.5
 	let jf = bjfs[blayers.length]
@@ -78,8 +80,8 @@ function drawbackground() {
 	while (blayers.length < bjfs.length) fillbackground()
 	UFX.draw("fs", bcolor0, "fr 0 0 1600 900 [ t 800 50")
 	blayers.forEach((blayer, j) => {
-		let r = Math.sin(Date.now() * 0.001 * (0.01 / (1 + j)) * tau)
-		UFX.draw("r", r, "drawimage", blayer, -blayer.width / 2, -blayer.height / 2)
+		let r = Math.sin(Date.now() * 0.001 * (0.1 / (1 + j) ** 2) * tau)
+		UFX.draw("[ r", r, "drawimage", blayer, -blayer.width / 2, -blayer.height / 2, "]")
 	})
 	UFX.draw("]")
 }
