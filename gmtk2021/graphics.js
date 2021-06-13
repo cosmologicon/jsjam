@@ -22,7 +22,7 @@ function getoutline(w, h, nspecs, color) {
 
 
 let background = null
-function fillbackground() {
+function fillbackground0() {
 	background = document.createElement("canvas")
 	background.width = 1600
 	background.height = 900
@@ -38,13 +38,53 @@ function fillbackground() {
 		let color = UFX.random.color()
 		UFX.draw(con, "[ t", x, y, "z", s, s, "r", r, "t", -w/2, -h/2,
 			getoutline(w, h, nspecs, color), "]")
-		if (j % 100 == 0) UFX.draw(con, "[ fs", color0, "alpha", 0.1, "f0 ]")
+		if (j % 100 == 0) UFX.draw(con, "[ fs", color0, "alpha", 0.2, "f0 ]")
 	}
-	UFX.draw(con, "[ fs", color0, "alpha", 0.9, "f0 ]")
+	UFX.draw(con, "[ fs", color0, "alpha", 0.8, "f0 ]")
+}
+function drawbackground0() {
+	if (!background) fillbackground0()
+	UFX.draw("drawimage0", background)
+}
+
+
+let bcolor0 = "#224444"
+let blayers = []
+let bjfs = [0, 1, 2, 3, 4, 5, 6]
+function fillbackground() {
+	let scale0 = 2, f = 1.5
+	let jf = bjfs[blayers.length]
+	let s0 = scale0 * f ** jf
+	let c = document.createElement("canvas")
+	let B = Math.round(60 * s0)
+	c.width = 2 * B
+	c.height = 2 * B
+	let con = c.getContext("2d")
+	for (let j = 0 ; j < 200 ; ++j) {
+		let s = s0 * f ** (j/200), a = UFX.random.angle()
+		let R = UFX.random(30, 40) * s
+		let x = B + R * Math.cos(a), y = B + R * Math.sin(a)
+		let w = 10, h = 10, r = UFX.random.angle()
+		let nspecs = [0, 1, 2, 3].map(j => ({e: j, d: 5, t: UFX.random.choice("rR")}))
+		let color = UFX.random.color()
+		UFX.draw(con, "[ t", x, y, "z", s, s, "r", r, "t", -w/2, -h/2,
+			getoutline(w, h, nspecs, color), "]")
+	}
+	let alpha = blayers.length == bjfs.length - 1 ? 0.9 : 0.2
+	UFX.draw(con, "[ fs", bcolor0, "alpha", alpha, "f0 ]")
+	blayers.push(c)
 }
 function drawbackground() {
-	if (!background) fillbackground()
-	UFX.draw("drawimage0", background)
+	while (blayers.length < bjfs.length) fillbackground()
+	UFX.draw("fs", bcolor0, "fr 0 0 1600 900 [ t 800 50")
+	blayers.forEach((blayer, j) => {
+		let r = Math.sin(Date.now() * 0.001 * (0.01 / (1 + j)) * tau)
+		UFX.draw("r", r, "drawimage", blayer, -blayer.width / 2, -blayer.height / 2)
+	})
+	UFX.draw("]")
+}
+function killtime() {
+	if (blayers.length < bjfs.length) fillbackground()
 }
 
 

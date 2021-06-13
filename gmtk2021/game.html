@@ -3,6 +3,8 @@
 <title>GMTK 2021 game</title>
 <script src="UFX.js"></script>
 <script src="piece.js"></script>
+<script src="levels.js"></script>
+<script src="menu.js"></script>
 <script src="play.js"></script>
 <script src="graphics.js"></script>
 <canvas id=canvas></canvas>
@@ -14,7 +16,12 @@ canvas { background: black }
 let DEBUG = window.location.href.includes("DEBUG")
 let tau = 2 * Math.PI
 let clamp = (x, a, b) => x < a ? a : x > b ? b : x
+let mix = (x0, x1, a) => x0 + (x1 - x0) * a
+let mod = (x, n) => (x % n + n) % n
 let mod4 = x => (x % 4 + 4) % 4
+let zmod4 = x => mod4(x + 2) - 2
+let approach = (x, y, dx) => Math.abs(x - y) <= dx ? y : x < y ? x + dx : x - dx
+let average = array => array.reduce((a, b) => a + b) / array.length
 let canvas = document.getElementById("canvas")
 canvas.width = 1600
 canvas.height = 900
@@ -25,28 +32,14 @@ UFX.key.init()
 
 function draw(obj) {
 	context.save()
-	obj.draw()
+	obj.draw.apply(obj, [].slice.call(arguments, 1))
 	context.restore()
 }
 
-UFX.scenes.loading = {
-	think: function (dt) {
-		UFX.draw("fs #446666 f0")
-		let ratio = canvas.width / 1600
-		UFX.draw("[ z", ratio, ratio)
-		UFX.draw("[ font 100px~'Viga' tab center middle fs #aaaaaa t 800 400 ft0 GMTK~2021~game ]")
-		UFX.draw("[ font 40px~'Viga' tab left bottom fs #aaaaaa t 20 880")
-		context.fillText(UFX.ticker.getrates(), 0, 0)
-		UFX.draw("]")
-		UFX.draw("]")
-	},
-}
-
 UFX.scene.init({ minups: 10, maxups: 120 })
-UFX.scene.push("loading")
+UFX.scene.push("menu")
 UFX.resource.onload = function () {
-	UFX.scene.swap("play")
 }
-UFX.resource.loadwebfonts("Viga")
+UFX.resource.loadwebfonts("Viga", "Gorditas")
 
 </script>
