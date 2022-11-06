@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-<title>Zero-hour game 2022</title>
+<title>Replication Crisis</title>
 <style>
 canvas {
-	cursor: none;
+	background: #040404;
 }
 </style>
 <script src="http://ufx.space/UFX.js"></script>
@@ -21,32 +21,153 @@ UFX.draw.setcontext(context)
 
 let pos = [0, 0]
 
+function Grid(w, h, xc, yc) {
+	
+	this.w = w
+	this.h = h
+	this.s = Math.min(720 / this.w, 360 / this.h)
+	this.xc = xc
+	this.yc = yc
+	this.x0 = this.xc - this.s * (this.w / 2)
+	this.y0 = this.yc - this.s * (this.h / 2)
+	this.filled = {}
+	for (let x = 0 ; x < this.w ; ++x) {
+		for (let y = 0 ; y < this.h ; ++y) {
+			this.filled[[x, y]] = false
+		}
+	}
+	this.cursor = null
+	this.color = "#7777ff"
+}
+Grid.prototype = {
+	screentocell: function (x, y) {
+		return [
+			Math.floor((x - this.x0) / this.s),
+			Math.floor((y - this.y0) / this.s),
+		]
+	},
+	celltoscreen: function (x, y) {
+		return [
+			this.x0 + this.s * x,
+			this.y0 + this.s * y,
+		]
+	},
+	randomfill: function () {
+		for (let x = 0 ; x < this.w ; ++x) {
+			for (let y = 0 ; y < this.h ; ++y) {
+				this.filled[[x, y]] = UFX.random.flip()
+			}
+		}
+	},
+	randomflip: function () {
+		let x = UFX.random.rand(this.w)
+		let y = UFX.random.rand(this.h)
+		this.filled[[x, y]] = !this.filled[[x, y]]
+	},
+	point: function (pos) {
+		let [x, y] = pos
+		let cell = this.screentocell(x, y)
+		this.cursor = cell in this.filled ? cell : null
+	},
+	click: function () {
+		if (this.cursor in this.filled) {
+			this.filled[this.cursor] = !this.filled[this.cursor]
+		}
+	},
+	draw: function () {
+		for (let x = 0 ; x < this.w ; ++x) {
+			for (let y = 0 ; y < this.h ; ++y) {
+				if ([x, y] == "" + this.cursor) {
+					UFX.draw("fs #ffffff33 fr", this.celltoscreen(x, y), this.s, this.s)
+				}
+				if (this.filled[[x, y]]) {
+					UFX.draw("b o", this.celltoscreen(x + 0.5, y + 0.5),
+						this.s / 6, "shc", this.color, "shb", this.s / 6, "fs", this.color, "f")
+				}
+			}
+		}
+
+		UFX.draw("[ b lc round")
+		for (let jx = 0 ; jx <= this.w ; ++jx) {
+			UFX.draw("m", this.celltoscreen(jx, 0), "l", this.celltoscreen(jx, this.h))
+		}
+		for (let jy = 0 ; jy <= this.h ; ++jy) {
+			UFX.draw("m", this.celltoscreen(0, jy), "l", this.celltoscreen(this.w, jy))
+		}
+		UFX.draw("lw", this.s / 14, "ss", this.color, "shc", this.color, "shb", this.s / 14, "s ]")
+	},
+}
+
+let score = 0
+let grid0 = null, grid1 = null
+let tfade = 0
+let tflip = 0
+function start() {
+	let phi = (1 + Math.sqrt(5)) / 2
+	let w = Math.floor((score / 3 + 3) * phi)
+	let h = Math.floor((score / 3 + 3) * phi / 2)
+	grid0 = new Grid(w, h, 800, 240)
+	grid0.randomfill()
+	grid0.color = "#ffff44"
+	grid1 = new Grid(w, h, 800, 660)
+	grid1.randomfill()
+	tfade = 0
+	tflip = 0
+}
+
+function won() {
+	for (let cell in grid0.filled) {
+		if (grid0.filled[cell] != grid1.filled[cell]) return false
+	}
+	return true
+}
+
+
+start()
 function think(dt) {
 	let pstate = UFX.pointer(canvas)
-	if (pstate.down) {
-	}
 	pos = pstate.pos ? [pstate.pos[0] * 1600 / canvas.width, pstate.pos[1] * 900 / canvas.height] : [-100, -100]
+	grid1.point(pos)
+	if (pstate.down) grid1.click()
+	tfade = Math.min(tfade + 3 * dt, 1)
+	tflip += dt
+	let T = 20 / (0.5 * score + 1)
+	if (tflip > T) {
+		tflip = 0
+		grid0.randomflip()
+	}
+	if (won()) {
+		score += 1
+		start()
+	}
 }
 
 
 
 function draw() {
 
-	UFX.draw("fs #333333 f0")
+	UFX.draw("fs #040404 f0")
 	UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 
-	UFX.draw("[ t 600 200 r -0.2 tab center middle alpha 0.3",
-		"font 120px~'Passion~One' fs white ft0 Zero~Hour~Game~Jam~2022",
-		"font 60px~'Passion~One' t 0 100 fs #7ff ft0 by~Christopher~Night",
+	UFX.draw("[ t 200 200 r -0.2 tab center middle alpha 0.3",
+		"font 80px~'Passion~One' fs white ft0 Replication",
+		"font 80px~'Passion~One' t 0 70 fs white ft0 Crisis",
+		"font 60px~'Passion~One' t 0 70 fs #7ff ft0 by~Christopher~Night",
 		"font 40px~'Passion~One' t 0 50 fs #7ff ft0 made~in~zero~hours,",
 		"font 40px~'Passion~One' t 0 40 fs #7ff ft0 2am~EDT~-~2am~EST,~6~Nov~2022",
 	"]")
 
-	UFX.draw("[ t 1200 200 r 0.2 tab center middle alpha 0.3",
-		"font 50px~'Passion~One' fs #ff7 ft0 instructions",
-		"font 50px~'Passion~One' t 0 70 fs #ff7 ft0 instructions",
-		"font 50px~'Passion~One' t 0 70 fs #ff7 ft0 instructions",
+	UFX.draw("[ t 1400 200 r 0.2 tab center middle alpha 0.3",
+		"font 50px~'Passion~One' fs #ff7 ft0 left~click~on",
+		"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 bottom~grid",
+		"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 to~make~grids~match",
+		"font 50px~'Passion~One' t 0 70 fs #ff7 ft0 score:~" + score,
 	"]")
+
+	if (tfade < 1) UFX.draw("alpha", tfade)
+
+	grid0.draw()
+	grid1.draw()
 
 	UFX.draw("]")
 }
