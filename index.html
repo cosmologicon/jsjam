@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<title>Dying Planet</title>
+<style>
+canvas {
+	background: black;
+}
+</style>
+<script src="http://ufx.space/UFX.js"></script>
+<canvas id=canvas></canvas>
+<script>
+"use strict"
+let EASY = window.location.href.includes("EASY")
+let tau = 2 * Math.PI
+let canvas = document.getElementById("canvas")
+canvas.width = 1600
+canvas.height = 900
+let context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+
+let colors = [
+	"yellow",
+	"red",
+	"blue",
+	"gray",
+]
+
+function Planet(color) {
+	this.R = UFX.random(1000, 1400)
+	this.r = UFX.random(30, 50)
+	this.t = 0
+	this.theta = UFX.random(tau)
+	this.color = color || UFX.random.choice(colors)
+	this.alive = true
+	this.tboost = 0
+}
+Planet.prototype = {
+	think: function (dt) {
+		this.t += dt
+		this.R -= 50 * dt
+		if (this.tboost) {
+			this.R += 120 * dt
+			this.tboost = Math.max(this.tboost - dt, 0)
+		}
+		let omega = 400 / this.R
+		this.theta += omega * dt
+		this.x = this.R * Math.sin(this.theta)
+		this.y = 9 / 16 * this.R * Math.cos(this.theta)
+	},
+	boost: function () {
+		this.tboost = 3
+	},
+	draw: function () {
+		UFX.draw("[ t", this.x, this.y, "z", this.r / 200, this.r / 200,
+			"b o 0 0 200 fs", this.color, "f",
+			"fs", (this.tboost ? "white" : "black"), "alpha 0.4 f",
+			"b o -10 -10 180 fs white alpha 0.03 f",
+			"b o -20 -20 160 fs white alpha 0.03 f",
+			"]")
+	},
+}
+let planets = [new Planet()]
+
+function Effect(planet) {
+	this.t = 0
+	this.alive = true
+	this.planet = planet
+}
+Effect.prototype = {
+	think: function (dt) {
+		this.t += dt
+		this.alive = this.t < 1
+	},
+	draw: function () {
+		let f = 1 + 6 * Math.sqrt(this.t)
+		let alpha = 0.4 - 0.4 * this.t
+		UFX.draw("[ t", this.planet.x, this.planet.y,
+			"z", f * this.planet.r / 200, f * this.planet.r / 200,
+			"alpha", alpha,
+			"b o 0 0 200 fs", this.planet.color, "f",
+			"]")
+	},
+}
+let effects = []
+
+
+
+
+let t = 0
+let mpos = [0, 0]
+let score = 0
+function think(dt) {
+	let minplanets = 8 + score
+	while (planets.length < minplanets) planets.push(new Planet())
+	for (let color of colors) {
+		if (!planets.some(p => p.color == color)) planets.push(new Planet(color))
+	}
+	t += dt
+	let pstate = UFX.pointer(canvas)
+	if (pstate.pos) {
+		mpos = [
+			pstate.pos[0] * 1600 / canvas.width,
+			pstate.pos[1] * 900 / canvas.height,
+		]
+	}
+	let dtfactor = 1 + 0.1 * score
+	for (let planet of planets) {
+		planet.think(dt * dtfactor)
+		let d = Math.hypot(mpos[0] - 800 - planet.x, mpos[1] - 450 - planet.y)
+		if (d < 50 && planet.tboost == 0) {
+			planet.boost()
+		}
+		if (planet.R < 100) {
+			planet.alive = false
+			effects.push(new Effect(planet))
+			if (planet.color == sun.color) {
+				score += 1
+			} else {
+				score = 0
+			}
+			sun.color = UFX.random.choice(colors)
+		}
+	}
+	planets = planets.filter(planet => planet.alive)
+	for (let effect of effects) effect.think(dt)
+	effects = effects.filter(effect => effect.alive)
+	
+}
+
+
+let sun = {
+	x: 0,
+	y: 0,
+	color: UFX.random.choice(colors),
+	draw: function () {
+		UFX.draw("[ t", this.x, this.y,
+			"b o 0 0 160 fs", this.color, "f fs white alpha 0.6 f",
+			"b o", UFX.random(-20, 20), UFX.random(-20, 20), "120 fs white alpha 0.05 f",
+			"b o", UFX.random(-20, 20), UFX.random(-20, 20), "120 fs white alpha 0.05 f",
+			"b o", UFX.random(-20, 20), UFX.random(-20, 20), "120 fs white alpha 0.05 f",
+			"b o", UFX.random(-10, 10), UFX.random(-10, 10), "140 fs white alpha 0.05 f",
+			"b o", UFX.random(-10, 10), UFX.random(-10, 10), "140 fs white alpha 0.05 f",
+			"b o", UFX.random(-10, 10), UFX.random(-10, 10), "140 fs white alpha 0.05 f",
+			"]")
+	},
+}
+
+
+function draw() {
+
+	UFX.draw("fs", "#111", "f0")
+	UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
+
+	UFX.draw("[ t 400 120 r -0.2 tab center middle alpha 0.24",
+		"font 100px~'Special~Elite' fs #bff ft0 Dying~Planet",
+		"font 60px~'Special~Elite' t 0 100 fs #5ff ft0 by~Christopher~Night",
+		"font 40px~'Special~Elite' t 0 50 fs #5ff ft0 made~in~zero~hours,",
+		"font 40px~'Special~Elite' t 0 50 fs #5ff ft0 2am~EDT~-~2am~EST,~7~Nov~2021",
+	"]")
+
+	UFX.draw("[ t 1300 220 r 0.2 tab center middle alpha 0.24",
+		"font 50px~'Special~Elite' fs #ff7 ft0 mouseover~planets",
+		"font 50px~'Special~Elite' t 0 70 fs #ff7 ft0 to~boost.",
+		"font 50px~'Special~Elite' t 0 70 fs #ff7 ft0 only~allow~planet",
+		"font 50px~'Special~Elite' t 0 70 fs #ff7 ft0 of~matching~color",
+		"font 50px~'Special~Elite' t 0 70 fs #ff7 ft0 to~reach~sun.",
+		"font 50px~'Special~Elite' t 0 70 fs #ff7 ft0 score:~" + score,
+	"]")
+
+	UFX.draw("[ t 800 450")
+
+	let planetpos = [800 + 600 * Math.sin(t), 450 + 300 * Math.cos(t)]
+	let objs = [sun].concat(planets)
+	objs.sort((obj0, obj1) => obj0.y - obj1.y)
+	for (let obj of objs) obj.draw()
+	for (let effect of effects) effect.draw()
+	UFX.draw("]")
+	
+	UFX.draw("]")
+}
+UFX.resource.loadwebfonts("Boogaloo", "Passion One", "Special Elite")
+UFX.resource.onload = function () {
+	UFX.ticker.init(think, draw, {
+		ups: 120,
+		maxupf: 12,
+	})
+}
+</script>
