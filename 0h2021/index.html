@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-<title>Zero-hour game 2020</title>
+<title>Dying Planet</title>
 <style>
 canvas {
-	cursor: none;
+	background: black;
 }
 </style>
 <script src="http://ufx.space/UFX.js"></script>
-<canvas id=canvas></canvas>q
+<canvas id=canvas></canvas>
 <script>
 "use strict"
 let EASY = window.location.href.includes("EASY")
@@ -19,153 +19,167 @@ let context = canvas.getContext("2d")
 UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
 
-let pos = [0, 0]
+let colors = [
+	"yellow",
+	"red",
+	"blue",
+	"gray",
+]
 
-function Screw(pos, r, pattern) {
-	this.pos = pos
-	this.r = r
-	this.alpha = 0
-	this.pattern = pattern
-	this.dx = 0
-	this.dy = 0
-	this.df = 0
-	this.tightening = false
-	this.f = 0
+function Planet(color) {
+	this.R = UFX.random(1000, 1400)
+	this.r = UFX.random(30, 50)
+	this.t = 0
+	this.theta = UFX.random(tau)
+	this.color = color || UFX.random.choice(colors)
+	this.alive = true
+	this.tboost = 0
 }
-Screw.prototype.tighten = function (pos, pattern) {
-	let dx = pos[0] - this.pos[0], dy = pos[1] - this.pos[1]
-	let d = Math.hypot(dx, dy) / this.r
-	this.tightening = d < 1.2 && pattern == this.pattern
+Planet.prototype = {
+	think: function (dt) {
+		this.t += dt
+		this.R -= 50 * dt
+		if (this.tboost) {
+			this.R += 120 * dt
+			this.tboost = Math.max(this.tboost - dt, 0)
+		}
+		let omega = 400 / this.R
+		this.theta += omega * dt
+		this.x = this.R * Math.sin(this.theta)
+		this.y = 9 / 16 * this.R * Math.cos(this.theta)
+	},
+	boost: function () {
+		this.tboost = 3
+	},
+	draw: function () {
+		UFX.draw("[ t", this.x, this.y, "z", this.r / 200, this.r / 200,
+			"b o 0 0 200 fs", this.color, "f",
+			"fs", (this.tboost ? "white" : "black"), "alpha 0.4 f",
+			"b o -10 -10 180 fs white alpha 0.03 f",
+			"b o -20 -20 160 fs white alpha 0.03 f",
+			"]")
+	},
 }
-Screw.prototype.think = function (dt) {
-	if (this.tightening) {
-		this.alpha = Math.max(this.alpha - 20 * dt, 0)
-	} else {
-		this.alpha += 0.1 * dt
-	}
-	this.dx += (UFX.random(-1, 1) - 0.1 * this.dx) * dt
-	this.dy += (UFX.random(-1, 1) - 0.1 * this.dy) * dt
-	
-	this.f = Math.min(Math.max(this.alpha / 5, 0), 1)
-	this.df = 100 * this.f
+let planets = [new Planet()]
+
+function Effect(planet) {
+	this.t = 0
+	this.alive = true
+	this.planet = planet
 }
-Screw.prototype.draw = function () {
-	let color0 = "rgb(" + Math.round(128 + 127 * this.f ** 2) + ",128,128)"
-	UFX.draw("[ t", this.pos,
-		"t", this.df * this.dx, this.df * this.dy)
-	UFX.draw("z", this.r / 10, this.r / 10)
-	UFX.draw("b o 0 0 10 fs", color0, "ss black lw 1 f")
-	UFX.draw("[ alpha 0.15 b o -2 -2 8 fs white f ]")
-	UFX.draw("b o 0 0 10 fs gray ss black lw 1 s")
-	UFX.draw("r", -this.alpha)
-	if (this.pattern == "-") {
-		UFX.draw("lw 4 b m -6 0 l 6 0 ss black s")
-	} else if (this.pattern == "+") {
-		UFX.draw("lw 4 b m -6 0 l 6 0 ss black s b m 0 -6 l 0 6 s")
-	} else if (this.pattern == "*") {
-		UFX.draw("lw 4 [ b m -6 0 l 6 0 s ] [ r 2.1 b m -6 0 l 6 0 s ] [ r -2.1 b m -6 0 l 6 0 s ]")
-	} else if (this.pattern == "%") {
-		UFX.draw("lw 4 b m -6 0 l 6 0 ss black s b o 0 6 2 fs black f b o 0 -6 2 f")
-	} else if (this.pattern == "o") {
-		UFX.draw("lw 4 b o 0 0 6 s")
-	}
-	UFX.draw("]")
+Effect.prototype = {
+	think: function (dt) {
+		this.t += dt
+		this.alive = this.t < 1
+	},
+	draw: function () {
+		let f = 1 + 6 * Math.sqrt(this.t)
+		let alpha = 0.4 - 0.4 * this.t
+		UFX.draw("[ t", this.planet.x, this.planet.y,
+			"z", f * this.planet.r / 200, f * this.planet.r / 200,
+			"alpha", alpha,
+			"b o 0 0 200 fs", this.planet.color, "f",
+			"]")
+	},
 }
-
-let screws, t = 0, best = 0, options, joption
-function start() {
-	screws = [
-		new Screw([400, 600], 60, "-"),
-		new Screw([800, 600], 60, "+"),
-		new Screw([1200, 600], 60, "-"),
-	]
-	t = 0
-	options = ["-", "+"]
-	joption = 0
-}
-start()
+let effects = []
 
 
 
-function randomscrew(n) {
-	let x, y, dr = 200
-	while (true) {
-		x = UFX.random(50, 1550)
-		y = UFX.random(50, 850)
-		if (screws.every(screw => Math.hypot(x - screw.pos[0], y - screw.pos[1]) > dr)) break
-		dr -= 1
-	}
-	let r = 60 / (1 + n / 40)
-	let pattern = UFX.random.choice(options)
-	return new Screw([x, y], r, pattern)
-}
 
-
+let t = 0
+let mpos = [0, 0]
+let score = 0
 function think(dt) {
-	if (screws.some(screw => screw.f == 1)) {
-		start()
+	let minplanets = 8 + score
+	while (planets.length < minplanets) planets.push(new Planet())
+	for (let color of colors) {
+		if (!planets.some(p => p.color == color)) planets.push(new Planet(color))
 	}
 	t += dt
-	best = Math.max(best, t)
-
-	if (options.length == 2 && screws.length > 8) options.push("*")
-	if (options.length == 3 && screws.length > 16) options.push("%")
-	if (options.length == 4 && screws.length > 24) options.push("o")
-
-	if (t > screws.length * 3) {
-		screws.push(randomscrew(screws.length))
-	}
-
 	let pstate = UFX.pointer(canvas)
-	if (pstate.down) {
-		joption += 1
-		joption %= options.length
+	if (pstate.pos) {
+		mpos = [
+			pstate.pos[0] * 1600 / canvas.width,
+			pstate.pos[1] * 900 / canvas.height,
+		]
 	}
-	pos = pstate.pos ? [pstate.pos[0] * 1600 / canvas.width, pstate.pos[1] * 900 / canvas.height] : [-100, -100]
-	for (let screw of screws) {
-		screw.tighten(pos, options[joption])
-		screw.think(dt)
+	let dtfactor = 1 + 0.1 * score
+	for (let planet of planets) {
+		planet.think(dt * dtfactor)
+		let d = Math.hypot(mpos[0] - 800 - planet.x, mpos[1] - 450 - planet.y)
+		if (d < 50 && planet.tboost == 0) {
+			planet.boost()
+		}
+		if (planet.R < 100) {
+			planet.alive = false
+			effects.push(new Effect(planet))
+			if (planet.color == sun.color) {
+				score += 1
+			} else {
+				score = 0
+			}
+			sun.color = UFX.random.choice(colors)
+		}
 	}
+	planets = planets.filter(planet => planet.alive)
+	for (let effect of effects) effect.think(dt)
+	effects = effects.filter(effect => effect.alive)
+	
 }
 
+
+let sun = {
+	x: 0,
+	y: 0,
+	color: UFX.random.choice(colors),
+	draw: function () {
+		UFX.draw("[ t", this.x, this.y,
+			"b o 0 0 160 fs", this.color, "f fs white alpha 0.6 f",
+			"b o", UFX.random(-20, 20), UFX.random(-20, 20), "120 fs white alpha 0.05 f",
+			"b o", UFX.random(-20, 20), UFX.random(-20, 20), "120 fs white alpha 0.05 f",
+			"b o", UFX.random(-20, 20), UFX.random(-20, 20), "120 fs white alpha 0.05 f",
+			"b o", UFX.random(-10, 10), UFX.random(-10, 10), "140 fs white alpha 0.05 f",
+			"b o", UFX.random(-10, 10), UFX.random(-10, 10), "140 fs white alpha 0.05 f",
+			"b o", UFX.random(-10, 10), UFX.random(-10, 10), "140 fs white alpha 0.05 f",
+			"]")
+	},
+}
 
 
 function draw() {
 
-	UFX.draw("fs", "#999", "f0")
+	UFX.draw("fs", "#111", "f0")
 	UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 
-	UFX.draw("[ t 600 200 r -0.2 tab center middle alpha 0.24",
-		"font 120px~'Passion~One' fs white ft0 Interface~Screw",
-		"font 60px~'Passion~One' t 0 100 fs #7ff ft0 by~Christopher~Night",
-		"font 40px~'Passion~One' t 0 50 fs #7ff ft0 made~in~zero~hours,",
-		"font 40px~'Passion~One' t 0 40 fs #7ff ft0 2am~EDT~-~2am~EST,~1~Nov~2020",
+	UFX.draw("[ t 400 120 r -0.2 tab center middle alpha 0.24",
+		"font 100px~'Special~Elite' fs #bff ft0 Dying~Planet",
+		"font 60px~'Special~Elite' t 0 100 fs #5ff ft0 by~Christopher~Night",
+		"font 40px~'Special~Elite' t 0 50 fs #5ff ft0 made~in~zero~hours,",
+		"font 40px~'Special~Elite' t 0 50 fs #5ff ft0 2am~EDT~-~2am~EST,~7~Nov~2021",
 	"]")
 
-	UFX.draw("[ t 1200 200 r 0.2 tab center middle alpha 0.24",
-		"font 50px~'Passion~One' fs #ff7 ft0 mouse~over~to~fasten",
-		"font 50px~'Passion~One' t 0 70 fs #ff7 ft0 click~to~switch~tools",
-		"font 50px~'Passion~One' t 0 70 fs #ff7 ft0 game~over~if~any~screw",
-		"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 becomes~too~loose",
+	UFX.draw("[ t 1300 220 r 0.2 tab center middle alpha 0.24",
+		"font 50px~'Special~Elite' fs #ff7 ft0 mouseover~planets",
+		"font 50px~'Special~Elite' t 0 70 fs #ff7 ft0 to~boost.",
+		"font 50px~'Special~Elite' t 0 70 fs #ff7 ft0 only~allow~planet",
+		"font 50px~'Special~Elite' t 0 70 fs #ff7 ft0 of~matching~color",
+		"font 50px~'Special~Elite' t 0 70 fs #ff7 ft0 to~reach~sun.",
+		"font 50px~'Special~Elite' t 0 70 fs #ff7 ft0 score:~" + score,
 	"]")
+
+	UFX.draw("[ t 800 450")
+
+	let planetpos = [800 + 600 * Math.sin(t), 450 + 300 * Math.cos(t)]
+	let objs = [sun].concat(planets)
+	objs.sort((obj0, obj1) => obj0.y - obj1.y)
+	for (let obj of objs) obj.draw()
+	for (let effect of effects) effect.draw()
+	UFX.draw("]")
 	
-	for (let screw of screws) {
-		screw.draw()
-	}
-
-	let text = UFX.ticker.getrates().replace(/ /g, "~")
-	text = "current~time:~" + Math.round(t) + "~best~time:~" + Math.round(best)
-
-	UFX.draw("[ fs black alpha 0.2 font 30px~'monospace' tab left bottom",
-		"ft", text, 20, 880, "]")
-
-
-
-	;(new Screw(pos, 20, options[joption])).draw()
-
 	UFX.draw("]")
 }
-UFX.resource.loadwebfonts("Boogaloo", "Passion One")
+UFX.resource.loadwebfonts("Boogaloo", "Passion One", "Special Elite")
 UFX.resource.onload = function () {
 	UFX.ticker.init(think, draw, {
 		ups: 120,
