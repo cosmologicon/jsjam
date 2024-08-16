@@ -2,6 +2,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 <title>GMTK 2024 game</title>
 <script src="UFX.js"></script>
+<script src="view.js"></script>
+<script src="robot.js"></script>
 <canvas id=canvas></canvas>
 <style>
 canvas { background: black }
@@ -20,20 +22,42 @@ UFX.scene.init({ minups: 10, maxups: 120 })
 UFX.scene.push("play")
 UFX.resource.loadwebfonts("Viga")
 UFX.scenes.play = {
+	pos: [-10000, -10000],
+	robotxVmove: null,
 	think: function (dt) {
 		let pointer = UFX.pointer(canvas)
-		this.pos = pointer.pos
-		if (this.pos) {
-			let [x, y] = this.pos
+		if (pointer.pos) {
+			let [x, y] = pointer.pos
 			this.pos = [x * 1600 / canvas.width, y * 900 / canvas.height]
+		}
+		this.tile = view.GtileV(this.pos)
+		this.robotxVmove = this.tile[1] == 0 && this.tile[0] != robot.x ? this.tile[0] : null
+		if (pointer.down) {
+			if (this.robotxVmove !== null) {
+				robot.x = this.robotxVmove
+				this.robotxVmove = null
+			}
 		}
 	},
 	draw: function () {
-		UFX.draw("fs #400 f0")
+		UFX.draw("fs #048 f0")
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 		UFX.draw("[ t 600 200 font 100px~'Viga' r -0.1",
 			"tab center middle fs black ss gray lw 1 fst0 GMTK~Jam~2024~game ]")
+		view.scale()
+		if (this.pos) {
+			UFX.draw("[ t", this.tile, "alpha 0.1 fs white fr -0.5 0 1 1 ]")
+		}
+		robot.draw()
+		if (this.robotxVmove !== null) {
+			let dx = this.robotxVmove > robot.x ? -0.5 : 0.5
+			UFX.draw("[ t", this.robotxVmove, 0,
+				"( m 0 0.5 l", dx, 1, "l", dx, 0, ") fs red alpha 0.2 f ]")
+		}
+		UFX.draw("]")
 		if (this.pos) UFX.draw("[ t", this.pos, "b o 0 0 5 fs orange f ]")
+		UFX.draw("fs white font 30px~'Viga'")
+		context.fillText(`${this.pos} - ${this.tile}`, 20, 40)
 		UFX.draw("]")
 	},
 }
