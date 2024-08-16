@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<title>Moving Fortress</title>
+<style>
+canvas {
+	background: #040404;
+}
+</style>
+<script src="//ufx.space/UFX.js"></script>
+<canvas id=canvas></canvas>
+<script>
+"use strict"
+let EASY = window.location.href.includes("EASY")
+let tau = 2 * Math.PI
+let canvas = document.getElementById("canvas")
+canvas.width = 1600
+canvas.height = 900
+let context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+
+
+function Shot(x, y, vx, vy) {
+	this.x = x
+	this.y = y
+	this.vx = vx
+	this.vy = vy
+	this.r = 15
+	this.alive = true
+	this.t = 0
+	while (this.alive && !this.visible()) {
+		this.think(0.1)
+	}
+}
+Shot.prototype = {
+	visible: function () {
+		return this.x > -this.r && this.y > -this.r && this.x < 1600 + this.r && this.y < 900 + this.r
+	},
+	think: function (dt) {
+		this.t += dt
+		this.x += this.vx * dt
+		this.y += this.vy * dt
+		if (!this.visible()) {
+			if (this.x < 0 && this.vx < 0) this.alive = false
+			if (this.x > 1600 && this.vx > 0) this.alive = false
+			if (this.y < 0 && this.vy < 0) this.alive = false
+			if (this.y > 900 && this.vy > 0) this.alive = false
+		}
+	},
+	draw: function () {
+		let v = Math.hypot(this.vx, this.vy)
+		let r = 200, g = 150 + 50 * Math.sin(v / 10 * this.t), b = 50
+		let color = `rgb(${r.toFixed(0)},${g.toFixed(0)},${b.toFixed(0)})`
+		UFX.draw("[ t", this.x, this.y, "b o 0 0", this.r, "fs", color, "f ]")
+	},
+	collide: function (pos, d) {
+		let [x, y] = pos
+		let dx = x - this.x, dy = y - this.y
+		if (Math.abs(dx) < d && Math.abs(dy) < d) this.alive = false
+	},
+}
+function randomshot() {
+	let x0 = UFX.random(0, 1600), y0 = UFX.random(0, 900)
+	let v = UFX.random(50, 100), theta = UFX.random(0, tau)
+	let vx = v * Math.sin(theta), vy = v * Math.cos(theta)
+	let d = 25
+	return new Shot(x0 - d * vx, y0 - d * vy, vx, vy)
+}
+
+function Guy(t0) {
+	this.r = 30
+	this.alive = true
+	this.theta = t0
+	this.think(0)
+}
+Guy.prototype = {
+	think: function (dt) {
+		let omega = 0.03
+		this.theta += dt * omega
+		this.x = 800 + 500 * Math.sin(0.123 + 4 * this.theta)
+		this.y = 450 + 250 * Math.cos(0.234 + 7 * this.theta)
+	},
+	draw: function () {
+		let color = this.alive ? "#48f" : "#123"
+		UFX.draw("[ t", this.x, this.y, "b o 0 0", this.r, "fs", color, "f ]")
+	},
+	collide: function (shot) {
+		let dx = shot.x - this.x, dy = shot.y - this.y
+		if (Math.hypot(dx, dy) < this.r + shot.r) {
+			this.alive = false
+			shot.alive = false
+		}
+	},
+}
+function randomshot() {
+	let x0 = UFX.random(0, 1600), y0 = UFX.random(0, 900)
+	let v = UFX.random(50, 100), theta = UFX.random(0, tau)
+	let vx = v * Math.sin(theta), vy = v * Math.cos(theta)
+	let d = 2500 / v
+	return new Shot(x0 - d * vx, y0 - d * vy, vx, vy)
+}
+
+
+let shots = []
+let guys = []
+let pos = [-100, -100]
+let tlevel = 0
+
+let phi = (Math.sqrt(5) - 1) / 2
+
+guys.push(new Guy(0))
+guys.push(new Guy(phi))
+guys.push(new Guy(2 * phi))
+
+function gameover() {
+	return guys.filter(guy => guy.alive).length < 2
+}
+
+function think(dt) {
+	tlevel += dt
+	let pstate = UFX.pointer(canvas)
+	pos = pstate.pos ? [pstate.pos[0] * 1600 / canvas.width, pstate.pos[1] * 900 / canvas.height] : [-100, -100]
+	let nshot = Math.floor(tlevel / 2)
+	while (!gameover() && shots.length < nshot) {
+		shots.push(randomshot())
+	}
+	for (let shot of shots) {
+		shot.think(dt)
+		shot.collide(pos, 100)
+	}
+	shots = shots.filter(shot => shot.alive)
+	for (let guy of guys) {
+		guy.think(dt)
+		shots.forEach(shot => guy.collide(shot))
+	}
+	if (!gameover()) {
+		let nkings = Math.floor(3 + tlevel / 10)
+		while (guys.length < nkings) guys.push(new Guy(phi * guys.length))
+	}
+}
+
+
+function draw() {
+
+	UFX.draw("fs #040404 f0")
+	UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
+
+	UFX.draw("[ t 400 200 r -0.2 tab center middle alpha 0.3",
+		"font 80px~'Passion~One' fs white ft0 Moving~Fortress",
+		"font 60px~'Passion~One' t 0 70 fs #7ff ft0 by~Christopher~Night",
+		"font 40px~'Passion~One' t 0 50 fs #7ff ft0 made~in~zero~hours,",
+		"font 40px~'Passion~One' t 0 40 fs #7ff ft0 2am~EDT~-~2am~EST,~5~Nov~2023",
+	"]")
+
+	if (gameover()) {
+		UFX.draw("[ t 1200 200 r 0.2 tab center middle alpha 0.3",
+			"font 50px~'Passion~One' fs #ff7 ft0 Game~Over",
+			"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 Reload~to~play~again",
+		"]")
+	} else {
+		let nkings = guys.length
+		let nalive = guys.filter(guy => guy.alive).length
+		UFX.draw("[ t 1200 200 r 0.2 tab center middle alpha 0.3",
+			"font 50px~'Passion~One' fs #ff7 ft0 Move~your~fortress~to",
+			"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 protect~the~wandering",
+			"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 kings~(blue~guys).",
+			"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 Keep~at~least~two",
+			"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 alive~to~advance.",
+			"font 50px~'Passion~One' t 0 50 fs #ff7 ft0 Kings:~" + nalive + "/" + nkings,
+		"]")
+	}
+
+	for (let shot of shots) shot.draw()
+	for (let guy of guys) guy.draw()
+
+	if (!gameover()) {
+		UFX.draw("[ t", pos, "b ss gray lw 10 sr -100 -100 200 200")
+		for (let x of [-100, 100]) {
+			for (let y of [-100, 100]) {
+				UFX.draw("[ t", x, y, "b o 0 0 30 ss gray lw 8 fs #555 f s ]")
+			}
+		}
+	}
+	UFX.draw("]")
+
+	UFX.draw("]")
+}
+UFX.resource.loadwebfonts("Boogaloo", "Passion One")
+UFX.resource.onload = function () {
+	UFX.ticker.init(think, draw, {
+		ups: 120,
+		maxupf: 12,
+	})
+}
+</script>
