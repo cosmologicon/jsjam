@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<title>GMTK 2024 game</title>
+<script src="UFX.js"></script>
+<canvas id=canvas></canvas>
+<style>
+canvas { background: black }
+</style>
+<script>
+"use strict"
+let canvas = document.getElementById("canvas")
+canvas.width = 1600
+canvas.height = 900
+let context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+UFX.key.init()
+UFX.key.remaparrows(true)
+UFX.scene.init({ minups: 10, maxups: 120 })
+UFX.scene.push("play")
+UFX.resource.loadwebfonts("Viga")
+UFX.scenes.play = {
+	think: function (dt) {
+		let pointer = UFX.pointer(canvas)
+		this.pos = pointer.pos
+		if (this.pos) {
+			let [x, y] = this.pos
+			this.pos = [x * 1600 / canvas.width, y * 900 / canvas.height]
+		}
+	},
+	draw: function () {
+		UFX.draw("fs #400 f0")
+		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
+		UFX.draw("[ t 600 200 font 100px~'Viga' r -0.1",
+			"tab center middle fs black ss gray lw 1 fst0 GMTK~Jam~2024~game ]")
+		if (this.pos) UFX.draw("[ t", this.pos, "b o 0 0 5 fs orange f ]")
+		UFX.draw("]")
+	},
+}
+</script>
+
