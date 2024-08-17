@@ -7,6 +7,7 @@
 <script src="robot.js"></script>
 <script src="control.js"></script>
 <script src="quest.js"></script>
+<script src="hud.js"></script>
 <canvas id=canvas></canvas>
 <style>
 canvas { background: black }
@@ -52,11 +53,18 @@ UFX.scenes.play = {
 				UFX.draw("[ t", spot, "b o 0 0 0.1 fs red f ]")
 			}
 		}
+		UFX.draw("]")  // view.scale
+		let texts = quest.text()
+		if (texts.length > 0) {
+			UFX.draw("font 40px~'Viga' tab center middle fs white")
+			texts.forEach((text, j) => {
+				let y = 900 - 50 * (texts.length - j)
+				context.fillText(text, 800, y)
+			})
+		}
+		hud.draw()		
 		UFX.draw("]")
-		UFX.draw("[ t", control.pos, "b o 0 0 5 fs orange f ]")
-		UFX.draw("fs white font 30px~'Viga'")
-		context.fillText(`Stage ${quest.stage} | Money ${quest.money} | Pos ${control.tile}`, 20, 40)
-		UFX.draw("]")
+		canvas.style.cursor = control.cursor()
 	},
 }
 </script>

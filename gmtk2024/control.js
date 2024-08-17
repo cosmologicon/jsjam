@@ -6,17 +6,31 @@ let control = {
 	// If so then this is the new x-coordinate.
 	xroll: null,
 	pointed: null,
+	mode: null,
+	hudpointed: null,
 	grabbed: null,
 	update: function (pointer) {
 		if (pointer.pos) {
 			let [x, y] = pointer.pos
 			this.pos = [x * 1600 / canvas.width, y * 900 / canvas.height]
 		}
+		this.hudpointed = hud.buttonat(this.pos)
 		this.posG = view.GconvertV(this.pos)
 		this.tile = view.GtileV(this.pos)
-		this.pointed = robot.blockat(this.tile)
-		let [xtile, ytile] = this.tile
-		this.xroll = this.pointed === null && ytile == 0 && xtile != robot.x ? xtile : null
+		if (this.hudpointed === null) {
+			this.pointed = robot.blockat(this.tile)
+			if (this.pointed === null) {
+				let [xtile, ytile] = this.tile
+				this.xroll = ytile == 0 && xtile != robot.x ? xtile : null
+			} else {
+				this.xroll = null
+			}
+		} else {
+			this.pointed = null
+			this.xroll = null
+		}
+		if (this.mode == "extend") this.xroll = null
+		
 		if (pointer.down) {
 			if (this.pointed === root) {
 			} else if (this.pointed === head) {
@@ -25,7 +39,19 @@ let control = {
 			}
 		}
 		if (pointer.click) {
-			if (this.pointed === head) {
+			if (this.hudpointed === hud.buttons.extend) {
+				this.mode = this.mode === "extend" ? null : "extend"
+			} else if (this.mode === "extend") {
+				if (this.pointed && this.pointed.canextend()) {
+					if (this.pointed.extendcost() <= quest.money) {
+						quest.money -= this.pointed.extendcost()
+						this.pointed.extend()
+					} else {
+					}
+				} else {
+					this.mode = null
+				}
+			} else if (this.pointed === head) {
 				robot.activate()
 			} else if (this.xroll !== null) {
 				robot.rollto(this.xroll)
@@ -40,6 +66,18 @@ let control = {
 				this.grabbed = null
 			}
 		}
+	},
+	cursor: function () {
+		if (this.hudpointed !== null) return "pointer"
+		if (this.mode === "extend") {
+			if (this.pointed && this.pointed.canextend()) {
+				return this.pointed.extendcost() <= quest.money ? "pointer" : "not-allowed"
+			} else {
+				return "default"
+			}
+		}
+		if (this.xroll !== null) return "col-resize"
+		return "default"
 	},
 }
 

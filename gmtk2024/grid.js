@@ -8,10 +8,12 @@ let grid = {
 	},
 	addrandomtask: function (bounds) {
 		let [x0, x1, y0, y1] = bounds
+		let atargets = root.atargets().map(atarget => atarget.pos)
 		while (true) {
 			let x = UFX.random.rand(x0, x1 + 1)
 			let y = UFX.random.rand(y0, y1 + 1)
 			if (posincludes(this.tasks, [x, y])) continue
+			if (posincludes(atargets, [x, y])) continue
 			this.tasks.push([x, y])
 			break
 		}
