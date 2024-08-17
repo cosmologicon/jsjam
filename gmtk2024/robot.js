@@ -7,6 +7,13 @@ let HasChildren = {
 		}
 		return null
 	},
+	atarget0: function () {},
+	atargets: function () {
+		let target = this.atarget0()
+		let ret = target ? [target] : []
+		this.children.forEach(child => ret.push(...child.atargets()))
+		return ret
+	},
 	drawback0: function () {},
 	draw0: function () {},
 	drawback: function () {
@@ -17,6 +24,21 @@ let HasChildren = {
 		this.draw0()
 		this.children.forEach(child => child.draw())
 	},
+}
+
+let Leaf = {
+	nodeat: function (pos) {
+		return "" + this.pos == pos ? this : null
+	},
+	atarget0: function () {},
+	atargets: function () {
+		let target = this.atarget0()
+		return target ? [target] : []
+	},
+	drawback0: function () {},
+	draw0: function () {},
+	drawback: function () { this.drawback0() },
+	draw: function () { this.draw0() },
 }
 
 
@@ -53,43 +75,51 @@ let TreeNode = {
 	},
 }
 
+let Extendable = {
+	setdir: function (dir, rmax) {
+		this.dir = dir
+		;[this.dx, this.dy] = this.d = {
+			u: [0, 1],
+			d: [0, -1],
+			l: [-1, 0],
+			r: [1, 0],
+		}[dir]
+		this.r = 1
+		this.rmax = rmax
+	},
+	relpos: function () {
+		return [this.dx * this.r, this.dy * this.r]
+	},
+	relspots: function () {
+		let x = 0, y = 0, spots = []
+		for (let r = 1 ; r <= this.rmax ; ++r) {
+			x += this.dx
+			y += this.dy
+			spots.push([x, y])
+		}
+		return spots
+	},
+	moveto: function (spot0) {
+		this.spots().forEach((spot, j) => {
+			if ("" + spot0 == spot) {
+				this.r = j + 1
+				this.updatepos()
+			}
+		})
+	},
+}
+
+
 function Block(parent, dir, rmax) {
 	this.setparent(parent)
-	this.dir = dir
-	;[this.dx, this.dy] = this.d = {
-		u: [0, 1],
-		d: [0, -1],
-		l: [-1, 0],
-		r: [1, 0],
-	}[dir]
-	this.r = 1
-	this.rmax = rmax
+	this.setdir(dir, rmax)
 	this.pos = null
 }
 Block.prototype = UFX.Thing()
 	.addcomp(HasChildren)
 	.addcomp(TreeNode)
+	.addcomp(Extendable)
 	.addcomp({
-		relpos: function () {
-			return [this.dx * this.r, this.dy * this.r]
-		},
-		relspots: function () {
-			let x = 0, y = 0, spots = []
-			for (let r = 1 ; r <= this.rmax ; ++r) {
-				x += this.dx
-				y += this.dy
-				spots.push([x, y])
-			}
-			return spots
-		},
-		moveto: function (spot0) {
-			this.spots().forEach((spot, j) => {
-				if ("" + spot0 == spot) {
-					this.r = j + 1
-					this.updatepos()
-				}
-			})
-		},
 		drawback0: function () {
 			UFX.draw("[ t", 100 * this.pos[0], 100 * this.pos[1])
 			UFX.draw("r", { u: 0, l: 1, d: 2, r: 3}[this.dir] * tau / 4)
@@ -105,6 +135,57 @@ Block.prototype = UFX.Thing()
 		},
 	})
 
+function Head(parent) {
+	this.setparent(parent)
+	this.pos = null
+}
+Head.prototype = UFX.Thing()
+	.addcomp(TreeNode)
+	.addcomp(Leaf)
+	.addcomp({
+		relpos: function () {
+			return [0, 1]
+		},
+		draw0: function () {
+			let eyecolor = this === control.pointed ? "#fa6" : "#642"
+			UFX.draw("[ t", 100 * this.pos[0], 100 * this.pos[1])
+			UFX.draw("ss #aaa fs #666 tr -40 -40 80 60 f s")
+			UFX.draw("tr -70 -30 140 40 f s")
+			UFX.draw("fs", eyecolor, "b o -40 -10 15 f b o 40 -10 15 f")
+			UFX.draw("]")
+		},
+	})
+
+
+function Tool(parent, dir, rmax) {
+	this.setparent(parent)
+	this.setdir(dir, rmax)
+	this.pos = null
+}
+Tool.prototype = UFX.Thing()
+	.addcomp(HasChildren)
+	.addcomp(TreeNode)
+	.addcomp(Extendable)
+	.addcomp({
+		atarget0: function () {
+			return this
+		},
+		drawback0: function () {
+			UFX.draw("[ t", 100 * this.pos[0], 100 * this.pos[1])
+			UFX.draw("r", { u: 0, l: 1, d: 2, r: 3}[this.dir] * tau / 4)
+			UFX.draw("lw 10 ss blue b m 0 0 l 0", -100 * this.r, "s")
+			UFX.draw("]")
+		},
+		draw0: function () {
+			UFX.draw("[ t", 100 * this.pos[0], 100 * this.pos[1])
+			UFX.draw("b o 0 0 35 lw 10 ss black s")
+			UFX.draw("b o 0 0 35 lw 8 ss gray s")
+			UFX.draw("]")
+		},
+	})
+
+
+
 let robot = {
 	x: 0,
 	blocks: [],
@@ -115,15 +196,18 @@ let robot = {
 		this.x = xroll
 		root.updatepos()
 	},
+	activate: function () {
+		let atargets = root.atargets()
+		for (let atarget of atargets) {
+			console.log(atarget.pos)
+		}
+	},
 	draw: function () {
 		UFX.draw("[ z", 1/100, 1/100)
 		root.drawback()
 		UFX.draw("[ t", 100 * this.x, -50, "b o 0 40 40 fs black f",
 			"( m 0 40 l -30 100 l 30 100 ) ss #aaa fs #666 lw 2 f s ]")
 		root.draw()
-//		UFX.draw("ss #aaa fs #666 tr -40 10 80 60 f s")
-//		UFX.draw("tr -70 20 140 40 f s")
-//		UFX.draw("fs orange b o -40 40 15 f b o 40 40 15 f")
 		UFX.draw("]")
 	},
 }
@@ -131,7 +215,11 @@ let robot = {
 let block0 = new Block(root, "u", 2)
 let block1 = new Block(block0, "u", 2)
 let block2 = new Block(block0, "l", 3)
-let block3 = new Block(block1, "r", 3)
+let block3 = new Block(block1, "l", 3)
+let block4 = new Tool(block1, "r", 3)
+let block5 = new Tool(block2, "u", 3)
+let block6 = new Tool(block3, "u", 3)
+let head = new Head(block1)
 root.updatepos()
 
 

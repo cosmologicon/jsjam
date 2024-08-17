@@ -18,10 +18,15 @@ let control = {
 		let [xtile, ytile] = this.tile
 		this.xroll = this.pointed === null && ytile == 0 && xtile != robot.x ? xtile : null
 		if (pointer.down) {
-			if (this.pointed !== null) {
+			if (this.pointed === head) {
+			} else if (this.pointed !== null) {
 				this.grabbed = this.pointed
 			}
-			if (this.xroll !== null) {
+		}
+		if (pointer.click) {
+			if (this.pointed === head) {
+				robot.activate()
+			} else if (this.xroll !== null) {
 				robot.rollto(this.xroll)
 				this.xroll = null
 			}

@@ -19,7 +19,7 @@ function nearesttile(tiles, pos) {
 let view = {
 	xV0: 800,
 	yV0: 760,
-	VscaleG: 80,
+	VscaleG: 120,
 	
 	scale: function () {
 		UFX.draw("[ t", this.xV0, this.yV0, "z", this.VscaleG, -this.VscaleG)
