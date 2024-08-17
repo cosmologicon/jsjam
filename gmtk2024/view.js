@@ -17,6 +17,10 @@ function posindex(arr, pos) {
 	return -1
 }
 
+function posincludes(arr, pos) {
+	return posindex(arr, pos) > -1
+}
+
 
 function nearesttile(tiles, pos) {
 	let [x, y] = pos
@@ -29,6 +33,13 @@ let view = {
 	xV0: 800,
 	yV0: 760,
 	VscaleG: 120,
+
+	resize: function (n) {
+		let width = 2 * n + 1.3
+		this.VscaleG = 1600 / width
+		this.xV0 = 800
+		this.yV0 = 800 - this.VscaleG / 2
+	},
 	
 	scale: function () {
 		UFX.draw("[ t", this.xV0, this.yV0, "z", this.VscaleG, -this.VscaleG)

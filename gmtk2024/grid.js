@@ -5,14 +5,13 @@ let grid = {
 	score: 0,
 	solve: function (task) {
 		this.tasks = this.tasks.filter(t => !poseq(t, task))
-		this.score += 1
-		let ntask = 3 + Math.floor(Math.sqrt(this.score))
-		while (this.tasks.length < ntask) this.addrandomtask()
 	},
-	addrandomtask: function () {
+	addrandomtask: function (bounds) {
+		let [x0, x1, y0, y1] = bounds
 		while (true) {
-			let x = UFX.random.rand(-5, 6), y = UFX.random.rand(1, 7)
-//			if (posindex(this.tasks, [x, y]) == -1) continue
+			let x = UFX.random.rand(x0, x1 + 1)
+			let y = UFX.random.rand(y0, y1 + 1)
+			if (posincludes(this.tasks, [x, y])) continue
 			this.tasks.push([x, y])
 			break
 		}
@@ -24,5 +23,4 @@ let grid = {
 		})
 	},
 }
-grid.addrandomtask()
 

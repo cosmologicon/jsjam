@@ -1,4 +1,40 @@
-let HasChildren = {
+
+let TreeNode = {
+	setparent: function (parent) {
+		if (typeof parent == "string") parent = root.byspec(parent)
+		if (this.parent) this.parent.removechild(this)
+		this.parent = parent
+		if (this.parent) this.parent.addchild(this)
+	},
+	updatepos: function () {
+		let [x, y] = this.parent.pos
+		let [dx, dy] = this.relpos()
+		this.pos = [x + dx, y + dy]
+	},
+	spots: function () {
+		let [x, y] = this.parent.pos
+		return this.relspots().map(([dx, dy]) => [x + dx, y + dy])
+	},
+}
+
+// Non-leaf nodes only
+let NonLeaf = {
+	setup: function () {
+		this.children = []
+		this.childdirs = {}
+	},
+	addchild: function (child) {
+		this.children.push(child)
+		this.childdirs[child.dir] = child
+	},
+	removechild: function (child) {
+		this.children = this.children.filter(c => c !== child)
+		if (this.childdirs[child.dir] === this) delete this.childdirs[child.dir]
+	},
+	byspec: function (spec) {
+		if (spec == "") return this
+		return this.childdirs[spec[0]].byspec(spec.slice(1))
+	},
 	nodeat: function (pos) {
 		if (poseq(this.pos, pos)) return this
 		for (let child of this.children) {
@@ -6,6 +42,9 @@ let HasChildren = {
 			if (childat !== null) return childat
 		}
 		return null
+	},
+	updatepos: function () {
+		this.children.forEach(child => child.updatepos())
 	},
 	atarget0: function () {},
 	atargets: function () {
@@ -26,9 +65,14 @@ let HasChildren = {
 	},
 }
 
+// Leaf nodes only
 let Leaf = {
 	nodeat: function (pos) {
 		return poseq(this.pos, pos) ? this : null
+	},
+	byspec: function (spec) {
+		console.assert(spec == "")
+		return this
 	},
 	atarget0: function () {},
 	atargets: function () {
@@ -44,36 +88,17 @@ let Leaf = {
 
 function Root() {
 	this.pos = [0, 0]
-	this.children = []
+	this.setup()
 }
 Root.prototype = UFX.Thing()
-	.addcomp(HasChildren)
+	.addcomp(NonLeaf)
 	.addcomp({
 		updatepos: function () {
 			this.pos = [robot.x, 0]
 			this.children.forEach(child => child.updatepos())
 		},
 	})
-let root = new Root()
 
-
-let TreeNode = {
-	setparent: function (parent) {
-		this.parent = parent
-		this.children = []
-		this.parent.children.push(this)
-	},
-	updatepos: function () {
-		let [x, y] = this.parent.pos
-		let [dx, dy] = this.relpos()
-		this.pos = [x + dx, y + dy]
-		this.children.forEach(child => child.updatepos())
-	},
-	spots: function () {
-		let [x, y] = this.parent.pos
-		return this.relspots().map(([dx, dy]) => [x + dx, y + dy])
-	},
-}
 
 let Extendable = {
 	setdir: function (dir, rmax) {
@@ -111,13 +136,14 @@ let Extendable = {
 
 
 function Block(parent, dir, rmax) {
-	this.setparent(parent)
+	this.setup()
 	this.setdir(dir, rmax)
+	this.setparent(parent)
 	this.pos = null
 }
 Block.prototype = UFX.Thing()
-	.addcomp(HasChildren)
 	.addcomp(TreeNode)
+	.addcomp(NonLeaf)
 	.addcomp(Extendable)
 	.addcomp({
 		drawback0: function () {
@@ -136,6 +162,7 @@ Block.prototype = UFX.Thing()
 	})
 
 function Head(parent) {
+	this.dir = "u"
 	this.setparent(parent)
 	this.pos = null
 }
@@ -158,13 +185,13 @@ Head.prototype = UFX.Thing()
 
 
 function Tool(parent, dir, rmax) {
-	this.setparent(parent)
 	this.setdir(dir, rmax)
+	this.setparent(parent)
 	this.pos = null
 }
 Tool.prototype = UFX.Thing()
-	.addcomp(HasChildren)
 	.addcomp(TreeNode)
+	.addcomp(Leaf)
 	.addcomp(Extendable)
 	.addcomp({
 		atarget0: function () {
@@ -199,12 +226,15 @@ let robot = {
 	activate: function () {
 		let atargets = root.atargets()
 		let tasks = {}
+		let solved = []
 		grid.tasks.forEach(task => tasks[task] = task)
 		for (let atarget of atargets) {
 			if (tasks[atarget.pos]) {
-				grid.solve(tasks[atarget.pos])
+				solved.push(tasks[atarget.pos])
+				delete tasks[atarget.pos]
 			}
 		}
+		quest.solve(solved)
 	},
 	draw: function () {
 		UFX.draw("[ z", 1/100, 1/100)
@@ -216,15 +246,8 @@ let robot = {
 	},
 }
 
-let block0 = new Block(root, "u", 2)
-let block1 = new Block(block0, "u", 2)
-let block2 = new Block(block0, "l", 3)
-let block3 = new Block(block1, "l", 3)
-let tool0 = new Tool(block1, "r", 3)
-let tool1 = new Tool(block2, "l", 3)
-let tool2 = new Tool(block2, "u", 3)
-let tool3 = new Tool(block3, "u", 3)
-let head = new Head(block1)
+let root = new Root()
+let head = new Head()
 root.updatepos()
 
 

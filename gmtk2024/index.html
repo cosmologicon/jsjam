@@ -6,6 +6,7 @@
 <script src="grid.js"></script>
 <script src="robot.js"></script>
 <script src="control.js"></script>
+<script src="quest.js"></script>
 <canvas id=canvas></canvas>
 <style>
 canvas { background: black }
@@ -30,6 +31,7 @@ UFX.scenes.play = {
 	think: function (dt) {
 		let pointer = UFX.pointer(canvas)
 		control.update(pointer)
+		quest.think(dt)
 	},
 	draw: function () {
 		UFX.draw("fs #048 f0")
@@ -53,7 +55,7 @@ UFX.scenes.play = {
 		UFX.draw("]")
 		UFX.draw("[ t", control.pos, "b o 0 0 5 fs orange f ]")
 		UFX.draw("fs white font 30px~'Viga'")
-		context.fillText(`Score ${grid.score}`, 20, 40)
+		context.fillText(`Stage ${quest.stage} | Money ${quest.money} | Pos ${control.tile}`, 20, 40)
 		UFX.draw("]")
 	},
 }
