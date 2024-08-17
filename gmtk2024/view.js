@@ -7,9 +7,19 @@ function poseq(pos0, pos1) {
 	return x0 == x1 && y0 == y1
 }
 
+function possub(pos0, pos1) {
+	let [x0, y0] = pos0, [x1, y1] = pos1
+	return [x1 - x0, y1 - y0]
+}
+
 function dpos(pos0, pos1) {
 	let [x0, y0] = pos0, [x1, y1] = pos1
 	return Math.hypot(x1 - x0, y1 - y0)
+}
+
+function postimes(pos, a) {
+	let [x, y] = pos
+	return [x * a, y * a]
 }
 
 function posindex(arr, pos) {
@@ -19,6 +29,16 @@ function posindex(arr, pos) {
 
 function posincludes(arr, pos) {
 	return posindex(arr, pos) > -1
+}
+
+let clamp = (x, a, b) => x < a ? a : x > b ? b : x
+let mix = (x, y, f) => x + (y - x) * clamp(f, 0, 1)
+
+function posapproach(pos0, pos1, dp) {
+	if (dpos(pos0, pos1) < 0.001) return pos1
+	let f = 1 - Math.exp(-dp)
+	let [x0, y0] = pos0, [x1, y1] = pos1
+	return [mix(x0, x1, f), mix(y0, y1, f)]
 }
 
 
@@ -33,8 +53,12 @@ let view = {
 	xV0: 800,
 	yV0: 760,
 	VscaleG: 120,
+	n: 0,
 
-	resize: function (n) {
+	resize: function () {
+		let n = robot.maxheight()
+		if (n <= this.n) return
+		this.n = n
 		let width = 2 * n + 1.3
 		this.VscaleG = 1600 / width
 		this.xV0 = 800

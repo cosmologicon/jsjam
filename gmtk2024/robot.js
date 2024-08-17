@@ -1,19 +1,66 @@
 
+function drawjoiner(pos0, pos1, rmax) {
+	let P0 = postimes(pos0, 100), P1 = postimes(pos1, 100)
+	let [dx, dy] = possub(P1, P0), d = Math.hypot(dx, dy)
+	if (!d) return
+	UFX.draw("[ t", P0, "r", Math.atan2(dx, -dy))
+	let w = mix(25, 5, (d - 1) / (100 * rmax - 80)), w0 = 10
+	let xs = [w0]
+	while (xs.length < rmax) xs.push(w)
+	xs.push(w0)
+	xs = xs.map((x, j) => x * (j % 2 ? 1 : -1))
+	let ps = xs.map((x, j) => [x, d * j / (xs.length - 1)])
+	let [x0, y0] = ps[0]
+	UFX.draw("b m", x0, y0, ps.map(p => ["l", p]),
+		"m", -x0, y0, ps.map(([x, y]) => ["l", -x, y]))
+	context.miterLimit = 1
+	UFX.draw("lw 9 ss black s lw 6 ss gray s ]")
+}
+
+let DisplayPos = {
+	setup: function () {
+		this.dpos = this.pos
+		this.ndpos = 0
+	},
+	think: function (dt) {
+		if (!poseq(this.dpos, this.pos)) {
+			this.dpos = posapproach(this.dpos, this.pos, 10 * dt / (0.24 * this.ndpos + 1))
+		}
+	},
+	frontpos: function (dir) {
+		let [x, y] = this.dpos
+		let A = { u: 0, r: 1, d: 2, l: 3 }[dir] * tau / 4
+		return [x + this.rjoin * Math.sin(A), y + this.rjoin * Math.cos(A)]
+	},
+	backpos: function (dir) {
+		return this.frontpos({ u: "d", l: "r", d: "u", r: "l" }[dir])
+	},
+}
+
 let TreeNode = {
+	setup: function () {
+		this.updatepos(0)
+	},
 	setparent: function (parent) {
 		if (typeof parent == "string") parent = root.byspec(parent)
 		if (this.parent) this.parent.removechild(this)
 		this.parent = parent
 		if (this.parent) this.parent.addchild(this)
 	},
-	updatepos: function () {
+	updatepos: function (n) {
 		let [x, y] = this.parent.pos
 		let [dx, dy] = this.relpos()
 		this.pos = [x + dx, y + dy]
+		this.ndpos = n
 	},
 	spots: function () {
 		let [x, y] = this.parent.pos
 		return this.relspots().map(([dx, dy]) => [x + dx, y + dy])
+	},
+	drawback0: function () {
+		let pos0 = this.parent.frontpos(this.dir)
+		let pos1 = this.backpos(this.dir)
+		drawjoiner(pos0, pos1, this.rmax)
 	},
 }
 
@@ -33,7 +80,9 @@ let NonLeaf = {
 	},
 	byspec: function (spec) {
 		if (spec == "") return this
-		return this.childdirs[spec[0]].byspec(spec.slice(1))
+		let child = this.childdirs[spec[0]]
+		if (!child) return null
+		return child.byspec(spec.slice(1))
 	},
 	allnodes: function () {
 		let ret = [this]
@@ -48,8 +97,8 @@ let NonLeaf = {
 		}
 		return null
 	},
-	updatepos: function () {
-		this.children.forEach(child => child.updatepos())
+	updatepos: function (n) {
+		this.children.forEach(child => child.updatepos((n || 0) + 1))
 	},
 	atarget0: function () {},
 	atargets: function () {
@@ -76,8 +125,7 @@ let Leaf = {
 		return poseq(this.pos, pos) ? this : null
 	},
 	byspec: function (spec) {
-		console.assert(spec == "")
-		return this
+		return spec === "" ? this : null
 	},
 	allnodes: function () {
 		return [this]
@@ -137,7 +185,7 @@ let Extendable = {
 		this.spots().forEach((spot, j) => {
 			if (poseq(spot0, spot)) {
 				this.r = j + 1
-				this.updatepos()
+				this.updatepos(0)
 			}
 		})
 	},
@@ -145,25 +193,46 @@ let Extendable = {
 
 function Root() {
 	this.pos = [0, 0]
+	this.xfrom = 0
+	this.rjoin = 0.5
+	this.Atilt = 0
 	this.setup()
 }
 Root.prototype = UFX.Thing()
+	.addcomp(DisplayPos)
 	.addcomp(NonLeaf)
 	.addcomp(NonExtendable)
 	.addcomp({
+		think: function (dt) {
+			let x = this.dpos[0]
+			if (x != this.pos[0]) {
+				let f = (x - this.xfrom) / (this.pos[0] - this.xfrom)
+				this.Atilt = 0.3 * f * (1 - f) * Math.sqrt(Math.abs(this.pos[0] - this.xfrom))
+				if (this.xfrom < this.pos[0]) this.Atilt *= -1
+			}
+		},
+		drawtilt: function () {
+			UFX.draw("t", postimes(this.dpos, 100),
+				"r", this.Atilt, "t", postimes(this.dpos, -100))
+		},
 		updatepos: function () {
+			if (this.pos[0] == robot.x) return
+			this.xfrom = this.pos[0]
 			this.pos = [robot.x, 0]
-			this.children.forEach(child => child.updatepos())
+			this.children.forEach(child => child.updatepos(1))
 		},
 	})
 
 function Head(parent) {
 	this.dir = "u"
+	this.rmax = 1
 	this.setparent(parent)
-	this.pos = null
+	this.rjoin = 0.4
+	this.setup()
 }
 Head.prototype = UFX.Thing()
 	.addcomp(TreeNode)
+	.addcomp(DisplayPos)
 	.addcomp(Leaf)
 	.addcomp(NonExtendable)
 	.addcomp({
@@ -171,38 +240,49 @@ Head.prototype = UFX.Thing()
 			return [0, 1]
 		},
 		draw0: function () {
-			let eyecolor = this === control.pointed ? "#fa6" : "#642"
-			UFX.draw("[ t", 100 * this.pos[0], 100 * this.pos[1])
-			UFX.draw("ss #aaa fs #666 tr -40 -40 80 60 f s")
-			UFX.draw("tr -70 -30 140 40 f s")
-			UFX.draw("fs", eyecolor, "b o -40 -10 15 f b o 40 -10 15 f")
+			let grad
+			UFX.draw("[ t", postimes(this.dpos, 100))
+			UFX.draw("ss #aaa fs #666 rr -40 -40 80 60 3 f s")
+			UFX.draw("rr -70 -30 140 40 3 f s")
+			let eyecolor = this === control.pointed ? "#fd6" : "#642"
+			grad = UFX.draw.radgrad(-8, 8, 0, 0, 0, 15, 0, eyecolor, 1, "#321")
+			UFX.draw("fs", grad, "[ t -40 -10 b o 0 0 15 f ] [ t 40 -10 b o 0 0 15 f ]")
+			UFX.draw("fs #333 rr -20 -26 40 20 3 f")
+			for (let j = 0 ; j < 5 ; ++j) {
+				let f = (Math.sin(-Date.now() * 0.001 / 2 * tau + 0.4 * j) + 1) / 2
+				let b = Math.floor(mix(40, 120, f))
+				let color = `rgb(20,20,${b})`
+				UFX.draw("fs", color, "fr", -17 + 7 * j, -23.5, 6, 15)
+			}
 			UFX.draw("]")
 		},
 	})
 
 
 function Block(parent, dir, rmax) {
-	this.setup()
+	this.children = []
 	this.setdir(dir, rmax)
 	this.setparent(parent)
-	this.pos = null
+	this.rjoin = 0.3
+	this.setup()
 }
 Block.prototype = UFX.Thing()
 	.addcomp(TreeNode)
+	.addcomp(DisplayPos)
 	.addcomp(NonLeaf)
 	.addcomp(Extendable)
 	.addcomp({
-		drawback0: function () {
-			UFX.draw("[ t", 100 * this.pos[0], 100 * this.pos[1])
-			UFX.draw("r", { u: 0, l: 1, d: 2, r: 3}[this.dir] * tau / 4)
-			UFX.draw("lw 10 ss blue b m 0 0 l 0", -100 * this.r, "s")
-			UFX.draw("]")
-		},
 		draw0: function () {
 			let color = this === control.pointed ? "#fff" : "#666"
-			UFX.draw("[ t", 100 * this.pos[0], 100 * this.pos[1])
-			UFX.draw("ss #aaa fs", color, "tr -30 -30 60 60 f s")
-			UFX.draw("b o 0 0 20 fs #864 ss black f s")
+			let grad = UFX.draw.radgrad(-25, 25, 0, -10, 10, 50, 0, "#666", 1, "#888")
+			UFX.draw("[ t", postimes(this.dpos, 100))
+			UFX.draw("ss #333 lw 2 fs", grad, "rr -30 -30 60 60 4 f s")
+			grad = UFX.draw.radgrad(-20, 20, 0, -10, 10, 50, 0, "#333", 1, "#111")
+			UFX.draw("ss black lw 3 fs", grad, "rr -24 -24 48 48 8 f s")
+			let xs = [-18]
+			while (xs[xs.length - 1] < 18) xs.push(xs[xs.length - 1] + 3)
+			let ps = xs.map(x => [x, (x - 18) * (x + 18) * 0.05 * UFX.random(-1, 1)])
+			UFX.draw("b m -20 0", ps.map(p => ["l", p]), "l", 20, 0, "lw 1.5 ss #7f7 s")
 			UFX.draw("]")
 		},
 	})
@@ -211,24 +291,20 @@ Block.prototype = UFX.Thing()
 function Tool(parent, dir, rmax) {
 	this.setdir(dir, rmax)
 	this.setparent(parent)
-	this.pos = null
+	this.rjoin = 0.35
+	this.setup()
 }
 Tool.prototype = UFX.Thing()
 	.addcomp(TreeNode)
+	.addcomp(DisplayPos)
 	.addcomp(Leaf)
 	.addcomp(Extendable)
 	.addcomp({
 		atarget0: function () {
 			return this
 		},
-		drawback0: function () {
-			UFX.draw("[ t", 100 * this.pos[0], 100 * this.pos[1])
-			UFX.draw("r", { u: 0, l: 1, d: 2, r: 3}[this.dir] * tau / 4)
-			UFX.draw("lw 10 ss blue b m 0 0 l 0", -100 * this.r, "s")
-			UFX.draw("]")
-		},
 		draw0: function () {
-			UFX.draw("[ t", 100 * this.pos[0], 100 * this.pos[1])
+			UFX.draw("[ t", postimes(this.dpos, 100))
 			UFX.draw("r", { u: 0, l: 1, d: 2, r: 3}[this.dir] * tau / 4)
 			UFX.draw("b o 0 0 25 lw 8 ss black s")
 			UFX.draw("b o 0 0 25 lw 6 ss gray s")
@@ -245,9 +321,17 @@ let robot = {
 	blockat: function (pos) {
 		return root.nodeat(pos)
 	},
+	maxheight: function () {
+		let r = 1, node = head
+		while (node !== root) {
+			if (node.dir === "u") r += node.rmax
+			node = node.parent
+		}
+		return r
+	},
 	rollto: function (xroll) {
 		this.x = xroll
-		root.updatepos()
+		root.updatepos(0)
 	},
 	activate: function () {
 		let atargets = root.atargets()
@@ -264,17 +348,39 @@ let robot = {
 	},
 	draw: function () {
 		UFX.draw("[ z", 1/100, 1/100)
-		root.drawback()
-		UFX.draw("[ t", 100 * this.x, -50, "b o 0 40 40 fs black f",
-			"( m 0 40 l -30 100 l 30 100 ) ss #aaa fs #666 lw 2 f s ]")
+		root.drawtilt()
+		UFX.draw("[ t", postimes(root.dpos, 100))
+		// wheel
+		UFX.draw("[ t 0 -10",
+			"b o 0 0 40 fs black f",
+			"b o 0 0 20 fs #bbb f",
+			"b o 0 0 32 ss #111 lw 12 s",
+			"b o 0 0 32 ss #222 lw 9 s",
+			"b o -3 3 32 ss #fff alpha 0.03 lw 4 s")
+		// spokes
+		UFX.draw("[ alpha 0.2 fs #006 r", -root.dpos[0] * 3)
+		for (let j = 0 ; j < 5 ; ++j) {
+			UFX.draw("( a 0 0 12 0 1 aa 0 0 18 1 0 ) f r", tau / 5)
+		}
+		UFX.draw("]")
+		// axle
+		UFX.draw("alpha 1 ( m -30 50 q 0 40 -3 0 l 3 0 q 0 40 30 50 )",
+			"ss #333 lw 2 fs #777 f s")
+		let grad = UFX.draw.radgrad(-3, 3, 0, 0, 0, 8, 0, "#aaa", 1, "#333")
+		UFX.draw("b o 0 0 8 fs", grad, "f")
+		grad = UFX.draw.radgrad(-30, 60, 0, -30, 60, 100, 0, "#aaa", 1, "#333")
+		UFX.draw("rr -40 50 80 10 4 fs", grad, "ss #333 lw 1 f s")
+		UFX.draw("]")
+		UFX.draw("]")
 		root.draw()
+		root.drawback()
 		UFX.draw("]")
 	},
 }
 
 let root = new Root()
-let head = new Head()
-root.updatepos()
+let head = new Head("")
+root.updatepos(0)
 
 
 

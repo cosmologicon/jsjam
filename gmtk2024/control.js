@@ -46,6 +46,7 @@ let control = {
 					if (this.pointed.extendcost() <= quest.money) {
 						quest.money -= this.pointed.extendcost()
 						this.pointed.extend()
+						view.resize()
 					} else {
 					}
 				} else {

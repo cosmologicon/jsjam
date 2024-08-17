@@ -1,3 +1,19 @@
+
+function build(spec, block) {
+	let parentspec = spec.slice(0, spec.length - 1)
+	let dir = spec[spec.length - 1]
+	let parent = root.byspec(parentspec)
+	let current = root.byspec(spec)
+	if (current !== null) {
+		let obj = new Block(parent, dir, 1)
+		current.setparent(obj)
+	} else if (block) {
+		new Block(parent, dir, 1)
+	} else {
+		new Tool(parent, dir, 1)
+	}
+}
+
 let quest = {
 	stage: -1,
 	record: 0,
@@ -5,26 +21,43 @@ let quest = {
 	n: null,
 	advance: function () {
 		this.stage += 1
-		this.n = [2, 3, 4, 4, 5, 5][this.stage] || 20
-		view.resize(this.n)
+		view.resize()
 		switch (this.stage) {
 			case 0:
 				head.setparent(root)
 				break
 			case 1:
-				new Block("", "u", 1)
-				new Tool("u", "l", 1)
-				head.setparent("u")
+				build("u")
+				build("ul")
 				break
 			case 4:
-				new Tool("u", "r", 1)
+				build("ur")
 				break
 			case 5:
-				new Block("u", "u", 1)
-				new Tool("u", "r", 1)
-				head.setparent("uu")
+				build("uu")
+				build("uur")
+				break
+			case 6:
+				build("ul")
+				break
+			case 7:
+				build("uul")
+				break
+			case 8:
+				build("ur")
+				build("uru", true)
+				build("urur")
+				break
+			case 9:
+				build("uuu")
+				build("uuur")
+				break
+			case 10:
+				build("ull")
+				build("ullu")
 				break
 		}
+		view.resize()
 		root.updatepos()
 		this.addtasks()
 	},
@@ -37,13 +70,16 @@ let quest = {
 	addtasks: function () {
 		let ntask = this.stage
 		while (grid.tasks.length < ntask) {
-			let bounds = {
-				1: [-3, 2, 1, 1],
-				2: [-4, 4, 1, 1],
-				3: [-4, 4, 2, 2],
-				4: [-4, 4, 1, 2],
-				5: [-4, 4, 1, 3],
-			}[this.stage]
+			let bounds = [-view.n, view.n, 1, view.n]
+			if (this.stage <= 5) {
+				bounds = {
+					1: [-3, 2, 1, 1],
+					2: [-4, 4, 1, 1],
+					3: [-4, 4, 2, 2],
+					4: [-4, 4, 1, 2],
+					5: [-4, 4, 1, 3],
+				}[this.stage]
+			}
 			grid.addrandomtask(bounds)
 		}
 	},
@@ -63,7 +99,7 @@ let quest = {
 			case 3:
 				return root.byspec("u").r > 1
 			case 4:
-				return record >= 2
+				return this.record >= 2
 			default:
 				return false
 		}
@@ -91,7 +127,7 @@ let quest = {
 				]
 			case 4:
 				return [
-					"Line up multiple arms to conduct multiple arms at once for",
+					"Line up multiple arms to conduct multiple repairs at once for",
 					"extra money.",
 				]
 			default:
@@ -101,5 +137,7 @@ let quest = {
 	},
 }
 quest.advance()
-while (quest.stage < 5) quest.advance()
+// while (quest.stage < 0) quest.advance()
+quest.money = 400
+// for (let node of root.allnodes()) if (node.canextend()) node.extend()
 

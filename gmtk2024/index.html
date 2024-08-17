@@ -31,8 +31,11 @@ UFX.scenes.play = {
 	robotxVmove: null,
 	think: function (dt) {
 		let pointer = UFX.pointer(canvas)
+		let kstate = UFX.key.state()
 		control.update(pointer)
+		for (let node of root.allnodes()) node.think(dt)
 		quest.think(dt)
+		if (kstate.down.space) quest.advance()
 	},
 	draw: function () {
 		UFX.draw("fs #048 f0")
