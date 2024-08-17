@@ -18,7 +18,8 @@ let control = {
 		let [xtile, ytile] = this.tile
 		this.xroll = this.pointed === null && ytile == 0 && xtile != robot.x ? xtile : null
 		if (pointer.down) {
-			if (this.pointed === head) {
+			if (this.pointed === root) {
+			} else if (this.pointed === head) {
 			} else if (this.pointed !== null) {
 				this.grabbed = this.pointed
 			}

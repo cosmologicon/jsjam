@@ -1,6 +1,6 @@
 let HasChildren = {
 	nodeat: function (pos) {
-		if ("" + this.pos == pos) return this
+		if (poseq(this.pos, pos)) return this
 		for (let child of this.children) {
 			let childat = child.nodeat(pos)
 			if (childat !== null) return childat
@@ -28,7 +28,7 @@ let HasChildren = {
 
 let Leaf = {
 	nodeat: function (pos) {
-		return "" + this.pos == pos ? this : null
+		return poseq(this.pos, pos) ? this : null
 	},
 	atarget0: function () {},
 	atargets: function () {
@@ -101,7 +101,7 @@ let Extendable = {
 	},
 	moveto: function (spot0) {
 		this.spots().forEach((spot, j) => {
-			if ("" + spot0 == spot) {
+			if (poseq(spot0, spot)) {
 				this.r = j + 1
 				this.updatepos()
 			}
@@ -198,8 +198,12 @@ let robot = {
 	},
 	activate: function () {
 		let atargets = root.atargets()
+		let tasks = {}
+		grid.tasks.forEach(task => tasks[task] = task)
 		for (let atarget of atargets) {
-			console.log(atarget.pos)
+			if (tasks[atarget.pos]) {
+				grid.solve(tasks[atarget.pos])
+			}
 		}
 	},
 	draw: function () {
@@ -216,9 +220,10 @@ let block0 = new Block(root, "u", 2)
 let block1 = new Block(block0, "u", 2)
 let block2 = new Block(block0, "l", 3)
 let block3 = new Block(block1, "l", 3)
-let block4 = new Tool(block1, "r", 3)
-let block5 = new Tool(block2, "u", 3)
-let block6 = new Tool(block3, "u", 3)
+let tool0 = new Tool(block1, "r", 3)
+let tool1 = new Tool(block2, "l", 3)
+let tool2 = new Tool(block2, "u", 3)
+let tool3 = new Tool(block3, "u", 3)
 let head = new Head(block1)
 root.updatepos()
 

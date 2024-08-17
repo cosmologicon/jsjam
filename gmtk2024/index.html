@@ -3,6 +3,7 @@
 <title>GMTK 2024 game</title>
 <script src="UFX.js"></script>
 <script src="view.js"></script>
+<script src="grid.js"></script>
 <script src="robot.js"></script>
 <script src="control.js"></script>
 <canvas id=canvas></canvas>
@@ -37,6 +38,7 @@ UFX.scenes.play = {
 			"tab center middle fs black ss gray lw 1 fst0 GMTK~Jam~2024~game ]")
 		view.scale()
 		UFX.draw("[ t", control.tile, "alpha 0.1 fs white fr -0.5 -0.5 1 1 ]")
+		grid.draw()
 		robot.draw()
 		if (control.xroll !== null) {
 			let dx = control.xroll > robot.x ? 0.2 : -0.2
@@ -51,7 +53,7 @@ UFX.scenes.play = {
 		UFX.draw("]")
 		UFX.draw("[ t", control.pos, "b o 0 0 5 fs orange f ]")
 		UFX.draw("fs white font 30px~'Viga'")
-		context.fillText(`${control.pos} - ${control.tile}`, 20, 40)
+		context.fillText(`Score ${grid.score}`, 20, 40)
 		UFX.draw("]")
 	},
 }

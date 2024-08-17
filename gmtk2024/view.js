@@ -2,10 +2,19 @@
 // G: game coordinates
 // V: view coordinates. canvas is 1600x900
 
+function poseq(pos0, pos1) {
+	let [x0, y0] = pos0, [x1, y1] = pos1
+	return x0 == x1 && y0 == y1
+}
 
 function dpos(pos0, pos1) {
 	let [x0, y0] = pos0, [x1, y1] = pos1
 	return Math.hypot(x1 - x0, y1 - y0)
+}
+
+function posindex(arr, pos) {
+	for (let j = 0 ; j < arr.length ; ++j) if (poseq(arr[j], pos)) return j
+	return -1
 }
 
 
