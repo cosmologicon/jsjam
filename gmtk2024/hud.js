@@ -21,7 +21,7 @@ Button.prototype = {
 let hud = {
 	init: function () {
 		this.buttons = {
-			extend: new Button("Extend", [10, 810, 80, 80]),
+//			extend: new Button("Extend", [10, 810, 80, 80]),
 		}
 	},
 	buttonat: function (pos) {

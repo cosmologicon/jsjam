@@ -11,6 +11,10 @@ function drawjoiner(pos0, pos1, rmax) {
 	xs = xs.map((x, j) => x * (j % 2 ? 1 : -1))
 	let ps = xs.map((x, j) => [x, d * j / (xs.length - 1)])
 	let [x0, y0] = ps[0]
+	y0 -= 3
+	ps.unshift([x0, y0])
+	let [xf, yf] = ps[ps.length - 1]
+	ps.push([xf, yf + 3])
 	UFX.draw("b m", x0, y0, ps.map(p => ["l", p]),
 		"m", -x0, y0, ps.map(([x, y]) => ["l", -x, y]))
 	context.miterLimit = 1
@@ -42,7 +46,9 @@ let DisplayPos = {
 	},
 	think: function (dt) {
 		if (!poseq(this.dpos, this.pos)) {
-			this.dpos = posapproach(this.dpos, this.pos, 10 * dt / (0.24 * this.ndpos + 1))
+			let f = 10 / (0.25 * this.ndpos + 1)
+			f = 7
+			this.dpos = posapproach(this.dpos, this.pos, f * dt)
 		}
 	},
 	frontpos: function (dir) {
@@ -251,6 +257,7 @@ Root.prototype = UFX.Thing()
 
 function Head(parent) {
 	this.dir = "u"
+	this.tanim = 0
 	this.rmax = 1
 	this.setparent(parent)
 	this.rjoin = 0.4
@@ -265,17 +272,58 @@ Head.prototype = UFX.Thing()
 		relpos: function () {
 			return [0, 1]
 		},
+		think: function (dt) {
+			this.tanim += control.pointed === this ? 3 * dt : dt
+		},
 		draw0: function () {
-			let grad
 			UFX.draw("[ t", postimes(this.dpos, 100))
-			UFX.draw("ss #aaa fs #666 rr -40 -40 80 60 3 f s")
-			UFX.draw("rr -70 -30 140 40 3 f s")
+
+			let grad = UFX.draw.lingrad(-10, 0, 20, 0, 0, "#666", 0.2, "#999", 1, "#666")
+
+			let coms = [[0, ["fs", grad, "ss #333 lw 3 tr -10 0 20 50 s f"]]]
+			grad = UFX.draw.radgrad(-4, 4, 0, 0, 0, 12, 0, "#999", 1, "#555")
+			let f = this.tanim * 0.3 % 1
+			for (let j = 0 ; j < 5 ; ++j) {
+				let A = (f + j / 5) * tau
+				let com = ["[ t", 30 * Math.sin(A), 35, "fs", grad, "ss #333 lw 2 b o 0 0 12 s f ]"]
+				coms.push([Math.cos(A), com])
+			}
+			coms.sort((c0, c1) => c1[0] - c0[0])
+			coms.forEach(([z, com]) => UFX.draw(com))
+
+
+
+			grad = UFX.draw.lingrad(-40, 0, 40, 0, 0, "#666", 0.2, "#999", 1, "#666")
+			UFX.draw("lw 3 ss #333 fs", grad, "rr -40 -40 80 60 3 s f")
+
+			if (true) {
+				let t = this.tanim * 0.7
+				let h1 = 5 + Math.sin(t * 1.234) + Math.sin(t * 1.456)
+				let h2 = 5 + Math.sin(t * 1.345) + Math.sin(t * 1.567)
+				let ps = [[2, -56, 12 * h1], [3, -56, 9 * h1], [5, -56, 6 * h1],
+					[2, 56, 12 * h2], [3, 56, 9 * h2], [5, 56, 6 * h2]]
+				for (let [w, x, y] of ps) {
+					grad = UFX.draw.lingrad(-w, 0, w, 0, 0, "#333", 0.3, "#999", 1, "#333")
+					UFX.draw("[ t", x, 0, "fs", grad, "fr", -w, -20, 2 * w, (y + 20), "]")
+				}
+			}
+			if (false) {
+				UFX.draw("b",
+					"m -50 0 q -40 20 -60 40",
+					"m -10 0 q -10 10 20 40 q -10 60 -40 40",
+					"ss #333 lw 7 s",
+					"ss #666 lw 5 s",
+					"ss #888 lw 3 s")
+			}
+
+			grad = UFX.draw.lingrad(-70, 0, 70, 0, 0, "#666", 0.2, "#999", 1, "#666")
+			UFX.draw("fs", grad, "rr -70 -30 140 40 3 s f")
 			let eyecolor = this === control.pointed ? "#fd6" : "#642"
 			grad = UFX.draw.radgrad(-8, 8, 0, 0, 0, 15, 0, eyecolor, 1, "#321")
 			UFX.draw("fs", grad, "[ t -40 -10 b o 0 0 15 f ] [ t 40 -10 b o 0 0 15 f ]")
 			UFX.draw("fs #333 rr -20 -26 40 20 3 f")
 			for (let j = 0 ; j < 5 ; ++j) {
-				let f = (Math.sin(-Date.now() * 0.001 / 2 * tau + 0.4 * j) + 1) / 2
+				let f = (Math.sin(-this.tanim / 2 * tau + 0.4 * j) + 1) / 2
 				let b = Math.floor(mix(40, 120, f))
 				let color = `rgb(20,20,${b})`
 				UFX.draw("fs", color, "fr", -17 + 7 * j, -23.5, 6, 15)
@@ -285,8 +333,12 @@ Head.prototype = UFX.Thing()
 	})
 
 
+let stations = { 0: "numtools", 2: "fps", }
+
 function Block(parent, dir, rmax) {
 	this.children = []
+	this.jtv = robot.numtvs
+	robot.numtvs += 1
 	this.setdir(dir, rmax)
 	this.setparent(parent)
 	this.rjoin = 0.3
@@ -305,17 +357,22 @@ Block.prototype = UFX.Thing()
 			UFX.draw("ss #333 lw 2 fs", grad, "rr -30 -30 60 60 4 f s")
 			grad = UFX.draw.radgrad(-20, 20, 0, -10, 10, 50, 0, "#333", 1, "#111")
 			UFX.draw("ss black lw 3 fs", grad, "b rr -24 -24 48 48 8 f s clip")
-			if (false) {
+			let station = stations[this.jtv]
+			if (!station) {
 				let xs = [-18]
 				while (xs[xs.length - 1] < 18) xs.push(xs[xs.length - 1] + 3)
 				let ps = xs.map(x => [x, (x - 18) * (x + 18) * 0.05 * UFX.random(-1, 1)])
 				UFX.draw("b m -20 0", ps.map(p => ["l", p]), "l", 20, 0, "lw 1.5 ss #7f7 s")
-			} else if (true) {
+			} else {
 				UFX.draw("[ fs #383 tab center middle z 1 -1")
 				let d = Date.now() * 0.0001 % 1
 				if (d < 0.06 && (d < 0.04 || d > 0.05)) UFX.draw("z 1 1.5 xshear -0.2")
-				context.font = "bold 12px 'Roboto Mono'"
-				UFX.draw("ft0", `${UFX.ticker.wups.toFixed(0)}fps`, "]")
+				let text
+				if (station == "fps") text = `${UFX.ticker.wups.toFixed(0)}fps`
+				if (station == "numtools") text = `${robot.toactivate().length}/${robot.numtools}`
+				let fontsize = Math.floor(60 / text.length)
+				context.font = `bold ${fontsize}px 'Roboto Mono'`
+				UFX.draw("ft0", text, "]")
 				let y = (1 - Date.now() * 0.0005 % 1) * 100 - 50
 				UFX.draw("b m", -50, y, "l", 50, y + 10, "lw 1 ss #383 s")
 			}
@@ -329,6 +386,7 @@ function Tool(parent, dir, rmax) {
 	this.setparent(parent)
 	this.rjoin = 0.35
 	this.setup()
+	robot.numtools += 1
 }
 Tool.prototype = UFX.Thing()
 	.addcomp(TreeNode)
@@ -368,6 +426,8 @@ Tool.prototype = UFX.Thing()
 
 let robot = {
 	x: 0,
+	numtools: 0,
+	numtvs: 0,
 	blocks: [],
 	blockat: function (pos) {
 		return root.nodeat(pos)
@@ -385,25 +445,17 @@ let robot = {
 		root.updatepos(0)
 	},
 	toactivate: function () {
-		let atargets = root.atargets()
-		let tasks = {}
-		let solved = []
-		grid.tasks.forEach(task => tasks[task] = task)
-		for (let atarget of atargets) {
-			if (tasks[atarget.pos]) {
-				solved.push(tasks[atarget.pos])
-				delete tasks[atarget.pos]
-			}
-		}
+		let atargets = root.atargets().map(atarget => atarget.pos)
+		return grid.tasks.filter(task => posincludes(atargets, task))
 	},
 	activate: function () {
-		let solved = this.toactivate()
-		
+		let solved = this.toactivate()		
 		quest.solve(solved)
 	},
 	draw: function () {
 		UFX.draw("[ z", 1/100, 1/100)
 		root.drawtilt()
+		root.drawback()
 		UFX.draw("[ t", postimes(root.dpos, 100))
 		// wheel
 		UFX.draw("[ t 0 -10",
@@ -428,7 +480,6 @@ let robot = {
 		UFX.draw("]")
 		UFX.draw("]")
 		root.draw()
-		root.drawback()
 		UFX.draw("]")
 	},
 }

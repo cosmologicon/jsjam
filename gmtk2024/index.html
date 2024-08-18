@@ -35,10 +35,10 @@ UFX.scenes.play = {
 	think: function (dt) {
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
-		control.update(pointer)
+		control.update(pointer, kstate)
 		for (let node of root.allnodes()) node.think(dt)
 		quest.think(dt)
-		if (kstate.down.space) quest.advance()
+		grid.think(dt)
 	},
 	draw: function () {
 		UFX.draw("fs #864 f0")

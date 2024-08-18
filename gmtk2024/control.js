@@ -9,7 +9,11 @@ let control = {
 	mode: null,
 	hudpointed: null,
 	grabbed: null,
-	update: function (pointer) {
+	update: function (pointer, kstate) {
+		if (kstate.down.space) quest.advance()
+		if (kstate.down.tab) {
+			this.mode = this.mode === "extend" ? null : "extend"
+		}
 		if (pointer.pos) {
 			let [x, y] = pointer.pos
 			this.pos = [x * 1600 / canvas.width, y * 900 / canvas.height]
@@ -30,8 +34,12 @@ let control = {
 			this.xroll = null
 		}
 		if (this.mode == "extend") this.xroll = null
+
+		if (pointer.rclick) {
+			this.mode = this.mode === "extend" ? null : "extend"
+		}
 		
-		if (pointer.down) {
+		if (pointer.down && this.mode === null) {
 			if (this.pointed === head) {
 			} else if (this.pointed !== null) {
 				this.grabbed = this.pointed
