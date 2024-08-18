@@ -59,7 +59,7 @@ let hud = {
 		let text
 		UFX.draw("fs white font 30px~'Viga' tab left top")
 		text = `Stage ${quest.stage} | Money ${quest.money} | Pos ${control.tile}`
-		context.fillText(text, 200, 20)
+		context.fillText(text, 200, 200)
 		text = `$${quest.money}`
 		UFX.draw("[ fs white ss black lw 4 font bold~100px~'Roboto~Mono'",
 			"tab left top shadow black 4 4 2 sft", text, 20, 20, "]")

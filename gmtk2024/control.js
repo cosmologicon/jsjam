@@ -10,9 +10,23 @@ let control = {
 	hudpointed: null,
 	grabbed: null,
 	update: function (pointer, kstate) {
-		if (kstate.down.space) quest.advance()
+		if (kstate.down.space) robot.activate()
 		if (kstate.down.tab) {
 			this.mode = this.mode === "extend" ? null : "extend"
+		}
+		if (kstate.down.M) {
+			let volume = UFX.audio.getgain("main")
+			UFX.audio.setgain("main", 1 - volume)
+		}
+		if (kstate.down.left && posincludes(root.spots(), [robot.x - 1, 0])) {
+			robot.rollto(robot.x - 1)
+		}
+		if (kstate.down.right && posincludes(root.spots(), [robot.x + 1, 0])) {
+			robot.rollto(robot.x + 1)
+		}
+		if (kstate.down.F1) {
+			quest.advance()
+			quest.money = 10000
 		}
 		if (pointer.pos) {
 			let [x, y] = pointer.pos
@@ -23,6 +37,10 @@ let control = {
 		this.tile = view.GtileV(this.pos)
 		if (this.hudpointed === null) {
 			this.pointed = robot.blockat(this.tile)
+			if (this.mode === null && this.pointed !== null && this.pointed !== head &&
+				this.pointed !== root && this.pointed.rmax == 1) {
+				this.pointed = null
+			}
 			if (this.pointed === null) {
 				let [xtile, ytile] = this.tile
 				this.xroll = ytile == 0 && xtile != robot.x ? xtile : null
@@ -52,10 +70,12 @@ let control = {
 			} else if (this.mode === "extend") {
 				if (this.pointed && this.pointed.canextend()) {
 					if (this.pointed.extendcost() <= quest.money) {
+						playsound("select")
 						quest.money -= this.pointed.extendcost()
 						this.pointed.extend()
 						view.resize()
 					} else {
+						playsound("no")
 					}
 				} else {
 					this.mode = null
@@ -64,6 +84,7 @@ let control = {
 				robot.activate()
 			} else if (this.xroll !== null) {
 				robot.rollto(this.xroll)
+				playsound("select")
 				this.xroll = null
 			}
 		}
@@ -73,6 +94,7 @@ let control = {
 				let [dist, spot] = nearesttile(spots, this.posG)
 				this.grabbed.moveto(spot)
 				this.grabbed = null
+				playsound("select")
 			}
 		}
 	},
@@ -84,11 +106,15 @@ let control = {
 			} else {
 				return "default"
 			}
+		} else if (this.grabbed === root || this.xroll !== null) {
+			return "col-resize"
+		} else if (this.grabbed !== null) {
+			return { u: "row", l: "col", d: "row", r: "col" }[this.grabbed.dir] + "-resize"
 		} else if (this.pointed !== null) {
-			if (this.pointed.canextend()) return "grab"
-			if (this.pointed === head) return "pointer"
+			if (this.pointed === root) return "grab"
+			if (this.pointed.canextend() && this.pointed.rmax > 1) return "grab"
+			if (this.pointed === head) return robot.toactivate().length ? "pointer" : "not-allowed"
 		}
-		if (this.xroll !== null) return "col-resize"
 		return "default"
 	},
 }

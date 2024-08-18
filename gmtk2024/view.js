@@ -64,7 +64,7 @@ let view = {
 	N: 0,
 
 	resize: function () {
-		let n = robot.maxheight()
+		let n = quest.getn()
 		if (n <= this.N) return
 		this.N = n
 		if (this.n == 0) {

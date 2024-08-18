@@ -21,14 +21,35 @@ canvas.height = 900
 let context = canvas.getContext("2d")
 UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
+UFX.audio.init()
+UFX.audio.makegainnode({ name: "main", gain: 0, })
+UFX.audio.makegainnode({ name: "sfx", output: "main" })
+UFX.audio.makegainnode({ name: "music", output: "main", gain: 0.3 })
+UFX.audio.loadbuffers({
+	select: "sound/select.ogg",
+	no: "sound/no.ogg",
+	build: "sound/build.ogg",
+	break: "sound/break.ogg",
+	fix1: "sound/fix1.ogg",
+	fix2: "sound/fix2.ogg",
+	fix3: "sound/fix3.ogg",
+	fix4: "sound/fix4.ogg",
+	
+	gettingitdone: "sound/gettingitdone.ogg",
+})
+function playsound(sname) {
+	UFX.audio.playbuffer(sname, { output: "sfx", gain: 1, })
+}
 UFX.key.init()
 UFX.key.remaparrows(true)
 UFX.resource.loadwebfonts("Viga", "Roboto Mono", "Days One")
 UFX.resource.onload = () => {
 	UFX.scene.push("play")
 	UFX.scene.init({ minups: 10, maxups: 120 })
+	UFX.audio.playbuffer("gettingitdone",
+		{ name: "gettingitdone", output: "music", loop: true, gain: 1 })
 }
-UFX.resource.onloading = console.log
+UFX.resource.onloading = () => {}
 UFX.scenes.play = {
 	pos: [-10000, -10000],
 	robotxVmove: null,

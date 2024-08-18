@@ -177,7 +177,7 @@ let Extendable = {
 		return true
 	},
 	extendcost: function () {
-		return [0, 3, 10, 30, 100][this.rmax]
+		return costs[this.rmax]
 	},
 	extend: function () {
 		this.rmax += 1
@@ -261,6 +261,8 @@ function Head(parent) {
 	this.rmax = 1
 	this.setparent(parent)
 	this.rjoin = 0.4
+	this.tshower = 0
+	this.lshower = null
 	this.setup()
 }
 Head.prototype = UFX.Thing()
@@ -272,11 +274,18 @@ Head.prototype = UFX.Thing()
 		relpos: function () {
 			return [0, 1]
 		},
+		shower: function (lshower) {
+			this.tshower = 0
+			this.lshower = lshower
+		},
 		think: function (dt) {
-			this.tanim += control.pointed === this ? 3 * dt : dt
+			this.tanim += control.pointed === this && robot.toactivate().length ? 3 * dt : dt
+			this.tshower += dt
+			if (this.tshower >= 1) this.lshower = null
 		},
 		draw0: function () {
 			UFX.draw("[ t", postimes(this.dpos, 100))
+
 
 			let grad = UFX.draw.lingrad(-10, 0, 20, 0, 0, "#666", 0.2, "#999", 1, "#666")
 
@@ -318,8 +327,9 @@ Head.prototype = UFX.Thing()
 
 			grad = UFX.draw.lingrad(-70, 0, 70, 0, 0, "#666", 0.2, "#999", 1, "#666")
 			UFX.draw("fs", grad, "rr -70 -30 140 40 3 s f")
-			let eyecolor = this === control.pointed ? "#fd6" : "#642"
-			grad = UFX.draw.radgrad(-8, 8, 0, 0, 0, 15, 0, eyecolor, 1, "#321")
+			let eyecolor0 = this === control.pointed && robot.toactivate().length ? "#fd6" : "#642"
+			let eyecolor1 = this === control.pointed && robot.toactivate().length ? "#a94" : "#321"
+			grad = UFX.draw.radgrad(-8, 8, 0, 0, 0, 15, 0, eyecolor0, 1, eyecolor1)
 			UFX.draw("fs", grad, "[ t -40 -10 b o 0 0 15 f ] [ t 40 -10 b o 0 0 15 f ]")
 			UFX.draw("fs #333 rr -20 -26 40 20 3 f")
 			for (let j = 0 ; j < 5 ; ++j) {
@@ -328,12 +338,31 @@ Head.prototype = UFX.Thing()
 				let color = `rgb(20,20,${b})`
 				UFX.draw("fs", color, "fr", -17 + 7 * j, -23.5, 6, 15)
 			}
+			if (this.lshower !== null) {
+				UFX.draw("[ alpha", clamp(1 - this.tshower, 0, 1))
+				UFX.random.pushseed(1234)
+				let ndrop = 20 * this.lshower
+				for (let j = 0 ; j < ndrop ; ++j) {
+					let gb = UFX.random.choice("9bdf"), color = `#f${gb}${gb}`
+					let x0 = UFX.random(-50, 50)
+					let y0 = UFX.random(-20, 20)
+					let vy = UFX.random(40, 80)
+					let vx = UFX.random(0, 10), ax = UFX.random(-40, 0)
+					if (UFX.random.flip()) [ax, vx] = [-ax, -vx]
+					let x = x0 + vx * this.tshower + ax * this.tshower ** 2
+					let y = y0 + vy * this.tshower
+					UFX.draw("b o", x, y, 3, "fs", color, "f")
+				}
+				UFX.random.popseed()
+				UFX.draw("]")
+			}
+
 			UFX.draw("]")
 		},
 	})
 
 
-let stations = { 0: "numtools", 2: "fps", }
+let stations = { 0: "numtools", 2: "fps", 5: "thanks", 4: "smiley" }
 
 function Block(parent, dir, rmax) {
 	this.children = []
@@ -342,6 +371,7 @@ function Block(parent, dir, rmax) {
 	this.setdir(dir, rmax)
 	this.setparent(parent)
 	this.rjoin = 0.3
+	this.tvt0 = UFX.random()
 	this.setup()
 }
 Block.prototype = UFX.Thing()
@@ -364,16 +394,26 @@ Block.prototype = UFX.Thing()
 				let ps = xs.map(x => [x, (x - 18) * (x + 18) * 0.05 * UFX.random(-1, 1)])
 				UFX.draw("b m -20 0", ps.map(p => ["l", p]), "l", 20, 0, "lw 1.5 ss #7f7 s")
 			} else {
-				UFX.draw("[ fs #383 tab center middle z 1 -1")
-				let d = Date.now() * 0.0001 % 1
-				if (d < 0.06 && (d < 0.04 || d > 0.05)) UFX.draw("z 1 1.5 xshear -0.2")
 				let text
 				if (station == "fps") text = `${UFX.ticker.wups.toFixed(0)}fps`
 				if (station == "numtools") text = `${robot.toactivate().length}/${robot.numtools}`
-				let fontsize = Math.floor(60 / text.length)
-				context.font = `bold ${fontsize}px 'Roboto Mono'`
-				UFX.draw("ft0", text, "]")
-				let y = (1 - Date.now() * 0.0005 % 1) * 100 - 50
+				if (station == "smiley") {
+					let t = Date.now() * 0.001 / 6 % 1
+					text = t < 0.2 ? ";)" : ":)"
+				}
+				if (station == "thanks") {
+					let t = Date.now() * 0.001 / 3 % 1 * 12
+					text = ["THE", "END", "THANK", "YOU", "FOR", "PLAY", "ING"][Math.floor(t)] || ""
+				}
+				if (text != "") {
+					UFX.draw("[ fs #383 tab center middle z 1 -1")
+					let d = Date.now() * 0.0001 % 1
+					if (d < 0.06 && (d < 0.04 || d > 0.05)) UFX.draw("z 1 1.5 xshear -0.2")
+					let fontsize = Math.floor(60 / text.length)
+					context.font = `bold ${fontsize}px 'Roboto Mono'`
+					UFX.draw("ft0", text, "]")
+				}
+				let y = (1 - ((Date.now() * 0.0005 + this.tvt0) % 1)) * 100 - 50
 				UFX.draw("b m", -50, y, "l", 50, y + 10, "lw 1 ss #383 s")
 			}
 			UFX.draw("]")
@@ -384,7 +424,7 @@ Block.prototype = UFX.Thing()
 function Tool(parent, dir, rmax) {
 	this.setdir(dir, rmax)
 	this.setparent(parent)
-	this.rjoin = 0.35
+	this.rjoin = 0.33
 	this.setup()
 	robot.numtools += 1
 }
@@ -400,13 +440,19 @@ Tool.prototype = UFX.Thing()
 		draw0: function () {
 			UFX.draw("[ t", postimes(this.dpos, 100))
 			UFX.draw("r", { u: 0, l: 1, d: 2, r: 3}[this.dir] * tau / 4)
+			let lit = posincludes(grid.tasks, this.pos)
+			for (let j = 0 ; j < 5 ; ++j) {
+				let color = lit ? "#fff" : `#44${UFX.random.choice("abcdef")}`
+				let lw = UFX.random(4, 8)
+				UFX.draw("[ alpha 0.03 ss", color, "lw", lw,
+					"b m -10 25 l 10 -25 s ]")
+			}
 			UFX.draw("[ ( m -16 -30 l -30 -20 l -28 20 l -5 30",
 				"l -15 18 l -14 -16 l 30 -20 l 16 -30 ) lw 3 ss black s",
 				"clip fs gray f",
 				"b o -20 17 3 fs #333 f",
 				"b o -20 -17 3 fs #333 f",
 				"b m 0 0 l -40 10 m 0 -10 l -40 0 lw 5 ss #aa6 s ]")
-			let lit = posincludes(grid.tasks, this.pos)
 			let r0 = lit ? 30 : 15
 			for (let j = 0 ; j < 6 ; ++j) {
 				let color = lit ? "#fff" : `#44${UFX.random.choice("abcdef")}`
@@ -449,8 +495,13 @@ let robot = {
 		return grid.tasks.filter(task => posincludes(atargets, task))
 	},
 	activate: function () {
-		let solved = this.toactivate()		
-		quest.solve(solved)
+		let solved = this.toactivate()
+		if (solved.length > 0) {
+			head.shower(solved.length)
+			quest.solve(solved)
+		} else {
+			playsound("no")
+		}
 	},
 	draw: function () {
 		UFX.draw("[ z", 1/100, 1/100)

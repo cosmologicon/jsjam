@@ -32,6 +32,7 @@ let grid = {
 		delete this.ttasks[task]
 	},
 	addrandomtask: function (bounds) {
+		playsound("break")
 		let [x0, x1, y0, y1] = bounds
 		let atargets = root.atargets().map(atarget => atarget.pos)
 		while (true) {
