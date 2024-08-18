@@ -14,8 +14,26 @@ function drawjoiner(pos0, pos1, rmax) {
 	UFX.draw("b m", x0, y0, ps.map(p => ["l", p]),
 		"m", -x0, y0, ps.map(([x, y]) => ["l", -x, y]))
 	context.miterLimit = 1
-	UFX.draw("lw 9 ss black s lw 6 ss gray s ]")
+	UFX.draw("lw 9 ss #333 s lw 7 ss #555 s lw 5 ss #777 s lw 3 ss #888 s ]")
 }
+
+function backward(dir) {
+	return { u: "d", l: "r", d: "u", r: "l" }[dir]
+}
+
+function drawarrow(pos, from, lit) {
+	
+	UFX.draw("[ t", pos, "r", angleto(from, pos),
+		"( m 0 0 l -0.3 -0.2 l -0.15 -0.2 l -0.15 -0.6 l 0.15 -0.6 l 0.15 -0.2 l 0.3 -0.2 )")
+	if (lit) {
+		UFX.draw("fs #f44 ss white lw 0.03 s f")
+	} else {
+		let grad = UFX.draw.lingrad(0, 0, 0, -0.6, 0, "rgba(255,0,0,0.5)", 1, "rgba(255,0,0,0)")
+		UFX.draw("fs", grad, "f")
+	}
+	UFX.draw("]")
+}
+
 
 let DisplayPos = {
 	setup: function () {
@@ -33,7 +51,7 @@ let DisplayPos = {
 		return [x + this.rjoin * Math.sin(A), y + this.rjoin * Math.cos(A)]
 	},
 	backpos: function (dir) {
-		return this.frontpos({ u: "d", l: "r", d: "u", r: "l" }[dir])
+		return this.frontpos(backward(dir))
 	},
 }
 
@@ -203,6 +221,14 @@ Root.prototype = UFX.Thing()
 	.addcomp(NonLeaf)
 	.addcomp(NonExtendable)
 	.addcomp({
+		spots: function () {
+			let ret = []
+			for (let x = -view.n ; x <= view.n ; ++x) ret.push([x, 0])
+			return ret
+		},
+		moveto: function (spot) {
+			robot.rollto(spot[0])
+		},
 		think: function (dt) {
 			let x = this.dpos[0]
 			if (x != this.pos[0]) {
@@ -278,11 +304,21 @@ Block.prototype = UFX.Thing()
 			UFX.draw("[ t", postimes(this.dpos, 100))
 			UFX.draw("ss #333 lw 2 fs", grad, "rr -30 -30 60 60 4 f s")
 			grad = UFX.draw.radgrad(-20, 20, 0, -10, 10, 50, 0, "#333", 1, "#111")
-			UFX.draw("ss black lw 3 fs", grad, "rr -24 -24 48 48 8 f s")
-			let xs = [-18]
-			while (xs[xs.length - 1] < 18) xs.push(xs[xs.length - 1] + 3)
-			let ps = xs.map(x => [x, (x - 18) * (x + 18) * 0.05 * UFX.random(-1, 1)])
-			UFX.draw("b m -20 0", ps.map(p => ["l", p]), "l", 20, 0, "lw 1.5 ss #7f7 s")
+			UFX.draw("ss black lw 3 fs", grad, "b rr -24 -24 48 48 8 f s clip")
+			if (false) {
+				let xs = [-18]
+				while (xs[xs.length - 1] < 18) xs.push(xs[xs.length - 1] + 3)
+				let ps = xs.map(x => [x, (x - 18) * (x + 18) * 0.05 * UFX.random(-1, 1)])
+				UFX.draw("b m -20 0", ps.map(p => ["l", p]), "l", 20, 0, "lw 1.5 ss #7f7 s")
+			} else if (true) {
+				UFX.draw("[ fs #383 tab center middle z 1 -1")
+				let d = Date.now() * 0.0001 % 1
+				if (d < 0.06 && (d < 0.04 || d > 0.05)) UFX.draw("z 1 1.5 xshear -0.2")
+				context.font = "bold 12px 'Roboto Mono'"
+				UFX.draw("ft0", `${UFX.ticker.wups.toFixed(0)}fps`, "]")
+				let y = (1 - Date.now() * 0.0005 % 1) * 100 - 50
+				UFX.draw("b m", -50, y, "l", 50, y + 10, "lw 1 ss #383 s")
+			}
 			UFX.draw("]")
 		},
 	})
@@ -306,9 +342,24 @@ Tool.prototype = UFX.Thing()
 		draw0: function () {
 			UFX.draw("[ t", postimes(this.dpos, 100))
 			UFX.draw("r", { u: 0, l: 1, d: 2, r: 3}[this.dir] * tau / 4)
-			UFX.draw("b o 0 0 25 lw 8 ss black s")
-			UFX.draw("b o 0 0 25 lw 6 ss gray s")
-			UFX.draw("fs gray fr -25 -35 50 10")
+			UFX.draw("[ ( m -16 -30 l -30 -20 l -28 20 l -5 30",
+				"l -15 18 l -14 -16 l 30 -20 l 16 -30 ) lw 3 ss black s",
+				"clip fs gray f",
+				"b o -20 17 3 fs #333 f",
+				"b o -20 -17 3 fs #333 f",
+				"b m 0 0 l -40 10 m 0 -10 l -40 0 lw 5 ss #aa6 s ]")
+			let lit = posincludes(grid.tasks, this.pos)
+			let r0 = lit ? 30 : 15
+			for (let j = 0 ; j < 6 ; ++j) {
+				let color = lit ? "#fff" : `#44${UFX.random.choice("abcdef")}`
+				let r = r0 * 0.8 ** j, alpha = 0.1 + 0.05 * j
+				UFX.draw("[ z", r, r, "alpha", alpha,
+					"t", UFX.random(-0.1, 0.1), UFX.random(-0.1, 0.1),
+					"z", UFX.random(0.8, 1.2), UFX.random(0.8, 1.2),
+					"xshear", UFX.random(-0.4, 0.4),
+					"b o 0 0 1 fs", color, "f ]")
+			}
+//			UFX.draw("fs gray fr -25 -35 50 10")
 			UFX.draw("]")
 		},
 	})
@@ -333,7 +384,7 @@ let robot = {
 		this.x = xroll
 		root.updatepos(0)
 	},
-	activate: function () {
+	toactivate: function () {
 		let atargets = root.atargets()
 		let tasks = {}
 		let solved = []
@@ -344,6 +395,10 @@ let robot = {
 				delete tasks[atarget.pos]
 			}
 		}
+	},
+	activate: function () {
+		let solved = this.toactivate()
+		
 		quest.solve(solved)
 	},
 	draw: function () {

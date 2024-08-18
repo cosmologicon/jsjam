@@ -108,8 +108,9 @@ let quest = {
 		switch (this.stage) {
 			case 0:
 				return [
-					"Thank you for purchasing the self-building, self-scaling",
-					"repair bot. Click along the ground to move left and right.",
+					"Thank you for purchasing this state of the art, self-building,",
+					"self-scaling repair bot. Click along the ground to move left",
+					"and right.",
 				]
 			case 1:
 				return [
@@ -127,8 +128,8 @@ let quest = {
 				]
 			case 4:
 				return [
-					"Line up multiple arms to conduct multiple repairs at once for",
-					"extra money.",
+					"Continue making repairs. Try to make multiple repairs at once by",
+					"lining up multiple arms if possible.",
 				]
 			default:
 				return []

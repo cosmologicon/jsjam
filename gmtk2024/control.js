@@ -32,8 +32,7 @@ let control = {
 		if (this.mode == "extend") this.xroll = null
 		
 		if (pointer.down) {
-			if (this.pointed === root) {
-			} else if (this.pointed === head) {
+			if (this.pointed === head) {
 			} else if (this.pointed !== null) {
 				this.grabbed = this.pointed
 			}
@@ -76,6 +75,9 @@ let control = {
 			} else {
 				return "default"
 			}
+		} else if (this.pointed !== null) {
+			if (this.pointed.canextend()) return "grab"
+			if (this.pointed === head) return "pointer"
 		}
 		if (this.xroll !== null) return "col-resize"
 		return "default"

@@ -41,6 +41,13 @@ function posapproach(pos0, pos1, dp) {
 	return [mix(x0, x1, f), mix(y0, y1, f)]
 }
 
+function angleto(pos0, pos1) {
+	let [dx, dy] = possub(pos1, pos0)
+	if (dx == 0 && dy == 0) return 0
+	return Math.atan2(dx, -dy)
+}
+
+
 
 function nearesttile(tiles, pos) {
 	let [x, y] = pos

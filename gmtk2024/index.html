@@ -23,9 +23,12 @@ UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.scene.init({ minups: 10, maxups: 120 })
-UFX.scene.push("play")
-UFX.resource.loadwebfonts("Viga")
+UFX.resource.loadwebfonts("Viga", "Roboto Mono", "Days One")
+UFX.resource.onload = () => {
+	UFX.scene.push("play")
+	UFX.scene.init({ minups: 10, maxups: 120 })
+}
+UFX.resource.onloading = console.log
 UFX.scenes.play = {
 	pos: [-10000, -10000],
 	robotxVmove: null,
@@ -38,32 +41,40 @@ UFX.scenes.play = {
 		if (kstate.down.space) quest.advance()
 	},
 	draw: function () {
-		UFX.draw("fs #048 f0")
+		UFX.draw("fs #864 f0")
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 		UFX.draw("[ t 600 200 font 100px~'Viga' r -0.1",
 			"tab center middle fs black ss gray lw 1 fst0 GMTK~Jam~2024~game ]")
 		view.scale()
-		UFX.draw("[ t", control.tile, "alpha 0.1 fs white fr -0.5 -0.5 1 1 ]")
+//		UFX.draw("[ t", control.tile, "alpha 0.1 fs white fr -0.5 -0.5 1 1 ]")
 		grid.draw()
 		robot.draw()
 		if (control.xroll !== null) {
-			let dx = control.xroll > robot.x ? 0.2 : -0.2
-			UFX.draw("[ t", control.xroll, 0,
-				"( m", dx, 0, "l", -dx, 0.2, "l", -dx, -0.2, ") fs red alpha 0.2 f ]")
-		}
-		if (control.grabbed) {
-			for (let spot of control.grabbed.spots()) {
-				UFX.draw("[ t", spot, "b o 0 0 0.1 fs red f ]")
-			}
+			drawarrow([control.xroll, 0], root.pos)
 		}
 		UFX.draw("]")  // view.scale
 		let texts = quest.text()
 		if (texts.length > 0) {
-			UFX.draw("font 40px~'Viga' tab center middle fs white")
+			UFX.draw("font 40px~'Days~One' tab center middle ss black lw 2",
+				"fs", UFX.draw.lingrad(0, -20, 0, 0, 0, "#eef", 1, "#aab"))
 			texts.forEach((text, j) => {
-				let y = 900 - 50 * (texts.length - j)
-				context.fillText(text, 800, y)
+				UFX.draw("[ t", 800, 900 - 50 * (texts.length - j))
+				context.strokeText(text, 0, 0)
+				UFX.draw("sh black 2 2 3")
+				context.fillText(text, 0, 0)
+				UFX.draw("]")
 			})
+		}
+		if (control.grabbed) {
+			let [dist, nearest] = nearesttile(control.grabbed.spots(), control.posG)
+			UFX.draw("[ alpha 0.5 fs black fr 0 0 1600 900 ]")
+			view.scale()
+			for (let spot of control.grabbed.spots()) {
+				if (poseq(spot, control.grabbed.pos)) continue
+				let lit = poseq(spot, nearest)
+				drawarrow(spot, control.grabbed.pos, lit)
+			}
+			UFX.draw("]")
 		}
 		hud.draw()		
 		UFX.draw("]")
