@@ -38,6 +38,61 @@ function drawarrow(pos, from, lit) {
 	UFX.draw("]")
 }
 
+function drawhead(tanim, lit) {
+	let grad = UFX.draw.lingrad(-10, 0, 20, 0, 0, "#666", 0.2, "#999", 1, "#666")
+
+	let coms = [[0, ["fs", grad, "ss #333 lw 3 tr -10 0 20 50 s f"]]]
+	grad = UFX.draw.radgrad(-4, 4, 0, 0, 0, 12, 0, "#999", 1, "#555")
+	let f = tanim * 0.3 % 1
+	for (let j = 0 ; j < 5 ; ++j) {
+		let A = (f + j / 5) * tau
+		let com = ["[ t", 30 * Math.sin(A), 35, "fs", grad, "ss #333 lw 2 b o 0 0 12 s f ]"]
+		coms.push([Math.cos(A), com])
+	}
+	coms.sort((c0, c1) => c1[0] - c0[0])
+	coms.forEach(([z, com]) => UFX.draw(com))
+
+
+
+	grad = UFX.draw.lingrad(-40, 0, 40, 0, 0, "#666", 0.2, "#999", 1, "#666")
+	UFX.draw("lw 3 ss #333 fs", grad, "rr -40 -40 80 60 3 s f")
+
+	if (true) {
+		let t = tanim * 0.7
+		let h1 = 5 + Math.sin(t * 1.234) + Math.sin(t * 1.456)
+		let h2 = 5 + Math.sin(t * 1.345) + Math.sin(t * 1.567)
+		let ps = [[2, -52, 12 * h1], [3, -52, 9 * h1], [5, -52, 6 * h1],
+			[2, 52, 12 * h2], [3, 52, 9 * h2], [5, 52, 6 * h2]]
+		for (let [w, x, y] of ps) {
+			grad = UFX.draw.lingrad(-w, 0, w, 0, 0, "#333", 0.3, "#999", 1, "#333")
+			UFX.draw("[ t", x, 0, "fs", grad, "fr", -w, -20, 2 * w, (y + 20), "]")
+		}
+	}
+	if (false) {
+		UFX.draw("b",
+			"m -50 0 q -40 20 -60 40",
+			"m -10 0 q -10 10 20 40 q -10 60 -40 40",
+			"ss #333 lw 7 s",
+			"ss #666 lw 5 s",
+			"ss #888 lw 3 s")
+	}
+
+	grad = UFX.draw.lingrad(-70, 0, 70, 0, 0, "#666", 0.2, "#999", 1, "#666")
+	UFX.draw("fs", grad, "rr -70 -30 140 40 3 s f")
+	let eyecolor0 = lit ? "#fd6" : "#642"
+	let eyecolor1 = lit ? "#a94" : "#321"
+	grad = UFX.draw.radgrad(-8, 8, 0, 0, 0, 15, 0, eyecolor0, 1, eyecolor1)
+	UFX.draw("fs", grad, "[ t -40 -10 b o 0 0 15 f ] [ t 40 -10 b o 0 0 15 f ]")
+	UFX.draw("fs #333 rr -20 -26 40 20 3 f")
+	for (let j = 0 ; j < 5 ; ++j) {
+		let f = (Math.sin(-tanim / 2 * tau + 0.4 * j) + 1) / 2
+		let b = Math.floor(mix(40, 120, f))
+		let color = `rgb(20,20,${b})`
+		UFX.draw("fs", color, "fr", -17 + 7 * j, -23.5, 6, 15)
+	}
+
+}
+
 
 let DisplayPos = {
 	setup: function () {
@@ -285,59 +340,8 @@ Head.prototype = UFX.Thing()
 		},
 		draw0: function () {
 			UFX.draw("[ t", postimes(this.dpos, 100))
-
-
-			let grad = UFX.draw.lingrad(-10, 0, 20, 0, 0, "#666", 0.2, "#999", 1, "#666")
-
-			let coms = [[0, ["fs", grad, "ss #333 lw 3 tr -10 0 20 50 s f"]]]
-			grad = UFX.draw.radgrad(-4, 4, 0, 0, 0, 12, 0, "#999", 1, "#555")
-			let f = this.tanim * 0.3 % 1
-			for (let j = 0 ; j < 5 ; ++j) {
-				let A = (f + j / 5) * tau
-				let com = ["[ t", 30 * Math.sin(A), 35, "fs", grad, "ss #333 lw 2 b o 0 0 12 s f ]"]
-				coms.push([Math.cos(A), com])
-			}
-			coms.sort((c0, c1) => c1[0] - c0[0])
-			coms.forEach(([z, com]) => UFX.draw(com))
-
-
-
-			grad = UFX.draw.lingrad(-40, 0, 40, 0, 0, "#666", 0.2, "#999", 1, "#666")
-			UFX.draw("lw 3 ss #333 fs", grad, "rr -40 -40 80 60 3 s f")
-
-			if (true) {
-				let t = this.tanim * 0.7
-				let h1 = 5 + Math.sin(t * 1.234) + Math.sin(t * 1.456)
-				let h2 = 5 + Math.sin(t * 1.345) + Math.sin(t * 1.567)
-				let ps = [[2, -52, 12 * h1], [3, -52, 9 * h1], [5, -52, 6 * h1],
-					[2, 52, 12 * h2], [3, 52, 9 * h2], [5, 52, 6 * h2]]
-				for (let [w, x, y] of ps) {
-					grad = UFX.draw.lingrad(-w, 0, w, 0, 0, "#333", 0.3, "#999", 1, "#333")
-					UFX.draw("[ t", x, 0, "fs", grad, "fr", -w, -20, 2 * w, (y + 20), "]")
-				}
-			}
-			if (false) {
-				UFX.draw("b",
-					"m -50 0 q -40 20 -60 40",
-					"m -10 0 q -10 10 20 40 q -10 60 -40 40",
-					"ss #333 lw 7 s",
-					"ss #666 lw 5 s",
-					"ss #888 lw 3 s")
-			}
-
-			grad = UFX.draw.lingrad(-70, 0, 70, 0, 0, "#666", 0.2, "#999", 1, "#666")
-			UFX.draw("fs", grad, "rr -70 -30 140 40 3 s f")
-			let eyecolor0 = this === control.pointed && robot.toactivate().length ? "#fd6" : "#642"
-			let eyecolor1 = this === control.pointed && robot.toactivate().length ? "#a94" : "#321"
-			grad = UFX.draw.radgrad(-8, 8, 0, 0, 0, 15, 0, eyecolor0, 1, eyecolor1)
-			UFX.draw("fs", grad, "[ t -40 -10 b o 0 0 15 f ] [ t 40 -10 b o 0 0 15 f ]")
-			UFX.draw("fs #333 rr -20 -26 40 20 3 f")
-			for (let j = 0 ; j < 5 ; ++j) {
-				let f = (Math.sin(-this.tanim / 2 * tau + 0.4 * j) + 1) / 2
-				let b = Math.floor(mix(40, 120, f))
-				let color = `rgb(20,20,${b})`
-				UFX.draw("fs", color, "fr", -17 + 7 * j, -23.5, 6, 15)
-			}
+			let lit = this === control.pointed && robot.toactivate().length
+			drawhead(this.tanim, lit)
 			if (this.lshower !== null) {
 				UFX.draw("[ alpha", clamp(1 - this.tshower, 0, 1))
 				UFX.random.pushseed(1234)

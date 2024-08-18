@@ -15,6 +15,7 @@ canvas { background: black }
 <script>
 "use strict"
 let tau = 2 * Math.PI
+let DEBUG = window.location.href.includes("DEBUG")
 let canvas = document.getElementById("canvas")
 canvas.width = 1600
 canvas.height = 900
@@ -43,14 +44,78 @@ function playsound(sname) {
 UFX.key.init()
 UFX.key.remaparrows(true)
 UFX.key.watchlist = ["tab", "space", "M", "left", "right", "A", "D", "E"]
-UFX.resource.loadwebfonts("Viga", "Roboto Mono", "Days One")
+UFX.resource.loadwebfonts("Viga", "Roboto Mono", "Days One", "Russo One")
 UFX.resource.onload = () => {
-	UFX.scene.push("play")
-	UFX.scene.init({ minups: 10, maxups: 120 })
-	UFX.audio.playbuffer("gettingitdone",
-		{ name: "gettingitdone", output: "music", loop: true, gain: 1 })
 }
-UFX.resource.onloading = () => {}
+UFX.scene.push("load")
+UFX.scene.init({ minups: 10, maxups: 120 })
+UFX.resource.onloading = (f) => {
+	UFX.scenes.load.f = f
+}
+UFX.scenes.load = {
+	f: 0,
+	think: function (dt) {
+		let pointer = UFX.pointer(canvas)
+		let kstate = UFX.key.state()
+		if (this.f == 1) {
+			if (pointer.down || kstate.down.space) {
+				UFX.scene.swap("play")
+				UFX.audio.context.resume()
+				UFX.audio.playbuffer("gettingitdone",
+					{ name: "gettingitdone", output: "music", loop: true, gain: 1 })
+				playsound("build")
+			}
+		}
+		grid.think(dt)
+		view.think(dt)
+	},
+	draw: function () {
+		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
+		UFX.draw("[ t 600 200 font 100px~'Viga' r -0.1",
+			"tab center middle fs black ss gray lw 1 fst0 GMTK~Jam~2024~game ]")
+		view.scale()
+		grid.draw()
+		UFX.draw("]")  // view.scale
+		UFX.draw("[ alpha 0.4 fs black fr 0 0 1600 900 ]")
+		let escale = Math.exp(0.2 * Math.sin(Date.now() * 0.002))
+		let grad = UFX.draw.lingrad(0, 50, 0, -50, 0, "#ccf", 1, "#99b")
+		UFX.draw("[ t 800 200 z", escale, 1/escale,
+			"font 150px~'Russo~One' fs", grad, "lw 5 ss black shadow black 8 8 4",
+			"tab center middle sft0 Extendotron",
+			"]")
+		let texts = [
+			"GMTK Game Jam 2024",
+			"by Christopher Night",
+			"music by Kevin MacLeod",
+		]
+		texts.forEach((text, j) => {
+			let grad = UFX.draw.lingrad(0, 15, 0, -15, 0, "#ccf", 1, "#99b")
+			UFX.draw("[ t", 300, 420 + 60 * j,
+				"font 40px~'Russo~One' fs", grad, "ss black shadow black 2 2 1",
+				"tab center middle")
+			context.strokeText(text, 0, 0)
+			context.fillText(text, 0, 0)
+			UFX.draw("]")
+		})
+		let dx = 70 * Math.sin(Date.now() * 0.001)
+		let dy = 20 * Math.sin(Date.now() * 0.001 * Math.sqrt(3))
+		UFX.draw("[ t 1200 600 z 3 -3 r 0.3")
+		drawjoiner([0, -2], [dx/120, -0.4 + dy/100], 5)
+		UFX.draw("t", dx, dy, "r", -0.005 * dx)
+		drawhead(Date.now() * 0.002, true)
+		UFX.draw("]")
+		
+		let text = this.f == 1 ? "Click to begin" : `Loading... ${(100 * this.f).toFixed(0)}%`
+		grad = UFX.draw.lingrad(0, 30, 0, -30, 0, "#fff", 1, "#bbb")
+		UFX.draw("[ t", 800, 800,
+			"font 80px~'Russo~One' fs", grad, "ss black shadow black 4 4 2",
+			"tab center middle")
+		context.strokeText(text, 0, 0)
+		context.fillText(text, 0, 0)
+		UFX.draw("]")
+		UFX.draw("]")
+	},
+}
 UFX.scenes.play = {
 	pos: [-10000, -10000],
 	robotxVmove: null,

@@ -66,9 +66,12 @@ let hud = {
 		}
 //		UFX.draw("[ t", control.pos, "b o 0 0 5 fs orange f ]")
 		let text
-		UFX.draw("fs white font 30px~'Viga' tab left top")
-		text = `Stage ${quest.stage} | Money ${quest.money} | Pos ${control.tile} | N ${view.N} | bounds ${quest.getbounds()}`
-		context.fillText(text, 20, 300)
+		if (DEBUG) {
+			UFX.draw("fs white font 30px~'Viga' tab left top")
+			text = `Stage ${quest.stage} | Money ${quest.money} | Pos ${control.tile} | N ${view.N} | bounds ${quest.getbounds()}`
+			context.fillText(text, 20, 300)
+			context.fillText(UFX.ticker.getrates(), 20, 340)
+		}
 		text = `$${quest.money}`
 		UFX.draw("[ fs white ss black lw 4 font bold~100px~'Roboto~Mono'",
 			"tab left top shadow black 4 4 2 sft", text, 20, 20, "]")
