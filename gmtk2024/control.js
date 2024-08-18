@@ -59,6 +59,7 @@ let control = {
 		}
 		
 		if (pointer.down && this.mode === null) {
+			console.log(this.mode, this.pointed, this.pos, this.posG, this.tile)
 			if (this.pointed === head) {
 			} else if (this.pointed !== null) {
 				this.grabbed = this.pointed

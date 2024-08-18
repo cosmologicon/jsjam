@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-<title>GMTK 2024 game</title>
+<title>Extendotron</title>
 <script src="UFX.js"></script>
 <script src="view.js"></script>
 <script src="grid.js"></script>
@@ -87,11 +87,12 @@ UFX.scenes.load = {
 			"GMTK Game Jam 2024",
 			"by Christopher Night",
 			"music by Kevin MacLeod",
+			"Use Chrome for best performance",
 		]
 		texts.forEach((text, j) => {
-			let grad = UFX.draw.lingrad(0, 15, 0, -15, 0, "#ccf", 1, "#99b")
-			UFX.draw("[ t", 300, 420 + 60 * j,
-				"font 40px~'Russo~One' fs", grad, "ss black shadow black 2 2 1",
+			let grad = UFX.draw.lingrad(0, 12, 0, -12, 0, "#ccf", 1, "#99b")
+			UFX.draw("[ t", 300, 420 + 40 * j,
+				"font 32px~'Russo~One' fs", grad, "ss black shadow black 2 2 1",
 				"tab center middle")
 			context.strokeText(text, 0, 0)
 			context.fillText(text, 0, 0)
@@ -120,6 +121,7 @@ UFX.scenes.play = {
 	pos: [-10000, -10000],
 	robotxVmove: null,
 	think: function (dt) {
+		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
 		control.update(pointer, kstate)

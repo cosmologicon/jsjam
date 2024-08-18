@@ -11,8 +11,8 @@ Button.prototype = {
 		return x0 <= x && x <= x0 + w && y0 <= y && y <= y0 + h
 	},
 	draw: function () {
-		UFX.draw("[ tr", this.box, "fs #333 ss #888 f s",
-			"t", this.center, "tab center middle font 30px~'Viga' fs #aaa")
+		UFX.draw("[ rr", this.box, "5 fs #336 ss #77f f s",
+			"t", this.center, "tab center middle font 30px~'Russo~One' fs #aaa")
 		context.fillText(this.text, 0, 0)
 		UFX.draw("]")
 	},
@@ -23,10 +23,11 @@ let hud = {
 	tbanner: 0,
 	init: function () {
 		this.buttons = {
-//			extend: new Button("Extend", [10, 810, 80, 80]),
+			extend: new Button("UPGRADE", [20, 820, 180, 60]),
 		}
 	},
 	buttonat: function (pos) {
+		if (!UFX.pointer.touch) return null
 		for (let bname in this.buttons) {
 			if (this.buttons[bname].contains(pos)) return this.buttons[bname]
 		}
@@ -80,8 +81,10 @@ let hud = {
 			UFX.draw("fs white ss black lw 2 font bold~26px~'Roboto~Mono'",
 				"tab left top sft", text, 20, 100 + 28 * n)
 		}
-		for (let bname in this.buttons) {
-			this.buttons[bname].draw()
+		if (UFX.pointer.touch) {
+			for (let bname in this.buttons) {
+				this.buttons[bname].draw()
+			}
 		}
 		if (this.banner !== null) {
 			let grad = UFX.draw.lingrad(0, 50, 0, -50, 0, "#ffc", 1, "#bba")

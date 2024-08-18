@@ -191,11 +191,16 @@ let quest = {
 					"or press Space to conduct repairs.",
 				] : []
 			case 3:
-				return [
+				return UFX.pointer.touch ? [
+					"Tap the UPGRADE button to purchase upgrades.",
+				] : [
 					"Press TAB or Right Click to purchase upgrades.",
 				]
 			case 4:
-				return [
+				return UFX.pointer.touch ? [
+					"Upgrade the central piece of the robot's body.",
+					"Tap elsewhere to go back to the game.",
+				] : [
 					"Upgrade the central piece of the robot's body.",
 					"TAB or Right Click to go back to the game.",
 				]
@@ -216,23 +221,23 @@ let quest = {
 					"To advance, activate all arms at once.",
 				]
 			case 9:
-				return this.tstage < 12 ? [
+				return this.tstage < 30 ? [
 					"Some customers have reported signs of happiness in their",
 					"Extendotron units as they scale.",
 				] : []
 			case 10:
-				return this.tstage < 12 ? [
+				return this.tstage < 30 ? [
 					"Please rest assured that all Extendotron units' emotion subroutines",
 					"have been disabled, and they are incapable of experiencing joy.",
 				] : []
 			case 11:
-				return this.tstage < 12 ? [
+				return this.tstage < 30 ? [
 					"Nevertheless, should your unit should appear to be enjoying its",
 					"work too sincerely, please submit it for a factory reset.",
 				] : []
 			case 12:
-				return this.tstage < 12 ? [
-					"Extendotron corporation is not responsible for disaster scenarios",
+				return this.tstage < 30 ? [
+					"Extendotron corporation is not legally liable for disaster scenarios",
 					"caused by overly eager robots exceeding their directives.", 
 				] : ["The end. Thank you for playing!"]
 			case 13:
@@ -244,7 +249,12 @@ let quest = {
 	controls: function () {
 		let ret = ["Click along ground: move"]
 		if (this.stage >= 2) ret.push("Click on head or Space: make repairs")
-		if (this.stage >= 3) ret.push("TAB or Right Click: purchase upgrades")
+		if (this.stage >= 3) {
+			if (UFX.pointer.touch) {
+			} else {
+				ret.push("TAB or Right Click: purchase upgrades")
+			}
+		}
 		if (this.stage >= 5) ret.push("Click and drag: extend")
 		return ret
 	},
