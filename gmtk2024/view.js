@@ -61,12 +61,29 @@ let view = {
 	yV0: 760,
 	VscaleG: 120,
 	n: 0,
+	N: 0,
 
 	resize: function () {
 		let n = robot.maxheight()
-		if (n <= this.n) return
-		this.n = n
-		let width = 2 * n + 1.3
+		if (n <= this.N) return
+		this.N = n
+		if (this.n == 0) {
+			this.n = this.N
+			this.setscale()
+		}
+	},
+
+	think: function (dt) {
+		if (this.n < this.N) {
+			let f = 1 - Math.exp(-4 * dt)
+			this.n = mix(this.n, this.N, f)
+			if (this.N - this.n < 0.001) this.n = this.N
+			this.setscale()
+		}
+	},
+	
+	setscale: function () {
+		let width = 2 * this.n + 1.3
 		this.VscaleG = 1600 / width
 		this.xV0 = 800
 		this.yV0 = 800 - this.VscaleG / 2

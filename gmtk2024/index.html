@@ -39,6 +39,8 @@ UFX.scenes.play = {
 		for (let node of root.allnodes()) node.think(dt)
 		quest.think(dt)
 		grid.think(dt)
+		view.think(dt)
+		hud.think(dt)
 	},
 	draw: function () {
 		UFX.draw("fs #864 f0")
@@ -53,18 +55,6 @@ UFX.scenes.play = {
 			drawarrow([control.xroll, 0], root.pos)
 		}
 		UFX.draw("]")  // view.scale
-		let texts = quest.text()
-		if (texts.length > 0) {
-			UFX.draw("font 40px~'Days~One' tab center middle ss black lw 2",
-				"fs", UFX.draw.lingrad(0, -20, 0, 0, 0, "#eef", 1, "#aab"))
-			texts.forEach((text, j) => {
-				UFX.draw("[ t", 800, 900 - 50 * (texts.length - j))
-				context.strokeText(text, 0, 0)
-				UFX.draw("sh black 2 2 3")
-				context.fillText(text, 0, 0)
-				UFX.draw("]")
-			})
-		}
 		if (control.grabbed) {
 			let [dist, nearest] = nearesttile(control.grabbed.spots(), control.posG)
 			UFX.draw("[ alpha 0.5 fs black fr 0 0 1600 900 ]")
@@ -77,6 +67,29 @@ UFX.scenes.play = {
 			UFX.draw("]")
 		}
 		hud.draw()		
+		let texts = quest.text()
+		if (texts.length > 0) {
+			UFX.draw("font 40px~'Days~One' tab center middle ss black lw 2",
+				"fs", UFX.draw.lingrad(0, -20, 0, 0, 0, "#eef", 1, "#aab"))
+			texts.forEach((text, j) => {
+				UFX.draw("[ t", 800, 900 - 50 * (texts.length - j))
+				context.strokeText(text, 0, 0)
+				UFX.draw("sh black 2 2 3")
+				context.fillText(text, 0, 0)
+				UFX.draw("]")
+			})
+		}
+		texts = quest.controls()
+		if (texts.length > 0) {
+			UFX.draw("font 24px~'Days~One' tab right top ss black lw 1",
+				"fs #ccf")
+			texts.forEach((text, j) => {
+				UFX.draw("[ t", 1590, 10 + 26 * j)
+				context.strokeText(text, 0, 0)
+				context.fillText(text, 0, 0)
+				UFX.draw("]")
+			})
+		}
 		UFX.draw("]")
 		canvas.style.cursor = control.cursor()
 	},

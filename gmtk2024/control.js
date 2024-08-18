@@ -26,6 +26,7 @@ let control = {
 			if (this.pointed === null) {
 				let [xtile, ytile] = this.tile
 				this.xroll = ytile == 0 && xtile != robot.x ? xtile : null
+				if (Math.abs(this.xroll) > view.n) this.xroll = null
 			} else {
 				this.xroll = null
 			}

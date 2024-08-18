@@ -1,4 +1,7 @@
 
+
+let rewards = [0, 1, 5, 20, 50, 100]
+
 function build(spec, block) {
 	let parentspec = spec.slice(0, spec.length - 1)
 	let dir = spec[spec.length - 1]
@@ -29,30 +32,31 @@ let quest = {
 			case 1:
 				build("u")
 				build("ul")
+//				hud.onbuild()
 				break
-			case 4:
+			case 7:
 				build("ur")
 				break
-			case 5:
+			case 8:
 				build("uu")
 				build("uur")
 				break
-			case 6:
+			case 9:
 				build("ul")
 				break
-			case 7:
+			case 10:
 				build("uul")
 				break
-			case 8:
+			case 11:
 				build("ur")
 				build("uru", true)
 				build("urur")
 				break
-			case 9:
+			case 12:
 				build("uuu")
 				build("uuur")
 				break
-			case 10:
+			case 13:
 				build("ull")
 				build("ullu")
 				break
@@ -63,21 +67,27 @@ let quest = {
 	},
 	solve: function (solved) {
 		solved.forEach(task => grid.solve(task))
-		this.money += [0, 1, 5, 20, 50, 100][solved.length]
-		this.solverecord = Math.max(this.solverecord, solved.length)
+		if (solved.some(([x, y]) => y > 1)) {
+			this.fixedup = true
+			console.log(solved)
+		}
+		this.money += rewards[solved.length]
+		this.record = Math.max(this.record, solved.length)
 		this.addtasks()
 	},
 	addtasks: function () {
-		let ntask = this.stage
+		let ntask = [0, 1, 1, 1, 1, 1, 2, 3, 5, 5, 6, 8][this.stage]
 		while (grid.tasks.length < ntask) {
-			let bounds = [-view.n, view.n, 1, view.n]
-			if (this.stage <= 5) {
+			let bounds = [-view.n, view.n, 1, Math.floor(view.n * 0.8)]
+			if (this.stage <= 7) {
 				bounds = {
 					1: [-3, 2, 1, 1],
-					2: [-4, 4, 1, 1],
-					3: [-4, 4, 2, 2],
-					4: [-4, 4, 1, 2],
-					5: [-4, 4, 1, 3],
+					2: [-3, 2, 1, 1],
+					3: [-3, 2, 1, 1],
+					4: [-3, 2, 1, 1],
+					5: [-4, 3, 2, 2],
+					6: [-4, 3, 2, 2],
+					7: [-4, 4, 1, 2],
 				}[this.stage]
 			}
 			grid.addrandomtask(bounds)
@@ -93,13 +103,19 @@ let quest = {
 				if (robot.x > 0) this.stage0right = true
 				return this.stage0left && this.stage0right
 			case 1:
-				return this.money >= 3
+				return robot.toactivate().length > 0
 			case 2:
-				return root.byspec("u").rmax > 1
+				return this.money >= 3
 			case 3:
-				return root.byspec("u").r > 1
+				return control.mode === "extend"
 			case 4:
-				return this.record >= 2
+				return root.byspec("u").rmax > 1 && control.mode === null
+			case 5:
+				return root.byspec("u").r > 1
+			case 6:
+				return this.fixedup
+			case 7:
+				return this.record > 1
 			default:
 				return false
 		}
@@ -109,36 +125,56 @@ let quest = {
 			case 0:
 				return [
 					"Thank you for purchasing this state of the art, self-building,",
-					"self-scaling repair bot. Click along the ground to move left",
-					"and right.",
+					"self-scaling repair bot.",
+					"Click along the ground to move left and right.",
 				]
 			case 1:
 				return [
-					"To conduct repairs, align the robot's arm with a faulty panel",
-					"and click on the robot's head.",
+					"Line up the robot's arm with the faulty panel.",
 				]
 			case 2:
-				return [
-					"Click on the EXTEND button and click on the robot's body to",
-					"purchase an extension.",
-				]
+				return this.money == 0 ? [
+					"Once you're lined up with the panel, click on the robot's head",
+					"to conduct repairs.",
+				] : []
 			case 3:
 				return [
-					"Click and drag the robot's body up and down to scale to new heights",
+					"Press TAB or Right Click to purchase upgrades.",
 				]
 			case 4:
 				return [
-					"Continue making repairs. Try to make multiple repairs at once by",
-					"lining up multiple arms if possible.",
+					"Upgrade the central piece of the robot's body.",
+					"TAB or Right Click to go back to the game.",
+				]
+			case 5:
+				return [
+					"Click and drag on upgraded pieces to extend them.",
+					"Scale to new heights!",
+				]
+			case 7:
+				return [
+					"Make two repairs at once by lining up both arms at the same time.",
+					"Remember you can upgrade the arms for more options!",
+				]
+			case 8:
+				return [
+					"Continue making repairs. To advance, you need to make multiple",
+					"repairs at once by lining up multiple arms.",
 				]
 			default:
 				return []
 		}
-		
+	},
+	controls: function () {
+		let ret = ["Click along ground: move"]
+		if (this.stage >= 2) ret.push("Click on head: make repairs")
+		if (this.stage >= 3) ret.push("TAB or Right Click: purchase upgrades")
+		if (this.stage >= 5) ret.push("Click and drag: extend")
+		return ret
 	},
 }
 quest.advance()
 // while (quest.stage < 0) quest.advance()
-quest.money = 400
+// quest.money = 400
 // for (let node of root.allnodes()) if (node.canextend()) node.extend()
 

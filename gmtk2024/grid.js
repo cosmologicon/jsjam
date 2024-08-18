@@ -72,8 +72,8 @@ let grid = {
 			"fs rgba(0,0,0,0) sh black -2 -2 0 ft0 GAMENAME ]")
 
 		UFX.draw("fs #888 ss #333 lw 0.01")
-		for (let x = -6 ; x < 7 ; ++x) {
-			for (let y = 1 ; y < 4 ; ++y) {
+		for (let x = -view.N - 1 ; x <= view.N + 1 ; ++x) {
+			for (let y = 1 ; y <= view.N ; ++y) {
 				UFX.draw("[ t", x, y, "b rr -0.4 -0.4 0.8 0.8 0.05")
 				if (posincludes(this.tasks, [x, y])) {
 					let tspark = this.tsparks[[x, y]], ttask = this.ttasks[[x, y]]
