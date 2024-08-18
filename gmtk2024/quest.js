@@ -80,11 +80,23 @@ let quest = {
 				build("uull")
 				build("uulld")
 				break
+			case 18:
+				build("uuul")
+				break
+			case 19:
+				build("uurr")
+				build("uurru")
+				break
+			case 20:
+				build("ullu")
+				build("ullul")
+				break
 		}
 		view.resize()
 		root.updatepos()
 //		this.addtasks()
 		let volume = clamp(0.14 * this.stage, 0, 1)
+		volume = 1
 		UFX.audio.setgain("main", volume)
 		UFX.audio.context.resume()
 		
@@ -104,13 +116,27 @@ let quest = {
 		if (this.stage <= 7) return 3
 		if (this.stage <= 8) return 5
 		if (this.stage <= 9) return 6
-		if (this.stage <= 10) return 7
-		if (this.stage <= 12) return 8
-		if (this.stage <= 14) return 9
-		if (this.stage <= 15) return 10
-		if (this.stage <= 16) return 11
-		if (this.stage <= 17) return 12
+		if (this.stage <= 11) return 7
+		if (this.stage <= 12) return 9
+		if (this.stage <= 13) return 9
+		if (this.stage <= 14) return 10
+		if (this.stage <= 15) return 11
 		return 12
+	},
+	getbounds: function () {
+		if (this.stage <= 7) {
+			return {
+				0: [0, 0, 1, 1],
+				1: [-3, 2, 1, 1],
+				2: [-3, 2, 1, 1],
+				3: [-3, 2, 1, 1],
+				4: [-3, 2, 1, 1],
+				5: [-3, 2, 2, 2],
+				6: [-3, 2, 2, 2],
+				7: [-3, 3, 1, 2],
+			}[this.stage]
+		}
+		return [-view.N, view.N, 1, Math.floor(view.N * 0.9)]
 	},
 	think: function (dt) {
 		while (this.done()) this.advance()
@@ -119,19 +145,7 @@ let quest = {
 		let ntask = [0, 1, 1, 1, 1, 1, 2, 3][this.stage]
 		if (this.stage >= 8) ntask = Math.floor(0.2 * robot.numtools ** 0.4 * view.N ** 2)
 		if (grid.tasks.length < ntask && UFX.random.flip(2 * dt)) {
-			let bounds = [-view.N, view.N, 1, Math.floor(view.N * 0.85)]
-			if (this.stage <= 7) {
-				bounds = {
-					1: [-3, 2, 1, 1],
-					2: [-3, 2, 1, 1],
-					3: [-3, 2, 1, 1],
-					4: [-3, 2, 1, 1],
-					5: [-3, 2, 2, 2],
-					6: [-3, 2, 2, 2],
-					7: [-3, 3, 1, 2],
-				}[this.stage]
-			}
-			grid.addrandomtask(bounds)
+			grid.addrandomtask(this.getbounds())
 		}
 
 	},
@@ -155,13 +169,8 @@ let quest = {
 				return this.fixedup
 			case 7:
 				return this.record > 1
-			case 8:
-			case 9:
-			case 10:
-			case 11:
-				return this.record > this.stage - 6
 			default:
-				return false
+				return this.record > this.stage - 6
 		}
 	},
 	text: function () {
@@ -207,24 +216,27 @@ let quest = {
 					"To advance, activate all arms at once.",
 				]
 			case 9:
-				return this.tstage < 8 ? [
+				return this.tstage < 12 ? [
 					"Some customers have reported signs of happiness in their",
 					"Extendotron units as they scale.",
 				] : []
 			case 10:
-				return this.tstage < 8 ? [
-					"Please rest assured that Extendotrons are programmed without",
-					"emotions and are incapable of experiencing happiness.",
+				return this.tstage < 12 ? [
+					"Please rest assured that all Extendotron units' emotion subroutines",
+					"have been disabled, and they are incapable of experiencing joy.",
 				] : []
 			case 11:
-				return this.tstage < 8 ? [
-					"Nevertheless, if your unit should appear motivated or",
-					"ambitious, please submit it for a factory reset.",
+				return this.tstage < 12 ? [
+					"Nevertheless, should your unit should appear to be enjoying its",
+					"work too sincerely, please submit it for a factory reset.",
 				] : []
 			case 12:
-				return this.tstage < 8 ? [
-					"We wouldn't want them scaling too large, now would we?",
+				return this.tstage < 12 ? [
+					"Extendotron corporation is not responsible for disaster scenarios",
+					"caused by overly eager robots exceeding their directives.", 
 				] : ["The end. Thank you for playing!"]
+			case 13:
+				return ["The end. Thank you for playing!"]
 			default:
 				return []
 		}

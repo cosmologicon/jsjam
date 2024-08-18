@@ -309,8 +309,8 @@ Head.prototype = UFX.Thing()
 				let t = this.tanim * 0.7
 				let h1 = 5 + Math.sin(t * 1.234) + Math.sin(t * 1.456)
 				let h2 = 5 + Math.sin(t * 1.345) + Math.sin(t * 1.567)
-				let ps = [[2, -56, 12 * h1], [3, -56, 9 * h1], [5, -56, 6 * h1],
-					[2, 56, 12 * h2], [3, 56, 9 * h2], [5, 56, 6 * h2]]
+				let ps = [[2, -52, 12 * h1], [3, -52, 9 * h1], [5, -52, 6 * h1],
+					[2, 52, 12 * h2], [3, 52, 9 * h2], [5, 52, 6 * h2]]
 				for (let [w, x, y] of ps) {
 					grad = UFX.draw.lingrad(-w, 0, w, 0, 0, "#333", 0.3, "#999", 1, "#333")
 					UFX.draw("[ t", x, 0, "fs", grad, "fr", -w, -20, 2 * w, (y + 20), "]")
@@ -344,10 +344,10 @@ Head.prototype = UFX.Thing()
 				let ndrop = 20 * this.lshower
 				for (let j = 0 ; j < ndrop ; ++j) {
 					let gb = UFX.random.choice("9bdf"), color = `#f${gb}${gb}`
-					let x0 = UFX.random(-50, 50)
-					let y0 = UFX.random(-20, 20)
-					let vy = UFX.random(40, 80)
-					let vx = UFX.random(0, 10), ax = UFX.random(-40, 0)
+					let x0 = UFX.random(-60, 60)
+					let y0 = UFX.random(-40, 40)
+					let vy = UFX.random(20, 80)
+					let vx = UFX.random(0, 40), ax = UFX.random(-100, 0)
 					if (UFX.random.flip()) [ax, vx] = [-ax, -vx]
 					let x = x0 + vx * this.tshower + ax * this.tshower ** 2
 					let y = y0 + vy * this.tshower

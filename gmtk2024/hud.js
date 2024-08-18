@@ -47,9 +47,18 @@ let hud = {
 			for (let node of root.allnodes()) {
 				if (node.canextend()) {
 					let cost = node.extendcost()
-					let color = cost <= quest.money ? "white" : "red"
+					let A = Date.now() * 0.01 + 123.123 * node.pos[0] + 234.234 * node.pos[1]
+					let b = Math.floor(215 + 40 * Math.sin(A))
+					let gcolor = `rgb(255,255,${b})`
+					let color = cost <= quest.money ? gcolor : "#f44"
+					let fsize = Math.floor(0.2 * view.VscaleG)
+					let ssize = Math.floor(0.02 * view.VscaleG)
+					fsize = 32
+					ssize = 3
 					UFX.draw("[ t", node.pos, "z", 1/100, -1/100,
-						"font 30px~'Viga' tab center middle fs", color, "ft0", `$${cost}`,
+						`font ${fsize}px~'Viga' lw ${ssize}`,
+						"tab center middle ss black",
+						"fs", color, "sft0", `$${cost}`,
 						"]")
 				}
 			}
@@ -58,15 +67,15 @@ let hud = {
 //		UFX.draw("[ t", control.pos, "b o 0 0 5 fs orange f ]")
 		let text
 		UFX.draw("fs white font 30px~'Viga' tab left top")
-		text = `Stage ${quest.stage} | Money ${quest.money} | Pos ${control.tile}`
-		context.fillText(text, 200, 200)
+		text = `Stage ${quest.stage} | Money ${quest.money} | Pos ${control.tile} | N ${view.N} | bounds ${quest.getbounds()}`
+		context.fillText(text, 20, 300)
 		text = `$${quest.money}`
 		UFX.draw("[ fs white ss black lw 4 font bold~100px~'Roboto~Mono'",
 			"tab left top shadow black 4 4 2 sft", text, 20, 20, "]")
 		for (let n = 1 ; n <= quest.record ; ++n) {
 			text = `${n}~repair:~+$${rewards[n]}`
-			UFX.draw("fs white ss black lw 2 font bold~20px~'Roboto~Mono'",
-				"tab left top sft", text, 20, 100 + 20 * n)
+			UFX.draw("fs white ss black lw 2 font bold~26px~'Roboto~Mono'",
+				"tab left top sft", text, 20, 100 + 28 * n)
 		}
 		for (let bname in this.buttons) {
 			this.buttons[bname].draw()
