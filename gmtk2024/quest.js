@@ -1,7 +1,13 @@
 
 
-let rewards = [0, 1, 5, 20, 50, 100, 200, 500, 1000, 2000]
-let costs = [0, 3, 10, 100, 1000, 10000, 100000]
+let rewards = [0, 1, 5, 20, 50, 100, 200, 500]
+while (rewards[rewards.length - 1] < 1000000000) {
+	rewards.push(rewards[rewards.length - 3] * 10)
+}
+let costs = [0, 3, 10, 100]
+while (costs[costs.length - 1] < 1000000000) {
+	costs.push(costs[costs.length - 1] * 10)
+}
 
 function build(spec, block) {
 	let parentspec = spec.slice(0, spec.length - 1)
@@ -227,18 +233,21 @@ let quest = {
 				] : []
 			case 10:
 				return this.tstage < 30 ? [
-					"Please rest assured that all Extendotron units' emotion subroutines",
-					"have been disabled, and they are incapable of experiencing joy.",
+					"Please rest assured that all Extendotron units'",
+					"emotion subroutines have been disabled, and they",
+					"are incapable of experiencing joy.",
 				] : []
 			case 11:
 				return this.tstage < 30 ? [
-					"Nevertheless, should your unit should appear to be enjoying its",
-					"work too sincerely, please submit it for a factory reset.",
+					"Nevertheless, should your unit should appear to be",
+					"enjoying its work too sincerely, please submit it",
+					"for a factory reset.",
 				] : []
 			case 12:
 				return this.tstage < 30 ? [
-					"Extendotron corporation is not legally liable for disaster scenarios",
-					"caused by overly eager robots exceeding their directives.", 
+					"Extendotron corporation is not legally liable for",
+					"disaster scenarios caused by overly eager robots",
+					"exceeding their directives.", 
 				] : ["The end. Thank you for playing!"]
 			case 13:
 				return ["The end. Thank you for playing!"]

@@ -58,11 +58,11 @@ let control = {
 			this.mode = this.mode === "extend" ? null : "extend"
 		}
 		
-		if (pointer.down && this.mode === null) {
-			console.log(this.mode, this.pointed, this.pos, this.posG, this.tile)
+		if (!this.grabbed && pointer.down && this.mode === null) {
 			if (this.pointed === head) {
 			} else if (this.pointed !== null) {
 				this.grabbed = this.pointed
+				this.stickygrab = false
 			}
 		}
 		if (pointer.click) {
@@ -85,17 +85,29 @@ let control = {
 				robot.activate()
 			} else if (this.xroll !== null) {
 				robot.rollto(this.xroll)
-				playsound("select")
+				this.grabbed = null
+				this.stickgrab = false
+				playsound("roll")
 				this.xroll = null
 			}
 		}
 		if (this.grabbed) {
-			if (pointer.up) {
+			if ((pointer.up && !pointer.click && !this.stickygrab) ||
+				(pointer.click && this.stickygrab)) {
+				let r0 = this.grabbed.r
 				let spots = this.grabbed.spots()
 				let [dist, spot] = nearesttile(spots, this.posG)
 				this.grabbed.moveto(spot)
+				if (this.grabbed === root) {
+					playsound("roll")
+				} else {
+					if (this.grabbed.r > r0) playsound("extend")
+					if (this.grabbed.r < r0) playsound("collapse")
+				}
 				this.grabbed = null
-				playsound("select")
+				this.stickygrab = false
+			} else if (pointer.click && !this.stickygrab) {
+				this.stickygrab = true
 			}
 		}
 	},

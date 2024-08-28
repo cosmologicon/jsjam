@@ -23,11 +23,14 @@ let context = canvas.getContext("2d")
 UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
 UFX.audio.init()
-UFX.audio.makegainnode({ name: "main", gain: 0, })
+UFX.audio.makegainnode({ name: "main", gain: 1, })
 UFX.audio.makegainnode({ name: "sfx", output: "main" })
 UFX.audio.makegainnode({ name: "music", output: "main", gain: 0.3 })
 UFX.audio.loadbuffers({
 	select: "sound/select.ogg",
+	roll: "sound/roll.ogg",
+	extend: "sound/extend.ogg",
+	collapse: "sound/collapse.ogg",
 	no: "sound/no.ogg",
 	build: "sound/build.ogg",
 	break: "sound/break.ogg",
@@ -43,7 +46,7 @@ function playsound(sname) {
 }
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.watchlist = ["tab", "space", "M", "left", "right", "A", "D", "E"]
+UFX.key.watchlist = ["tab", "space", "M", "left", "right", "A", "D", "E", "F1"]
 UFX.resource.loadwebfonts("Viga", "Roboto Mono", "Days One", "Russo One")
 UFX.resource.onload = () => {
 }
@@ -146,7 +149,7 @@ UFX.scenes.play = {
 		UFX.draw("]")  // view.scale
 		if (control.grabbed) {
 			let [dist, nearest] = nearesttile(control.grabbed.spots(), control.posG)
-			UFX.draw("[ alpha 0.5 fs black fr 0 0 1600 900 ]")
+			UFX.draw("[ alpha 0.2 fs black fr 0 0 1600 900 ]")
 			view.scale()
 			for (let spot of control.grabbed.spots()) {
 				if (poseq(spot, control.grabbed.pos)) continue

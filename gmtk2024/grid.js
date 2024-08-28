@@ -121,10 +121,13 @@ let grid = {
 			let r = mix(0.5, 0.2, f), alpha = mix(0.5, 0, f) * falpha
 			UFX.draw("[ r", Date.now() * 0.002 % tau, "b o 0 0", r, "lw 0.03 alpha", alpha,
 				"ss blue s b alpha", falpha)
-			for (let j = 0 ; j < 5 ; ++j) {
-				UFX.draw("m 0 0.3 l 0.1 0.5 l -0.1 0.5 r", tau / 5)
+			if (true) {
+				for (let j = 0 ; j < 5 ; ++j) {
+					UFX.draw("m 0 0.3 l 0.1 0.5 l -0.1 0.5 r", tau / 5)
+				}
+				UFX.draw("fs blue f")
 			}
-			UFX.draw("fs blue f ]")
+			UFX.draw("]")
 			if (false) {
 				for (let j = 0 ; j < 40 ; ++j) {
 					let v = UFX.random(1, 2), A = UFX.random.angle()

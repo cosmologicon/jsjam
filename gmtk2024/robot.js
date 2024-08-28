@@ -271,7 +271,7 @@ let Extendable = {
 }
 
 function Root() {
-	this.pos = [0, 0]
+	this.pos = [-4, 0]
 	this.xfrom = 0
 	this.rjoin = 0.5
 	this.Atilt = 0
