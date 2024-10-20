@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<title>penguin</title>
+<script src="//ufx.space/UFX.js"></script>
+<canvas id=canvas></canvas>
+<script>
+var canvas = document.getElementById("canvas")
+var context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "total")
+UFX.scene.init()
+UFX.ticker.minups = 5
+UFX.ticker.maxups = 60
+UFX.mouse.init(canvas)
+UFX.draw.setcontext(context)
+UFX.resource.loadwebfonts("Viga", "Contrail One")
+UFX.resource.onload = function () {
+	UFX.scene.push({ think: think })
+}
+UFX.resource.load({
+})
+
+var sx, sy
+function setfont(size) {
+	context.font = Math.ceil(size * sy / 14) + "px 'Contrail One'"
+}
+var tau = 2 * Math.PI
+function clamp(x,a,b){return x>b?b:x<a?a:x}
+
+function drawpenguin() {
+	UFX.draw("[ z 5 2 b o 0 0 1 ] fs #222 ss black lw 0.2 f s")
+	UFX.draw("[ z 3 6 b o 0 0 1 ] fs #222 ss black lw 0.2 f s")
+	UFX.draw("[ z 1.5 0.7 b o 0 -2.9 1 ] fs #ff3 f")
+	UFX.draw("b o 1 -4 0.3 fs white f")
+	UFX.draw("b o -1 -4 0.3 fs white f")
+	UFX.draw("[ [ z 3 6 b o 0 0 1 ] clip fs white b o 0 3 4 f ]")
+	UFX.draw("[ z 3 6 b o 0 0 1 ] fs #222 ss black lw 0.2 s")
+}
+
+var pengs = [
+	{
+		x: 0,
+		y: 0,
+		vx: 10,
+		vy: -100,
+		ay: 200,
+	},
+]
+
+var record = 1
+function think(dt) {
+	var mstate = UFX.mouse.state()
+	sx = canvas.width
+	sy = canvas.height
+	UFX.draw("fs", UFX.draw.lingrad(0, 0, 0, sy, 0, "blue", 1, "white"), "f0")
+	
+	for (var j = 0 ; j < pengs.length ; ++j) {
+		var peng = pengs[j]
+		peng.x += dt * peng.vx
+		peng.y += dt * peng.vy
+		peng.vy += dt * peng.ay
+		UFX.draw("[ t", sx/2, sy/2, "z 4 4 t", peng.x, peng.y)
+		UFX.draw("r", Math.atan2(peng.vx, -peng.vy))
+		drawpenguin()
+		UFX.draw("]")
+
+//		if (mstate.left.down) {
+		if (peng.vy > 0 && UFX.mouse.pos) {
+			var mpos = UFX.mouse.pos
+			var x = (mpos[0] - sx / 2) / 4
+			var y = (mpos[1] - sy / 2) / 4
+			var dx = x - peng.x, dy = y - peng.y
+			if (dx * dx + dy * dy < 20 * 20) {
+				peng.vy = -100 + 10 * dy / sy
+				peng.vx += UFX.random(-40, 40)
+				pengs.push({
+					x: peng.x,
+					y: peng.y,
+					vx: -peng.vx,
+					vy: peng.vy,
+					ay: peng.ay * UFX.random(0.8, 1.2),
+				})
+			}
+		}
+	
+		pengs = pengs.filter(function (peng) { return peng.y < sy / 4 })
+		record = Math.max(record, pengs.length)
+	}
+	if (UFX.random() < dt * 0.2) {
+		pengs.push({
+			x: 0,
+			y: sy / 4 * 0.99,
+			vx: UFX.random(-40, 40),
+			vy: -260,
+			ay: 200,
+		})
+	}
+	setfont(1)
+	UFX.draw("[ tab left top fs white sh black 1 1 0 ft point~to~penguins~to~keep~alive", 10, 10, "]")
+	UFX.draw("[ tab left top fs white sh black 1 1 0 ft penguins:~" + pengs.length, 10, 10 + sy/12, "]")
+	UFX.draw("[ tab left top fs white sh black 1 1 0 ft record:~" + record, 10, 10 + sy/6, "]")
+
+
+
+}
+
+</script>
+
+
+
