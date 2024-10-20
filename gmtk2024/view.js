@@ -1,4 +1,6 @@
 
+let tau = 2 * Math.PI
+
 // G: game coordinates
 // V: view coordinates. canvas is 1600x900
 

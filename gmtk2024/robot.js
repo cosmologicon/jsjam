@@ -511,33 +511,43 @@ let robot = {
 		UFX.draw("[ z", 1/100, 1/100)
 		root.drawtilt()
 		root.drawback()
-		UFX.draw("[ t", postimes(root.dpos, 100))
-		// wheel
-		UFX.draw("[ t 0 -10",
-			"b o 0 0 40 fs black f",
-			"b o 0 0 20 fs #bbb f",
-			"b o 0 0 32 ss #111 lw 12 s",
-			"b o 0 0 32 ss #222 lw 9 s",
-			"b o -3 3 32 ss #fff alpha 0.03 lw 4 s")
-		// spokes
-		UFX.draw("[ alpha 0.2 fs #006 r", -root.dpos[0] * 3)
-		for (let j = 0 ; j < 5 ; ++j) {
-			UFX.draw("( a 0 0 12 0 1 aa 0 0 18 1 0 ) f r", tau / 5)
-		}
+		UFX.draw("[ t", postimes(root.dpos, 100), "t 0 -10")
+		wheeltracer.draw(1)
+		UFX.draw("[ r", -root.dpos[0] * 3)
+		spokestracer.trace()
 		UFX.draw("]")
-		// axle
-		UFX.draw("alpha 1 ( m -30 50 q 0 40 -3 0 l 3 0 q 0 40 30 50 )",
-			"ss #333 lw 2 fs #777 f s")
-		let grad = UFX.draw.radgrad(-3, 3, 0, 0, 0, 8, 0, "#aaa", 1, "#333")
-		UFX.draw("b o 0 0 8 fs", grad, "f")
-		grad = UFX.draw.radgrad(-30, 60, 0, -30, 60, 100, 0, "#aaa", 1, "#333")
-		UFX.draw("rr -40 50 80 10 4 fs", grad, "ss #333 lw 1 f s")
-		UFX.draw("]")
+		axletracer.trace()
 		UFX.draw("]")
 		root.draw()
 		UFX.draw("]")
 	},
 }
+UFX.Tracer.showbox = true
+let wheeltracer = UFX.Tracer([
+	"[",
+	"b o 0 0 40 fs black f",
+	"b o 0 0 20 fs #bbb f",
+	"b o 0 0 32 ss #111 lw 12 s",
+	"b o 0 0 32 ss #222 lw 9 s",
+	"b o -3 3 32 ss #fff alpha 0.03 lw 4 s ]",
+], [-42, -42, 84, 84])
+let spokestracer = UFX.Tracer([
+	"[ alpha 0.2 fs #006",
+	"( a 0 0 12 0 1 aa 0 0 18 1 0 ) f r", tau / 5,
+	"( a 0 0 12 0 1 aa 0 0 18 1 0 ) f r", tau / 5,
+	"( a 0 0 12 0 1 aa 0 0 18 1 0 ) f r", tau / 5,
+	"( a 0 0 12 0 1 aa 0 0 18 1 0 ) f r", tau / 5,
+	"( a 0 0 12 0 1 aa 0 0 18 1 0 ) f r", tau / 5,
+	"]"
+], [-5, -5, 10, 10])
+let axletracer = UFX.Tracer([
+	"alpha 1 ( m -30 50 q 0 40 -3 0 l 3 0 q 0 40 30 50 )",
+	"ss #333 lw 2 fs #777 f s",
+	"b o 0 0 8 fs rg~-3~3~0~0~0~8~0~#aaa~1~#333 f",
+	"rr -40 50 80 10 4 fs rg~-30~60~0~-30~60~100~0~#aaa~1~#333 ss #333 lw 1 f s",
+], [-5, -5, 10, 10])
+
+
 
 let root = new Root()
 let head = new Head("")
