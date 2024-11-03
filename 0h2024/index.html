@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<title>Keep Growing</title>
+<style>
+canvas {
+	background: #040404;
+}
+</style>
+<script src="//ufx.space/UFX.js"></script>
+<canvas id=canvas></canvas>
+<script>
+"use strict"
+let EASY = window.location.href.includes("EASY")
+let tau = 2 * Math.PI
+let canvas = document.getElementById("canvas")
+canvas.width = 1600
+canvas.height = 900
+let context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+
+
+let pos = null
+
+function Flower(base, head) {
+    this.base = base
+    this.head = head
+    this.t = 0
+    this.r = 1
+    this.grown = false
+    this.tsway = 0
+    this.tshrink = 0
+}
+Flower.prototype = {
+    grow: function (dt) {
+        this.t += 3 * dt
+        this.R = 20
+        this.r = this.R * Math.sqrt(this.t + 1)
+    },
+    sway: function (dt) {
+        this.tsway += dt
+        if (this.tshrink > 0) {
+            this.tshrink = Math.max(this.tshrink - 6 * dt, 0)
+            this.t -= 3 * dt
+        }
+    },
+    draw: function () {
+        let head = [this.head[0], this.head[1]]
+        if (this.tsway > 0) {
+            let f = Math.min(this.tsway, 1)
+            head[0] += 20 * Math.sin(1.123 * this.tsway + 0.456) * f
+            head[1] += 20 * Math.sin(1.234 * this.tsway + 7.890) * f
+        }
+        let neck = [this.base[0], head[1]]
+        UFX.draw("[ b m", this.base, "q", neck, head, "ss green lw", 6 * Math.sqrt(this.t + 1), "s ]")
+        let t = this.t, r = this.R * Math.sqrt(t + 1), j = 0
+        while (r > 1) {
+            let color = this.tshrink > 0 ? "gray" : "white"
+            UFX.draw("[ t", head, "r", 1.5 * t + j * 3.83, "z", r, r, "( m 0 0 q -1 1 0 2 q 1 1 0 0 ) ss black lw", 2/r, "fs", color, "f s ]")
+            t -= 0.2
+            r = this.R * Math.sqrt(t + 1)
+            j += 1
+        }
+        UFX.draw("[ t", head, "b o 0 0", 0.3 * this.R * Math.sqrt(this.t + 1), "fs yellow f ]")
+    },
+    within: function (pos) {
+        let [x, y] = pos
+        let head = [this.head[0], this.head[1]]
+        if (this.tsway > 0) {
+            let f = Math.min(this.tsway, 1)
+            head[0] += 20 * Math.sin(1.123 * this.tsway + 0.456) * f
+            head[1] += 20 * Math.sin(1.234 * this.tsway + 7.890) * f
+        }
+        let [xh, yh] = head
+        return Math.hypot(x - xh, y - yh) < 1.8 * this.R * Math.sqrt(this.t + 1)
+    },
+}
+
+function Bee() {
+    this.right = UFX.random.flip()
+    this.x0 = this.right ? -100 : 1700
+    this.vx = this.right ? 200 : -200
+    this.y0 = UFX.random(100, 800)
+    this.phi = UFX.random(2 * Math.PI)
+    this.x = this.x0
+    this.y = this.y0
+    this.t = 0
+    this.alive = true
+}
+Bee.prototype = {
+    think: function (dt) {
+        this.t += dt
+        this.x = this.x0 + this.vx * this.t
+        this.y = this.y0 + 100 * Math.sin(this.phi + this.t)
+        if (this.t * Math.abs(this.vx) > 1800) this.alive = false
+    },
+    draw: function () {
+        UFX.draw("[ t", this.x, this.y, "b o 0 0 4 fs red f ]")
+    },
+}
+
+
+let current = null
+let flowers = []
+let bees = []
+function think(dt) {
+	UFX.pointer.scale = UFX.maximize.scale.LD
+	let pstate = UFX.pointer(canvas)
+	pos = pstate.pos ? pstate.pos : [-100, -100]
+    if (pstate.down) {
+        let base = [pos[0], 900]
+        current = new Flower(base, pos)
+    }
+    if (current !== null) {
+        current.head = pos
+        current.grow(dt)
+    }
+    if (pstate.up && current !== null) {
+        current.grown = true
+        flowers.push(current)
+        current = null
+    }
+    bees.forEach(bee => bee.think(dt))
+    bees = bees.filter(bee => bee.alive)
+    flowers.forEach(flower => {
+        flower.sway(dt)
+        if (bees.some(bee => flower.within([bee.x, bee.y]))) flower.tshrink = 1
+    })
+    
+    flowers = flowers.filter(flower => flower.t > 0.5)
+    
+    if (!EASY && UFX.random() < 0.5 * dt) {
+        bees.push(new Bee())
+    }
+}
+
+
+let grass = []
+for (let j = 0 ; j < 5 ; ++j) {
+    let up = false
+    let arr = []
+    for (let x = -100 ; x < 1700 ; x += 20) {
+        let y = 850 - (60 * (4 - j)) - (up ? 0 : 100)
+        up = !up
+        arr.push([x + UFX.random(-10, 10), y + UFX.random(-20, 20), up])
+    }
+    grass.push(arr)
+}
+
+
+
+function draw() {
+
+	UFX.draw("fs #afafff f0")
+	UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
+
+	UFX.draw("[ t 400 200 r -0.2 tab center middle alpha 0.5",
+		"font 80px~'Passion~One' fs white ft0 Keep~Growing",
+		"font 60px~'Passion~One' t 0 70 fs #7ff ft0 by~Christopher~Night",
+		"font 40px~'Passion~One' t 0 50 fs #7ff ft0 made~in~zero~hours,",
+		"font 40px~'Passion~One' t 0 40 fs #7ff ft0 2am~EDT~-~2am~EST,~3~Nov~2024",
+		"font 60px~'Passion~One' t 0 60 fs #7ff ft0 Click~and~hold~to~grow~flowers",
+	"]")
+	if (pos !== null) {
+    	UFX.draw("[ t", pos, "b o 0 0 4 fs orange f ]")
+    }
+    grass.forEach((arr, j) => {
+        if (j == 4) return
+        UFX.draw("[ ( m -100 900")
+        arr.forEach(([x, y, up]) => {
+            if (up) x += 10 * Math.sin(Date.now() * 0.001 + 0.005 * x + j)
+            UFX.draw("l", x, y)
+        })
+        let color = "rgb(30," + (200 - 20 * j) + ",30)"
+        UFX.draw("l 1700 900 ) fs", color, "f ]")
+    })
+    flowers.forEach(flower => flower.draw())
+    if (current !== null) current.draw()
+    grass.forEach((arr, j) => {
+        if (j !== 4) return
+        UFX.draw("[ ( m -100 900")
+        arr.forEach(([x, y, up]) => {
+            if (up) x += 10 * Math.sin(Date.now() * 0.001 + 0.005 * x + j)
+            UFX.draw("l", x, y)
+        })
+        let color = "rgb(30," + (200 - 20 * j) + ",30)"
+        UFX.draw("l 1700 900 ) fs", color, "f ]")
+    })
+    
+    bees.forEach(bee => bee.draw())
+	UFX.draw("]")
+	canvas.style.cursor = "none"
+}
+UFX.resource.loadwebfonts("Boogaloo", "Passion One")
+UFX.resource.onload = function () {
+	UFX.ticker.init(think, draw, {
+		ups: 120,
+		maxupf: 12,
+	})
+}
+</script>
