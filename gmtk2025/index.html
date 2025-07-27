@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<title>GMTK 2025 game</title>
+<script src="UFX.js"></script>
+<canvas id=canvas></canvas>
+<style>
+canvas { background: black }
+</style>
+<script>
+"use strict"
+let DEBUG = window.location.href.includes("DEBUG")
+let tau = 2 * Math.PI
+window.onerror = function (error, url, line) {
+	document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
+}
+let canvas = document.getElementById("canvas")
+canvas.width = 1600
+canvas.height = 900
+let context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+UFX.audio.init()
+UFX.audio.makegainnode({ name: "main", gain: 1, })
+UFX.audio.makegainnode({ name: "sfx", output: "main" })
+UFX.audio.makegainnode({ name: "music", output: "main", gain: 0.3 })
+UFX.audio.loadbuffers({
+//	select: "sound/select.ogg",
+})
+function playsound(sname) {
+	UFX.audio.playbuffer(sname, { output: "sfx", gain: 1, })
+}
+UFX.key.init()
+UFX.key.remaparrows(true)
+UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "F1"]
+UFX.resource.loadwebfonts("Viga")
+UFX.resource.load({
+	test0: "img/test-0.jpg",
+	test1: "img/test-1.png",
+})
+UFX.resource.onload = () => {
+}
+UFX.scene.push("load")
+UFX.scene.init({ minups: 10, maxups: 120 })
+UFX.resource.onloading = (f) => {
+	UFX.scenes.load.f = f
+}
+UFX.scenes.load = {
+	f: 0,
+	tdot: 0,
+	think: function (dt) {
+		UFX.pointer.scale = UFX.maximize.scale.LD
+		let pointer = UFX.pointer(canvas)
+		let kstate = UFX.key.state()
+	},
+	draw: function () {
+		let t = 0.0003 * Date.now()
+		let [r, g, b] = [0, 1/3, 2/3].map(phi => 128 + 120 * Math.sin(t + phi*tau))
+		let color = `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`
+		UFX.draw("fs", color, "f0")
+		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
+		UFX.draw("[ t 600 200 font 100px~'Viga' r -0.1",
+			"tab center middle fs black ss gray lw 1 fst0 GMTK~Jam~2025~game ]")
+		let text = this.f == 1 ? "Coming~soon" : `Loading...~${(100 * this.f).toFixed(0)}%`
+		let grad = UFX.draw.lingrad(0, 30, 0, -30, 0, "#fff", 1, "#bbb")
+		UFX.draw("[ t", 800, 800,
+			"font 80px~'Viga' fs", grad, "ss black shadow black 4 4 2",
+			"tab center middle sft0", text, "]")
+		UFX.draw("[ t 100 910 z 0.4 0.4 drawimage", UFX.resource.images.test1, 0, -1064, "]")
+		UFX.draw("]")
+	},
+}
+</script>
+
