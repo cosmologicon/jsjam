@@ -40,6 +40,8 @@ UFX.resource.loadwebfonts("Viga")
 UFX.resource.load({
 	test0: "img/test-0.jpg",
 	test1: "img/test-1.png",
+	tree: "img/tree.png",
+	tower: "img/tower.png",
 })
 UFX.resource.onload = () => {
 }
@@ -55,7 +57,9 @@ UFX.scenes.load = {
 		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
-		if (kstate.down.space) UFX.scene.swap("play")
+		if (this.f == 1) {
+			if (kstate.down.space || pointer.down) UFX.scene.swap("play")
+		}
 	},
 	draw: function () {
 		let t = 0.0003 * Date.now()
@@ -65,12 +69,12 @@ UFX.scenes.load = {
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 		UFX.draw("[ t 600 200 font 100px~'Viga' r -0.1",
 			"tab center middle fs black ss gray lw 1 fst0 GMTK~Jam~2025~game ]")
-		let text = this.f == 1 ? "Press~Space~to~begin" : `Loading...~${(100 * this.f).toFixed(0)}%`
+		let text = this.f == 1 ? "Tap~or~press~Space~to~begin" : `Loading...~${(100 * this.f).toFixed(0)}%`
 		let grad = UFX.draw.lingrad(0, 30, 0, -30, 0, "#fff", 1, "#bbb")
 		UFX.draw("[ t", 800, 800,
 			"font 80px~'Viga' fs", grad, "ss black shadow black 4 4 2",
 			"tab center middle sft0", text, "]")
-		UFX.draw("[ t 100 910 z 0.4 0.4 drawimage", UFX.resource.images.test1, 0, -1064, "]")
+		UFX.draw("[ t -20 600 r 1.5 z 0.4 0.4 drawimage", UFX.resource.images.test1, -984/2, -1064, "]")
 		UFX.draw("]")
 	},
 }
@@ -84,7 +88,7 @@ UFX.scenes.play = {
 		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
-		if (kstate.down.space) world.you.jump()
+		if (kstate.down.space || pointer.down) world.you.jump()
 		this.t += dt
 		view.think(dt)
 		world.you.think(dt)
@@ -92,7 +96,7 @@ UFX.scenes.play = {
 		world.bubbles.forEach(bubble => bubble.think(dt))
 	},
 	draw: function () {
-		UFX.draw("fs #444 f0")
+		UFX.draw("fs #77f f0")
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 			world.draw()
 		UFX.draw("]")

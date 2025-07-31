@@ -93,7 +93,7 @@ Bubble.prototype = UFX.Thing()
 	.addcomp(Poppable)
 	.addcomp({
 		draw0: function () {
-			let color = this.ready() ? "#77f" : "#006"
+			let color = this.ready() ? "#fff" : "#666"
 			return ["b o 0 0", this.r, "lw 4 ss", color, "s"]
 		},
 	})
