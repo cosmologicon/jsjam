@@ -88,6 +88,8 @@ UFX.scenes.play = {
 		this.t += dt
 		view.think(dt)
 		world.you.think(dt)
+		world.you.interact(world.bubbles)
+		world.bubbles.forEach(bubble => bubble.think(dt))
 	},
 	draw: function () {
 		UFX.draw("fs #444 f0")
