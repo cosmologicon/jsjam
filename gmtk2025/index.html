@@ -2,6 +2,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 <title>GMTK 2025 game</title>
 <script src="UFX.js"></script>
+<script src="world.js"></script>
+<script src="thing.js"></script>
+<script src="view.js"></script>
 <canvas id=canvas></canvas>
 <style>
 canvas { background: black }
@@ -10,6 +13,7 @@ canvas { background: black }
 "use strict"
 let DEBUG = window.location.href.includes("DEBUG")
 let tau = 2 * Math.PI
+let clamp = (x, a, b) => x < a ? a : x > b ? b : x
 window.onerror = function (error, url, line) {
 	document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
 }
@@ -51,6 +55,7 @@ UFX.scenes.load = {
 		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
+		if (kstate.down.space) UFX.scene.swap("play")
 	},
 	draw: function () {
 		let t = 0.0003 * Date.now()
@@ -60,7 +65,7 @@ UFX.scenes.load = {
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 		UFX.draw("[ t 600 200 font 100px~'Viga' r -0.1",
 			"tab center middle fs black ss gray lw 1 fst0 GMTK~Jam~2025~game ]")
-		let text = this.f == 1 ? "Coming~soon" : `Loading...~${(100 * this.f).toFixed(0)}%`
+		let text = this.f == 1 ? "Press~Space~to~begin" : `Loading...~${(100 * this.f).toFixed(0)}%`
 		let grad = UFX.draw.lingrad(0, 30, 0, -30, 0, "#fff", 1, "#bbb")
 		UFX.draw("[ t", 800, 800,
 			"font 80px~'Viga' fs", grad, "ss black shadow black 4 4 2",
@@ -69,5 +74,29 @@ UFX.scenes.load = {
 		UFX.draw("]")
 	},
 }
+UFX.scenes.play = {
+	start: function () {
+		world.init()
+		view.init()
+		this.t = 0
+	},
+	think: function (dt) {
+		UFX.pointer.scale = UFX.maximize.scale.LD
+		let pointer = UFX.pointer(canvas)
+		let kstate = UFX.key.state()
+		if (kstate.down.space) world.you.jump()
+		this.t += dt
+		view.think(dt)
+		world.you.think(dt)
+	},
+	draw: function () {
+		UFX.draw("fs #444 f0")
+		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
+			world.draw()
+		UFX.draw("]")
+	},
+}
+
+
 </script>
 
