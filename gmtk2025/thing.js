@@ -20,16 +20,28 @@ let Circular = {
 }
 
 let FloatsToCeiling = {
+	checkland: function (x0, y0) {
+		if (this.landed) return
+			for (let platform of world.platforms) {
+				if (platform.catches(x0 + world.R, -y0, this.x + world.R, -this.y)) {
+					this.y = -platform.heightat(this.x + world.R) - this.r
+					this.landed = true
+					return
+				}
+			}
+		if (this.y + this.r >= world.ceilingat(this.x)) {
+			this.y = world.ceilingat(this.x) - this.r
+			this.landed = true
+		}
+	},
 	think: function (dt) {
 		if (!this.landed) {
 			let a = 500
+			let y0 = this.y
 			let vy = Math.min(this.vy + a * dt, 200)
 			this.y += (this.vy + vy) / 2 * dt
 			this.vy = vy
-			if (this.y + this.r >= world.ceilingat(this.x)) {
-				this.y = world.ceilingat(this.x) - this.r
-				this.landed = true
-			}
+			this.checkland(this.x, y0)
 		}
 	},
 }
@@ -54,7 +66,7 @@ function You() {
 	this.vx0 = 200
 	this.vx = this.vx0
 	this.vy = 0
-	this.r = 20
+	this.r = 30
 	this.model = UFX.random.choice([1, 2, 3])
 	this.platform = null
 }
@@ -66,8 +78,13 @@ You.prototype = UFX.Thing()
 			this.grounded = false
 			this.vy = 800
 		},
-		releaseballoon: function () {
-			world.balloons.push(new Balloon(this.x, this.y))
+		releaseballoon: function (n) {
+			let Balloon = {
+				1: BackBalloon,
+				2: UpBalloon,
+				3: ForwardBalloon,
+			}[n]
+			world.balloons.push(new Balloon(this.x, this.y + 2 * this.r))
 		},
 		interact: function (bubbles) {
 			if (this.grounded) return
@@ -76,6 +93,7 @@ You.prototype = UFX.Thing()
 			bubbles.forEach(bubble => {
 				if (bubble.ready() && bubble.within(this)) {
 					bubble.pop()
+					this.vx = bubble.launchvx
 					this.vy = bubble.launchvy
 				}
 			})
@@ -112,9 +130,10 @@ You.prototype = UFX.Thing()
 			}
 		},
 		think: function (dt) {
-			this.vx = this.vx0
-			this.vx -= 200 * this.slopeat()
-			this.vx += 0.2 * (view.x - this.x)
+			let vx0 = this.vx0
+			vx0 -= 200 * this.slopeat()
+			vx0 += 0.2 * (view.x - this.x)
+			this.vx = approach(this.vx, vx0, 1000 * dt)
 			let x0 = this.x, y0 = this.y
 			this.x += this.vx * dt
 			if (!this.grounded) {
@@ -141,7 +160,8 @@ You.prototype = UFX.Thing()
 			let scale = 3 * this.r / 304
 			let frame = Math.floor(this.x / 30) % 4
 			let imgname = `you${this.model}run${frame}`
-			return ["[ z", -scale, -scale, "drawimage", UFX.resource.images[imgname], -ax0, -ay0, "]"]
+			let r = -0.2 + 0.1 * this.slopeat()
+			return ["[ r", r, "z", -scale, -scale, "drawimage", UFX.resource.images[imgname], -ax0, -ay0, "]"]
 //				"b o 0", this.r, this.r, "ss orange lw 3 s"]
 		},
 	})
@@ -165,30 +185,70 @@ Bubble.prototype = UFX.Thing()
 		},
 	})
 
-function Balloon(x, y) {
+let Balloon = {
+	draw0: function () {
+		return ["b o 0 0", this.r, "lw 4 ss", this.color, "s"]
+	},
+	ready: function () {
+		return true
+	},
+	pop: function () {
+		this.alive = false
+	},
+}
+
+function UpBalloon(x, y) {
 	this.x = x
 	this.y = y
 	this.vy = 0
 	this.r = 30
-	this.launchvy = 1200
+	this.launchvx = 200
+	this.launchvy = 800
 	this.landed = false
 	this.alive = true
+	this.color = "blue"
 }
-Balloon.prototype = UFX.Thing()
+UpBalloon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Circular)
 	.addcomp(FloatsToCeiling)
-	.addcomp({
-		draw0: function () {
-			return ["b o 0 0", this.r, "lw 4 ss red s"]
-		},
-		ready: function () {
-			return true
-		},
-		pop: function () {
-			this.alive = false
-		},
-	})
+	.addcomp(Balloon)
+
+
+function ForwardBalloon(x, y) {
+	this.x = x
+	this.y = y
+	this.vy = 0
+	this.r = 30
+	this.launchvx = 800
+	this.launchvy = 400
+	this.landed = false
+	this.alive = true
+	this.color = "green"
+}
+ForwardBalloon.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Circular)
+	.addcomp(FloatsToCeiling)
+	.addcomp(Balloon)
+
+
+function BackBalloon(x, y) {
+	this.x = x
+	this.y = y
+	this.vy = 0
+	this.r = 30
+	this.launchvx = -500
+	this.launchvy = 400
+	this.landed = false
+	this.alive = true
+	this.color = "red"
+}
+BackBalloon.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Circular)
+	.addcomp(FloatsToCeiling)
+	.addcomp(Balloon)
 
 function Platform(ps) {
 	this.ps = ps

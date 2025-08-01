@@ -15,7 +15,8 @@ let world = {
 			this.ys.push(y)
 		}
 		this.you = new You()
-		this.bubbles = UFX.random.seedmethod(777, "spread", 40, 0.8, this.R, 600, 0, -300).map(([x, y]) => new Bubble(x, y))
+//		this.bubbles = UFX.random.seedmethod(777, "spread", 40, 0.8, this.R, 600, 0, -300).map(([x, y]) => new Bubble(x, y))
+		this.bubbles = []
 		this.balloons = []
 		this.signs = [
 			[800, -400, 0.2, "LOOP"],

@@ -1,10 +1,4 @@
 
-// Fixed mod function to behave like in Python.
-let mod = (x, z) => (x % z + z) % z
-// The value equal to x (mod z) that's closest to 0
-let zmod = (x, z) => mod(x + z / 2, z) - z / 2
-// The value equal to x (mod z) that's closest to x0
-let cmod = (x, z, x0) => x0 + zmod(x - x0, z)
 
 let view = {
 	init: function () {

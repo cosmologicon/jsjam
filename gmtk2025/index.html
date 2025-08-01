@@ -14,6 +14,13 @@ canvas { background: black }
 let DEBUG = window.location.href.includes("DEBUG")
 let tau = 2 * Math.PI
 let clamp = (x, a, b) => x < a ? a : x > b ? b : x
+// Fixed mod function to behave like in Python.
+let mod = (x, z) => (x % z + z) % z
+// The value equal to x (mod z) that's closest to 0
+let zmod = (x, z) => mod(x + z / 2, z) - z / 2
+// The value equal to x (mod z) that's closest to x0
+let cmod = (x, z, x0) => x0 + zmod(x - x0, z)
+let approach = (x, target, dx) => x < target ? Math.min(x + dx, target) : Math.max(x - dx, target)
 window.onerror = function (error, url, line) {
 	document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
 }
@@ -35,7 +42,7 @@ function playsound(sname) {
 }
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "F1"]
+UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "F1", "1", "2", "3"]
 UFX.resource.loadwebfonts("Viga")
 let toload = {
 	test0: "img/test-0.jpg",
@@ -96,7 +103,9 @@ UFX.scenes.play = {
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
 		if (kstate.down.space || pointer.down) world.you.jump()
-		if (kstate.down.enter) world.you.releaseballoon()
+		if (kstate.down[1]) world.you.releaseballoon(1)
+		if (kstate.down[2]) world.you.releaseballoon(2)
+		if (kstate.down[3]) world.you.releaseballoon(3)
 		this.t += dt
 		view.think(dt)
 		world.you.think(dt)
