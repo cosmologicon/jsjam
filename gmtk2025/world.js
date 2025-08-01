@@ -15,7 +15,8 @@ let world = {
 			this.ys.push(y)
 		}
 		this.you = new You()
-		this.bubbles = UFX.random.seedmethod(777, "spread", 50, 0.8, this.R, 540, 0, -270).map(([x, y]) => new Bubble(x, y))
+		this.bubbles = UFX.random.seedmethod(777, "spread", 40, 0.8, this.R, 600, 0, -300).map(([x, y]) => new Bubble(x, y))
+		this.balloons = []
 		this.signs = [
 			[800, -400, 0.2, "LOOP"],
 			[2289, -400, -0.1, "TAP~OR~SPACE:~JUMP"],
@@ -23,7 +24,11 @@ let world = {
 		]
 		this.graphics = [
 			[700, -160, 0.5, 400, "tree"],
-			[2200, -160, 0.5, 400, "tower"],
+			[2260, -100, 0.5, 400, "castle"],
+		]
+		this.platforms = [
+			makeplatform(2700, 3200, (x => -100 - 0.001 * (x - 3000) ** 2)),
+			makeplatform(3500, 4200, (x => 100 - 0.001 * (x - 3700) ** 2)),
 		]
 	},
 	floorat: function (x) {
@@ -31,6 +36,9 @@ let world = {
 		let f = x - x0
 		let y0 = this.ys[x0 % this.D], y1 = this.ys[(x0 + 1) % this.D]
 		return y0 + f * (y1 - y0)
+	},
+	ceilingat: function (x) {
+		return -this.floorat(x + this.R)
 	},
 	slopeat: function (x) {
 		return this.floorat(x + 0.5) - this.floorat(x - 0.5)
@@ -46,7 +54,13 @@ let world = {
 		})
 		;[false, true].forEach(flip => {
 			UFX.draw("[", view.look(flip))
+			this.platforms.forEach(platform => platform.draw(flip))
+			UFX.draw("]")
+		})
+		;[false, true].forEach(flip => {
+			UFX.draw("[", view.look(flip))
 			this.bubbles.forEach(bubble => bubble.draw(flip))
+			this.balloons.forEach(balloon => balloon.draw(flip))
 			UFX.draw("]")
 		})
 		;[false, true].forEach(flip => {

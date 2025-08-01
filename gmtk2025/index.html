@@ -37,12 +37,19 @@ UFX.key.init()
 UFX.key.remaparrows(true)
 UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "F1"]
 UFX.resource.loadwebfonts("Viga")
-UFX.resource.load({
+let toload = {
 	test0: "img/test-0.jpg",
 	test1: "img/test-1.png",
 	tree: "img/tree.png",
 	tower: "img/tower.png",
-})
+	castle: "img/castle.png",
+}
+for (let model of [1, 2, 3]) {
+	for (let frame of [0, 1, 2, 3]) {
+		toload[`you${model}run${frame}`] = `img/run${model}-${frame}.png`
+	}
+}
+UFX.resource.load(toload)
 UFX.resource.onload = () => {
 }
 UFX.scene.push("load")
@@ -89,11 +96,15 @@ UFX.scenes.play = {
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
 		if (kstate.down.space || pointer.down) world.you.jump()
+		if (kstate.down.enter) world.you.releaseballoon()
 		this.t += dt
 		view.think(dt)
 		world.you.think(dt)
 		world.you.interact(world.bubbles)
+		world.you.interact(world.balloons)
 		world.bubbles.forEach(bubble => bubble.think(dt))
+		world.balloons.forEach(balloon => balloon.think(dt))
+		world.balloons = world.balloons.filter(balloon => balloon.alive)
 	},
 	draw: function () {
 		UFX.draw("fs #77f f0")
