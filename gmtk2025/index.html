@@ -40,7 +40,7 @@ function playsound(sname) {
 }
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "F1", "1", "2", "3"]
+UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "F1", "1", "2", "3", "esc"]
 UFX.resource.loadwebfonts("Viga", "Bokor")
 let toload = {
 	test0: "img/test-0.jpg",
@@ -103,11 +103,10 @@ UFX.scenes.play = {
 		if (kstate.down[1]) world.you.releaseballoon(1)
 		if (kstate.down[2]) world.you.releaseballoon(2)
 		if (kstate.down[3]) world.you.releaseballoon(3)
-		if (kstate.pressed.space || pointer.isdown) {
-			world.you.interact(world.balloons, world.portals)
-		}
+		if (kstate.down.esc) UFX.scene.push("pause")
+		let jumpheld = kstate.pressed.space || pointer.isdown
 		view.think(dt)
-		world.think(dt)
+		world.think(dt, jumpheld)
 		if (world.nextlevel !== null) UFX.scene.push("portal", world.nextlevel)
 	},
 	draw: function () {
@@ -116,6 +115,24 @@ UFX.scenes.play = {
 			world.draw()
 			UFX.draw("[ tab right bottom ss white fs black font 60px~Viga sft", `stars:~${progress.score}`, "1600 900 ]")
 		UFX.draw("]")
+	},
+}
+
+UFX.scenes.pause = {
+	start: function () {
+		this.t = 0
+	},
+	think: function (dt) {
+		this.t += dt
+		let kstate = UFX.key.state()
+		if (kstate.down.space || kstate.down.esc) {
+			UFX.scene.pop()
+		}
+	},
+	draw: function () {
+		UFX.scenes.play.draw()
+		let alpha = Math.min(2 * this.t, 0.7)
+		UFX.draw("[ alpha", alpha, "fs gray f0 ]")
 	},
 }
 

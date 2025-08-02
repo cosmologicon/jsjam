@@ -2,31 +2,47 @@
 
 let view = {
 	init: function () {
+		this.z = 1  // Pixels per game unit
+		this.px0 = 400  // Left edge of screen to camera anchor, in pixels.
 		this.x = world.you.x
-		this.px0 = 400  // Left edge of screen to camera center, in pixels.
+	},
+	// Half-width and half-height of the screen, in game units
+	screenw: function () {
+		return 800 / this.z
+	},
+	screenh: function () {
+		return 450 / this.z
 	},
 	think: function (dt) {
 		this.x += world.you.vx0 * dt
 	},
 	xcenter: function (flip) {
-		return this.x + 800 - this.px0 + (flip ? world.R : 0)
+		return this.x + (flip ? world.R : 0)
 	},
-	// Returns integers.
+	// Game units. Returns integers.
 	xrange: function (flip) {
-		let x0 = Math.round(this.xcenter(flip))
-		return [x0 - 820, x0 + 820]
+		let x0 = Math.round(this.xcenter(flip)), w = Math.ceil(this.screenw() * 1.04)
+		return [x0 - w, x0 + w]
 	},
 	onscreen: function (x, r, flip) {
-		return Math.abs(zmod(x - this.xcenter(flip)), world.D) <= 800 + r
+		return Math.abs(zmod(x - this.xcenter(flip)), world.D) - r <= this.screenw()
 	},
 	// Return the value equal to x (mod world.D) that's closest to on screen.
 	mod: function (x, flip) {
 		return cmod(x, world.D, this.xcenter(flip))
 	},
+	// Return all values of x (mod world.D) that are within r units of being on screen.
+	mods: function (x, r, flip) {
+		let xoff = this.xcenter(flip) - x, w = this.screenw() + r + 10
+		let n0 = Math.ceil((xoff - w) / world.D), n1 = Math.floor((xoff + w) / world.D)
+		let xs = []
+		for (let n = n0 ; n <= n1 ; ++n) xs.push(x + world.D * n)
+		return xs
+	},
 	look: function (flip) {
 		let xoff = this.x
 		if (flip) xoff += world.R
-		return ["t", this.px0, 450, (flip ? "t" : "vflip t"), -xoff, 0]
+		return ["t", 800, 450, "z", this.z, this.z, (flip ? "t" : "vflip t"), -xoff, 0]
 	},
 }
 

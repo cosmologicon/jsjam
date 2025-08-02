@@ -1,15 +1,33 @@
 
 let WorldBound = {
 	onscreen: function (flip) {
-		return view.onscreen(this.x, this.r, flip)
+		return view.onscreen(this.x, this.w, flip)
 	},
 	draw: function (flip) {
-		UFX.draw("[ t", view.mod(this.x, flip), this.y, this.draw0(), "]")
+		let xs = view.mods(this.x, this.w, flip)
+		if (xs.length == 0) return
+		let drawline = this.draw0()
+		xs.forEach(x => UFX.draw("[ t", x, this.y, drawline, "]"))
 	},
 	draw0: function () {
 		return []
 	},
 }
+
+
+function Graphic(spec) {
+	// this.r is image radius in pixels, needed for anchoring.
+	;[this.x, this.y, this.scale, this.r, this.imgname] = spec
+	this.w = this.r * this.scale
+}
+Graphic.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp({
+		draw0: function () {
+			return ["z", this.scale, -this.scale, "drawimage", UFX.resource.images[this.imgname], -this.r, -this.r]
+		},
+	})
+
 
 let Circular = {
 	within: function (obj, dy) {
@@ -176,9 +194,9 @@ You.prototype = UFX.Thing()
 				}
 			}
 		},
-		think: function (dt) {
+		think: function (dt, jumpheld) {
 			let vx0 = this.vx0
-			vx0 -= 200 * this.slopeat()
+			vx0 -= 120 * this.slopeat()
 			vx0 += 0.2 * (view.x - this.x)
 			this.vx = approach(this.vx, vx0, 1000 * dt)
 			let x0 = this.x, y0 = this.y
@@ -187,6 +205,7 @@ You.prototype = UFX.Thing()
 				let a = -2000
 				this.y += this.vy * dt + 0.5 * a * dt ** 2
 				this.vy += a * dt
+				if (!jumpheld && this.vy > 0) this.vy = 0
 				this.checkland(x0, y0)
 			}
 			if (this.grounded) {
@@ -392,7 +411,8 @@ function Platform(ps) {
 	;[this.x1, this.y1] = ps[ps.length - 1]
 	this.x = (this.x0 + this.x1) / 2
 	this.y = (this.y0 + this.y1) / 2
-	this.r = (this.x1 - this.x0) / 2
+	this.w = (this.x1 - this.x0) / 2
+	this.h = 1000
 	
 	this.drawline = []
 	this.drawline.push("( m", this.x0 - this.x, -450 - this.y)

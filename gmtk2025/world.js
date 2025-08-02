@@ -35,9 +35,110 @@ let levels = {
 		],
 		portals: [
 			[500, -230, "start", 1],
+			[800, -230, "ruins", 1],
 		],
 		powerups: [
 			[1000, -150, 2],
+		],
+	},
+	ruins: {
+		title: "The Forbidden Ruins",
+		skycolor: "#ccf",
+		groundcolor: "#ffc",
+		edgecolor: "#963",
+		R: 2000,
+		signs: [],
+		graphics: [],
+		stars: [
+		],
+		portals: [
+			[500, -230, "forest", 1],
+			[800, -230, "under", 1],
+			[1300, -230, "water", 1],
+		],
+		powerups: [],
+	},
+	mountain: {
+		title: "Mountaintop",
+		skycolor: "#aaf",
+		groundcolor: "#888",
+		edgecolor: "#fff",
+		R: 2000,
+		signs: [],
+		graphics: [],
+		stars: [
+		],
+		portals: [
+			[500, -230, "forest", 1],
+			[800, -230, "water", 1],
+			[1300, -230, "win", 1],
+		],
+		powerups: [],
+	},
+	water: {
+		title: "Underwater City",
+		skycolor: "#336",
+		groundcolor: "#111",
+		edgecolor: "#888",
+		R: 2000,
+		signs: [],
+		graphics: [],
+		stars: [
+		],
+		portals: [
+			[500, -230, "mountain", 1],
+			[800, -230, "ruins", 1],
+			[1300, -230, "fire", 1],
+		],
+		powerups: [],
+	},
+	under: {
+		title: "Subterrania",
+		skycolor: "#111",
+		groundcolor: "#345",
+		edgecolor: "#89a",
+		R: 2000,
+		signs: [],
+		graphics: [],
+		stars: [
+		],
+		portals: [
+			[500, -230, "ruins", 1],
+		],
+		powerups: [
+			[800, 0, 3],
+		],
+	},
+	space: {
+		title: "The Mobius Dimension",
+		skycolor: "#fc8",
+		groundcolor: "#8ff",
+		edgecolor: "#000",
+		R: 2000,
+		signs: [],
+		graphics: [],
+		stars: [
+		],
+		portals: [
+			[500, -230, "mountain", 1],
+		],
+		powerups: [],
+	},
+	fire: {
+		title: "Magma Pits",
+		skycolor: "#800",
+		groundcolor: "#432",
+		edgecolor: "#000",
+		R: 2000,
+		signs: [],
+		graphics: [],
+		stars: [
+		],
+		portals: [
+			[500, -230, "water", 1],
+		],
+		powerups: [
+			[500, 0, 1],
 		],
 	},
 }
@@ -69,7 +170,7 @@ let world = {
 		this.bubbles = []
 		this.balloons = []
 		this.signs = level.signs
-		this.graphics = level.graphics
+		this.graphics = level.graphics.map(spec => new Graphic(spec))
 		for (let [x, y, name] of level.powerups) {
 			if (!progress.unlocked[name]) {
 				console.log(name)
@@ -108,51 +209,42 @@ let world = {
 	slopeat: function (x) {
 		return this.floorat(x + 0.5) - this.floorat(x - 0.5)
 	},
-	think: function (dt) {
+	think: function (dt, jumpheld) {
 		this.t += dt
-		world.you.think(dt)
+		world.you.think(dt, jumpheld)
+		if (jumpheld) {
+			world.you.interact(world.balloons, world.portals)
+		}
 		world.you.collect(world.stars)
 		world.bubbles.forEach(bubble => bubble.think(dt))
 		world.balloons.forEach(balloon => balloon.think(dt))
 		world.balloons = world.balloons.filter(balloon => balloon.alive)
 		world.stars = world.stars.filter(balloon => balloon.alive)
 	},
+	drawobjs: function (objs) {
+		;[false, true].forEach(flip => {
+			UFX.draw("[", view.look(flip))
+			objs.forEach(obj => obj.draw(flip))
+			UFX.draw("]")
+		})
+	},
 	draw: function () {
-		;[false, true].forEach(flip => {
-			UFX.draw("[", view.look(flip))
-			this.graphics.forEach(([x0, y0, scale, r, imgname]) => {
-				UFX.draw("[ t", view.mod(x0, flip), y0, "z", scale, -scale,
-					"drawimage", UFX.resource.images[imgname], -r, -r, "]")
-			})
-			this.portals.forEach(portal => portal.draw(flip))
-			UFX.draw("]")
-		})
-		;[false, true].forEach(flip => {
-			UFX.draw("[", view.look(flip))
-			this.platforms.forEach(platform => platform.draw(flip))
-			UFX.draw("]")
-		})
-		;[false, true].forEach(flip => {
-			UFX.draw("[", view.look(flip))
-			this.bubbles.forEach(bubble => bubble.draw(flip))
-			this.balloons.forEach(balloon => balloon.draw(flip))
-			this.stars.forEach(star => star.draw(flip))
-			UFX.draw("]")
-		})
+		this.drawobjs(this.graphics.concat(this.portals))
+		this.drawobjs(this.platforms)
+		this.drawobjs(this.bubbles.concat(this.balloons, this.stars))
 		// ground
 		;[false, true].forEach(flip => {
 			UFX.draw("[", view.look(flip))
 			let [x0, x1] = view.xrange(flip)
-			UFX.draw("( m", x0, -500)
+			let depth = view.screenh() * 1.04
+			UFX.draw("( m", x0, -depth)
 			for (let x = x0 ; x <= x1 ; ++x) {
 				UFX.draw("l", x, this.ys[mod(x, this.D)])
 			}
-			UFX.draw("l", x1, -500, ") fs", this.groundcolor, "f lw 10 ss", this.edgecolor, "s")
+			UFX.draw("l", x1, -depth, ") fs", this.groundcolor, "f lw 10 ss", this.edgecolor, "s")
 			UFX.draw("]")
 		})
-		UFX.draw("[", view.look(false))
-		this.you.draw(false)
-		UFX.draw("]")
+		this.drawobjs([this.you])
 		;[false, true].forEach(flip => {
 			UFX.draw("[", view.look(flip))
 			this.signs.forEach(([x, y, tilt, text]) => {
