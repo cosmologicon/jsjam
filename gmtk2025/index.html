@@ -51,6 +51,8 @@ let toload = {
 	castle: "img/castle.png",
 }
 for (let model of [1, 2, 3]) {
+	toload[`up${model}`] = `img/up${model}.png`
+	toload[`down${model}`] = `img/down${model}.png`
 	for (let frame of [0, 1, 2, 3]) {
 		toload[`you${model}run${frame}`] = `img/run${model}-${frame}.png`
 	}
@@ -93,7 +95,7 @@ UFX.scenes.load = {
 }
 UFX.scenes.play = {
 	start: function () {
-		world.init("ruins")
+		world.init("start")
 		view.init()
 	},
 	think: function (dt) {

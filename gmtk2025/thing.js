@@ -6,9 +6,9 @@ let bcolors = {
 }
 let jumpvy = 500
 let blaunches = {
-	1: [-500, 400],
-	2: [200, 800],
-	3: [800, 400],
+	1: [-500, 300],
+	2: [200, 700],
+	3: [700, 300],
 }
 
 
@@ -282,6 +282,9 @@ You.prototype = UFX.Thing()
 			let scale = 2.4 * this.h / 304
 			let frame = Math.floor(this.x / 30) % 4
 			let imgname = `you${this.model}run${frame}`
+			if (!this.grounded) {
+				imgname = this.vy > 0 ? `up${this.model}` : `down${this.model}`
+			}
 			let r = -0.2 + 0.1 * this.slopeat()
 			return ["[ r", r, "z", -scale, -scale, "drawimage", UFX.resource.images[imgname], -ax0, -ay0, "]"]
 //				"b o 0", this.r, this.r, "ss orange lw 3 s"]
