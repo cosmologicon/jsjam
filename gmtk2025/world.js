@@ -1,5 +1,6 @@
 let levels = {
 	start: {
+		title: "Kingdom of Starteria",
 		skycolor: "#77f",
 		groundcolor: "#080",
 		edgecolor: "#4b4",
@@ -16,24 +17,27 @@ let levels = {
 			[4400, 0],
 		],
 		portals: [
-			[500, -230, "forest", 0],
+			[500, -300, "forest", 1],
+		],
+		powerups: [
+			[1000, -200, 2],
 		],
 	},
 	forest: {
+		title: "Forest of Mysteriousness",
 		skycolor: "#080",
 		groundcolor: "#040",
 		edgecolor: "#6a6",
-		R: 4000,
-		signs: [
-//			[2289, -400, -0.1, "TAP~OR~SPACE:~JUMP"],
-		],
-		graphics: [
-//			[700, 0, 1, 400, "castle"],
-		],
+		R: 2000,
+		signs: [],
+		graphics: [],
 		stars: [
 		],
 		portals: [
-			[500, -230, "start", 0],
+			[500, -230, "start", 1],
+		],
+		powerups: [
+			[1000, -150, 2],
 		],
 	},
 }
@@ -66,6 +70,12 @@ let world = {
 		this.balloons = []
 		this.signs = level.signs
 		this.graphics = level.graphics
+		for (let [x, y, name] of level.powerups) {
+			if (!progress.unlocked[name]) {
+				console.log(name)
+				this.balloons.push(new Powerup(x, y, name))
+			}
+		}
 		this.platforms = [
 			makesineplatform(2700, -300, 3500, 100),
 			makesineplatform(3700, 100, 4200, 0),
@@ -79,9 +89,11 @@ let world = {
 			if (name === from) {
 				this.you.x = x
 				this.you.y = y
+				this.you.grounded = false
 			}
 		}
 		this.nextlevel = null
+		this.t = 0
 		
 	},
 	floorat: function (x) {
@@ -95,6 +107,15 @@ let world = {
 	},
 	slopeat: function (x) {
 		return this.floorat(x + 0.5) - this.floorat(x - 0.5)
+	},
+	think: function (dt) {
+		this.t += dt
+		world.you.think(dt)
+		world.you.collect(world.stars)
+		world.bubbles.forEach(bubble => bubble.think(dt))
+		world.balloons.forEach(balloon => balloon.think(dt))
+		world.balloons = world.balloons.filter(balloon => balloon.alive)
+		world.stars = world.stars.filter(balloon => balloon.alive)
 	},
 	draw: function () {
 		;[false, true].forEach(flip => {
@@ -140,6 +161,16 @@ let world = {
 			})
 			UFX.draw("]")
 		})
+		let alpha = Math.min(Math.min(3 * this.t, 1), 1 - 5 * (this.t - 2))
+		if (alpha > 0) {
+			let grad = UFX.draw.lingrad(0, -40, 0, 100, 0, this.skycolor, 1, "black")
+			UFX.draw("[ t 800 840 tab center middle font 90px~'Bokor' lw 4",
+				"ss black fs", grad, "alpha", alpha,
+				"sft0", levels[this.levelname].title.replaceAll(" ", "~"),
+//				"t 0 40 scale 1 -0.3 alpha", alpha / 2,
+//				"sft0", levels[this.levelname].title.replaceAll(" ", "~"),
+				"]")
+		}
 	},
 }
 

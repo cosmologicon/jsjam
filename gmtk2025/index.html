@@ -41,7 +41,7 @@ function playsound(sname) {
 UFX.key.init()
 UFX.key.remaparrows(true)
 UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "F1", "1", "2", "3"]
-UFX.resource.loadwebfonts("Viga")
+UFX.resource.loadwebfonts("Viga", "Bokor")
 let toload = {
 	test0: "img/test-0.jpg",
 	test1: "img/test-1.png",
@@ -94,7 +94,6 @@ UFX.scenes.play = {
 	start: function () {
 		world.init("start")
 		view.init()
-		this.t = 0
 	},
 	think: function (dt) {
 		UFX.pointer.scale = UFX.maximize.scale.LD
@@ -104,17 +103,11 @@ UFX.scenes.play = {
 		if (kstate.down[1]) world.you.releaseballoon(1)
 		if (kstate.down[2]) world.you.releaseballoon(2)
 		if (kstate.down[3]) world.you.releaseballoon(3)
-		this.t += dt
-		view.think(dt)
-		world.you.think(dt)
 		if (kstate.pressed.space || pointer.isdown) {
 			world.you.interact(world.balloons, world.portals)
 		}
-		world.you.collect(world.stars)
-		world.bubbles.forEach(bubble => bubble.think(dt))
-		world.balloons.forEach(balloon => balloon.think(dt))
-		world.balloons = world.balloons.filter(balloon => balloon.alive)
-		world.stars = world.stars.filter(balloon => balloon.alive)
+		view.think(dt)
+		world.think(dt)
 		if (world.nextlevel !== null) UFX.scene.push("portal", world.nextlevel)
 	},
 	draw: function () {

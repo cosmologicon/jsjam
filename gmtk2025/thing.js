@@ -245,17 +245,27 @@ let Balloon = {
 	},
 }
 
+let bcolors = {
+	1: "red",
+	2: "blue",
+	3: "yellow",
+}
+let blaunches = {
+	1: [-500, 400],
+	2: [200, 800],
+	3: [800, 400],
+}
+
 function UpBalloon(x, y) {
 	this.x = x
 	this.y = y
 	this.vy = 0
 	this.w = 30
 	this.h = 30
-	this.launchvx = 200
-	this.launchvy = 800
+	;[this.launchvx, this.launchvy] = blaunches[2]
 	this.landed = false
 	this.alive = true
-	this.color = "blue"
+	this.color = bcolors[2]
 }
 UpBalloon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -270,11 +280,10 @@ function ForwardBalloon(x, y) {
 	this.vy = 0
 	this.w = 30
 	this.h = 30
-	this.launchvx = 800
-	this.launchvy = 400
+	;[this.launchvx, this.launchvy] = blaunches[3]
 	this.landed = false
 	this.alive = true
-	this.color = "green"
+	this.color = bcolors[3]
 }
 ForwardBalloon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -289,17 +298,39 @@ function BackBalloon(x, y) {
 	this.vy = 0
 	this.w = 30
 	this.h = 30
-	this.launchvx = -500
-	this.launchvy = 400
+	;[this.launchvx, this.launchvy] = blaunches[1]
 	this.landed = false
 	this.alive = true
-	this.color = "red"
+	this.color = bcolors[1]
 }
 BackBalloon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
 	.addcomp(FloatsToCeiling)
 	.addcomp(Balloon)
+
+function Powerup(x, y, n) {
+	this.x = x
+	this.y = y
+	this.n = n
+	this.w = 30
+	this.h = 30
+	;[this.launchvx, this.launchvy] = blaunches[n]
+	this.color = bcolors[n]
+	this.alive = true
+}
+Powerup.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Rectangular)
+	.addcomp(Balloon)
+	.addcomp({
+		pop: function () {
+			progress.unlocked[this.n] = true
+		},
+		think: function (dt) {
+		},
+	})
+
 
 function Star(x, y) {
 	this.x = x
