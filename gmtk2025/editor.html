@@ -47,8 +47,13 @@ let toload = {
 	castle: "img/castle.png",
 }
 for (let model of [1, 2, 3]) {
+	toload[`up${model}`] = `img/up${model}.png`
+	toload[`down${model}`] = `img/down${model}.png`
 	for (let frame of [0, 1, 2, 3]) {
 		toload[`you${model}run${frame}`] = `img/run${model}-${frame}.png`
+	}
+	for (let frame of [0, 1]) {
+		toload[`balloon${model}${frame}`] = `img/balloon-${model}-${frame}.png`
 	}
 }
 UFX.resource.load(toload)
@@ -74,7 +79,7 @@ UFX.scenes.load = {
 }
 UFX.scenes.edit = {
 	start: function () {
-		world.init("mountain")
+		world.init("fire")
 		view.init()
 		view.z = 1400 / world.D
 		this.mode = null
@@ -83,6 +88,7 @@ UFX.scenes.edit = {
 		this.seq = []
 	},
 	think: function (dt) {
+		view.x = 0
 		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
@@ -142,8 +148,9 @@ UFX.scenes.edit = {
 					UFX.draw("t", -world.D, 0)
 				}
 			UFX.draw("]")
-			UFX.draw("[", view.look(false), "fs rgba(255,0,0,0.1) fr", 0, -450, world.R, 900, "]")
-			UFX.draw("[", view.look(true), "fs rgba(0,0,255,0.1) fr", 0, -450, world.R, 900, "]")
+			let h = 450 / world.z
+			UFX.draw("[", view.look(false), "fs rgba(255,0,0,0.1) fr", 0, -h, world.R, 2 * h, "]")
+			UFX.draw("[", view.look(true), "fs rgba(0,0,255,0.1) fr", 0, -h, world.R, 2 * h, "]")
 			let texts = [
 				"1: ground",
 				"2: platform",

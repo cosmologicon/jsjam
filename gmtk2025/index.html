@@ -103,7 +103,7 @@ UFX.scenes.load = {
 }
 UFX.scenes.play = {
 	start: function () {
-		world.init("forest")
+		world.init("fire")
 		view.init()
 	},
 	think: function (dt) {
@@ -111,6 +111,7 @@ UFX.scenes.play = {
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
 		if (kstate.down.space || pointer.down) world.you.jump(world.balloons)
+		if (kstate.down.space || pointer.down) world.you.interact(world.portals)
 		if (kstate.down[1]) world.you.releaseballoon(1)
 		if (kstate.down[2]) world.you.releaseballoon(2)
 		if (kstate.down[3]) world.you.releaseballoon(3)

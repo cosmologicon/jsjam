@@ -11,17 +11,8 @@ let world = {
 		this.D = 2 * this.R
 		this.ys = []
 		this.z = level.z || 1
-		for (let x = 0 ; x <= this.D ; ++x) {
-			let f = x / this.D
-			y = -330 + 4 * (
-				40 * UFX.noise([14 * f + 5.1234], [14]) +
-				30 * UFX.noise([15 * f + 6.2345], [15]) +
-				20 * UFX.noise([16 * f + 7.3456], [16]) +
-				15 * UFX.noise([17 * f + 8.4567], [17]) +
-				10 * UFX.noise([18 * f + 9.5678], [18])
-			)
-			this.ys.push(y)
-		}
+		this.setnoiseground()
+		if (this.levelname == "water") this.setwaterground()
 		if ("groundspec" in level) this.setsineground(level.groundspec)
 		if ("peakspec" in level) this.setpeakground(level.peakspec)
 		this.you = new You()
@@ -59,6 +50,33 @@ let world = {
 		this.platforms.sort((p0, p1) => p1.y - p0.y)
 		this.nextlevel = null
 		this.t = 0
+	},
+	setnoiseground: function () {
+		for (let x = 0 ; x <= this.D ; ++x) {
+			let f = x / this.D
+			y = -330 + 4 * (
+				40 * UFX.noise([14 * f + 5.1234], [14]) +
+				30 * UFX.noise([15 * f + 6.2345], [15]) +
+				20 * UFX.noise([16 * f + 7.3456], [16]) +
+				15 * UFX.noise([17 * f + 8.4567], [17]) +
+				10 * UFX.noise([18 * f + 9.5678], [18])
+			)
+			this.ys.push(y)
+		}
+	},
+	setwaterground: function () {
+		for (let x = 0 ; x <= this.D ; ++x) {
+			let f = x / this.D
+			y = -230 + 4 * (
+				-100 * UFX.noise([3 * f + 2.2435], [3]) +
+				40 * UFX.noise([14 * f + 5.1234], [14]) +
+				30 * UFX.noise([15 * f + 6.2345], [15]) +
+				20 * UFX.noise([16 * f + 7.3456], [16]) +
+				15 * UFX.noise([17 * f + 8.4567], [17]) +
+				10 * UFX.noise([18 * f + 9.5678], [18])
+			)
+			this.ys.push(y)
+		}
 	},
 	setsineground: function (seq) {
 		let wrap = ([x, y], d) => [x + d * this.D, y]
@@ -113,9 +131,7 @@ let world = {
 	think: function (dt, jumpheld) {
 		this.t += dt
 		world.you.think(dt, jumpheld)
-		if (jumpheld) {
-			world.you.interact(world.portals)
-		}
+//		if (jumpheld) world.you.interact(world.portals)
 		world.you.hithazards(world.hazards)
 		world.you.collect(world.stars.concat(world.powerups))
 		let think = obj => obj.think(dt)

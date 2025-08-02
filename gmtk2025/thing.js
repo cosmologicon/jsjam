@@ -263,7 +263,7 @@ You.prototype = UFX.Thing()
 			let x0 = this.x, y0 = this.y
 			this.x += this.vx * dt
 			if (!this.grounded) {
-				let a = -2000
+				let a = world.levelname == "water" ? -1400 : -2000
 				this.y += this.vy * dt + 0.5 * a * dt ** 2
 				this.vy += a * dt
 				if (!jumpheld && this.vy > 0) this.vy = 0
@@ -578,9 +578,10 @@ function Platform(ps) {
 	this.h = 1000
 	
 	this.drawline = []
-	this.drawline.push("( m", this.x0 - this.x, -450 - this.y)
+	let y0 = 450 / world.z
+	this.drawline.push("( m", this.x0 - this.x, -y0 - this.y)
 	for (let [x, y] of ps) this.drawline.push("l", x - this.x, y - this.y)
-	this.drawline.push("l", this.x1 - this.x, -450 - this.y, ") fs", world.groundcolor, "f")
+	this.drawline.push("l", this.x1 - this.x, -y0 - this.y, ") fs", world.groundcolor, "f")
 	
 	this.drawline.push("b m", this.x0 - this.x, this.y0 - this.y)
 	for (let [x, y] of ps) this.drawline.push("l", x - this.x, y - this.y)
