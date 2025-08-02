@@ -194,15 +194,25 @@ let levels = {
 	space: {
 		title: "The Mobius Dimension",
 		skycolor: "#fc8",
-		groundcolor: "#8ff",
+		groundcolor: "#f8f",
 		edgecolor: "#000",
-		R: 2000,
+		groundspec: [[5,-613],[209,-693]],
+		platformspec: [
+			[[58,-580],[301,-522]],
+			[[256,-497],[500,-432]],
+			[[121,-418],[282,-376]],
+			[[322,-355],[559,-253]],
+			[[179,-182],[413,-138]],
+		],
+		R: 200,
+		z: 0.6,
 		signs: [],
 		graphics: [],
 		stars: [
+			[200, -630],
 		],
 		portals: [
-			[500, -230, "mountain", 1],
+			[0, 0, "mountain", 0],
 		],
 		powerups: [],
 	},

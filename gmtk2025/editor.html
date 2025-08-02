@@ -79,9 +79,9 @@ UFX.scenes.load = {
 }
 UFX.scenes.edit = {
 	start: function () {
-		world.init("fire")
+		world.init("space")
 		view.init()
-		view.z = 1400 / world.D
+		view.z = Math.min(1400 / world.D, world.z)
 		this.mode = null
 		this.mx = 0
 		this.my = 0
