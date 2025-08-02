@@ -108,22 +108,39 @@ UFX.scenes.play = {
 		view.think(dt)
 		world.you.think(dt)
 		if (kstate.pressed.space || pointer.isdown) {
-			world.you.interact(world.bubbles)
-			world.you.interact(world.balloons)
+			world.you.interact(world.balloons, world.portals)
 		}
 		world.you.collect(world.stars)
 		world.bubbles.forEach(bubble => bubble.think(dt))
 		world.balloons.forEach(balloon => balloon.think(dt))
 		world.balloons = world.balloons.filter(balloon => balloon.alive)
 		world.stars = world.stars.filter(balloon => balloon.alive)
+		if (world.nextlevel !== null) UFX.scene.push("portal", world.nextlevel)
 	},
 	draw: function () {
 		UFX.draw("fs", world.skycolor, "f0")
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 			world.draw()
+			UFX.draw("[ tab right bottom ss white fs black font 60px~Viga sft", `stars:~${progress.score}`, "1600 900 ]")
 		UFX.draw("]")
 	},
 }
+
+UFX.scenes.portal = {
+	start: function (to) {
+		this.from = world.levelname
+		this.to = to
+		world.init(this.to, this.from)
+		view.init()
+	},
+	think: function (dt) {
+		UFX.pointer.scale = UFX.maximize.scale.LD
+		let pointer = UFX.pointer(canvas)
+		let kstate = UFX.key.state()
+		UFX.scene.pop()
+	},
+}
+
 
 
 </script>

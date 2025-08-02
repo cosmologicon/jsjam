@@ -90,7 +90,7 @@ let Collectible = {
 
 function You() {
 	this.grounded = true
-	this.x = 2000
+	this.x = 0
 	this.y = world.floorat(this.x)
 	this.vx0 = 200
 	this.vx = this.vx0
@@ -99,6 +99,7 @@ function You() {
 	this.h = 40
 	this.model = UFX.random.choice([1, 2, 3])
 	this.platform = null
+	this.clear = false
 }
 You.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -117,17 +118,25 @@ You.prototype = UFX.Thing()
 			}[n]
 			world.balloons.push(new Balloon(this.x, this.y + this.h))
 		},
-		interact: function (bubbles) {
+		interact: function (balloons, portals) {
 //			if (this.grounded) return
 //			if (this.vy > 0) return
 			// Can potentially hit two bubbles in one frame.
-			bubbles.forEach(bubble => {
-				if (bubble.ready() && bubble.within(this)) {
-					bubble.pop()
-					this.vx = bubble.launchvx
-					this.vy = bubble.launchvy
+			balloons.forEach(balloon => {
+				if (balloon.ready() && balloon.within(this)) {
+					balloon.pop()
+					this.vx = balloon.launchvx
+					this.vy = balloon.launchvy
 				}
 			})
+			this.clear ||= !portals.some(portal => portal.within(this))
+			if (this.clear) {
+				portals.forEach(portal => {
+					if (portal.ready() && portal.within(this)) {
+						portal.enter()
+					}
+				})
+			}
 		},
 		collect: function (stars) {
 			stars.forEach(star => {
@@ -317,10 +326,11 @@ Star.prototype = UFX.Thing()
 	})
 
 
-function Portal(x, y, name) {
+function Portal(x, y, name, needed) {
 	this.x = x
 	this.y = y
 	this.name = name
+	this.needed = needed
 	this.w = 40
 	this.h = 40
 }
@@ -328,9 +338,19 @@ Portal.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
 	.addcomp({
+		getplatform: function () {
+			return new Platform([[this.x - this.w * 1.2, this.y - this.w], [this.x + this.w * 1.2, this.y - this.w]])
+		},
 		draw0: function () {
 			return ["b fs purple fr", -this.w, -this.h, 2 * this.w, 2 * this.h,
-				"tab center middle font 20px~Viga fs black ss white lw 4 vflip sft0", this.name]
+				"tab center middle font 20px~Viga fs black ss white lw 4 vflip sft", this.name, 0, -10,
+				"sft", `${this.needed}`, 0, 10]
+		},
+		ready: function () {
+			return progress.score >= this.needed
+		},
+		enter: function () {
+			world.nextlevel = this.name
 		},
 	})
 

@@ -16,7 +16,24 @@ let levels = {
 			[4400, 0],
 		],
 		portals: [
-			[1300, -300, "forest"],
+			[500, -230, "forest", 0],
+		],
+	},
+	forest: {
+		skycolor: "#080",
+		groundcolor: "#040",
+		edgecolor: "#6a6",
+		R: 4000,
+		signs: [
+//			[2289, -400, -0.1, "TAP~OR~SPACE:~JUMP"],
+		],
+		graphics: [
+//			[700, 0, 1, 400, "castle"],
+		],
+		stars: [
+		],
+		portals: [
+			[500, -230, "start", 0],
 		],
 	},
 }
@@ -24,6 +41,7 @@ let levels = {
 
 let world = {
 	init: function (levelname, from) {
+		this.levelname = levelname
 		let level = levels[levelname]
 		this.skycolor = level.skycolor
 		this.groundcolor = level.groundcolor
@@ -54,8 +72,10 @@ let world = {
 		]
 		this.stars = level.stars.map(([x, y]) => new Star(x, y))
 		this.portals = []
-		for (let [x, y, name] of level.portals) {
-			this.portals.push(new Portal(x, y, name))
+		for (let [x, y, name, needed] of level.portals) {
+			let portal = new Portal(x, y, name, needed)
+			this.portals.push(portal)
+			this.platforms.push(portal.getplatform())
 			if (name === from) {
 				this.you.x = x
 				this.you.y = y
@@ -67,7 +87,7 @@ let world = {
 	floorat: function (x) {
 		let x0 = Math.floor(x)
 		let f = x - x0
-		let y0 = this.ys[x0 % this.D], y1 = this.ys[(x0 + 1) % this.D]
+		let y0 = this.ys[mod(x0, this.D)], y1 = this.ys[mod(x0 + 1, this.D)]
 		return y0 + f * (y1 - y0)
 	},
 	ceilingat: function (x) {
@@ -104,7 +124,7 @@ let world = {
 			let [x0, x1] = view.xrange(flip)
 			UFX.draw("( m", x0, -500)
 			for (let x = x0 ; x <= x1 ; ++x) {
-				UFX.draw("l", x, this.ys[x % this.D])
+				UFX.draw("l", x, this.ys[mod(x, this.D)])
 			}
 			UFX.draw("l", x1, -500, ") fs", this.groundcolor, "f lw 10 ss", this.edgecolor, "s")
 			UFX.draw("]")
