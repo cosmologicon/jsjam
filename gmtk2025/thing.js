@@ -195,10 +195,12 @@ You.prototype = UFX.Thing()
 			}
 		},
 		think: function (dt, jumpheld) {
-			let vx0 = this.vx0
-			vx0 -= 120 * this.slopeat()
-			vx0 += 0.2 * (view.x - this.x)
-			this.vx = approach(this.vx, vx0, 1000 * dt)
+			if (this.grounded) {
+				let vx0 = this.vx0
+				vx0 -= 120 * clamp(this.slopeat(), -1, 1)
+	//			vx0 += 0.2 * (view.x - this.x)
+				this.vx = approach(this.vx, vx0, 1000 * dt)
+			}
 			let x0 = this.x, y0 = this.y
 			this.x += this.vx * dt
 			if (!this.grounded) {
@@ -468,9 +470,21 @@ function makeplatform(x0, x1, f) {
 	}
 	return new Platform(ps)
 }
-function makesineplatform(x0, y0, x1, y1) {
-	let yc = (y0 + y1) / 2, A = (y0 - y1) / 2, B = Math.PI / (x0 - x1)
-	return makeplatform(x0, x1, (x => yc + A * Math.cos(B * (x - x0))))
+function makesineplatform(ps) {
+	let [xmin, ymin] = ps[0]
+	let [xmax, ymax] = ps[ps.length - 1]
+	function f(x) {
+		if (x <= xmin) return ymin
+		if (x >= xmax) return ymax
+		let j1 = 0
+		while (ps[j1][0] < x) ++j1
+		let [x0, y0] = ps[j1 - 1]
+		let [x1, y1] = ps[j1]
+		let f = (x - x0) / (x1 - x0)
+		let g = 0.5 - 0.5 * Math.cos(f * Math.PI)
+		return y0 + (y1 - y0) * g
+	}
+	return makeplatform(xmin, xmax, f)
 }
 
 

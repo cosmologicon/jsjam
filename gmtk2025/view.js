@@ -14,7 +14,7 @@ let view = {
 		return 450 / this.z
 	},
 	think: function (dt) {
-		this.x += world.you.vx0 * dt
+		this.x = world.you.x
 	},
 	xcenter: function (flip) {
 		return this.x + (flip ? world.R : 0)

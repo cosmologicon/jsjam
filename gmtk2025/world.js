@@ -1,4 +1,17 @@
 let levels = {
+	empty: {
+		title: "Kingdom of Starteria",
+		skycolor: "#777",
+		groundcolor: "#333",
+		edgecolor: "#bbb",
+		R: 2000,
+		signs: [],
+		graphics: [],
+		stars: [],
+		portals: [],
+		powerups: [],
+	},
+
 	start: {
 		title: "Kingdom of Starteria",
 		skycolor: "#77f",
@@ -98,15 +111,20 @@ let levels = {
 		groundcolor: "#345",
 		edgecolor: "#89a",
 		R: 2000,
+		groundspec: [[373,-17],[570,-332],[1268,-407],[1790,-200],[2223,-229],[2637,-399],[3583,-358],[3756,-71]],
+		platformspec: [
+			[[2086,-92],[2469,-249],[2844,-255],[2844,-255],[3089,-14],[3260,-37]],
+		],
 		signs: [],
 		graphics: [],
 		stars: [
+			[640, 0],
 		],
 		portals: [
-			[500, -230, "ruins", 1],
+			[3470, 0, "ruins", 1],
 		],
 		powerups: [
-			[800, 0, 3],
+			[1160, -200, 3],
 		],
 	},
 	space: {
@@ -165,6 +183,7 @@ let world = {
 			)
 			this.ys.push(y)
 		}
+		if ("groundspec" in level) this.setsineground(level.groundspec)
 		this.you = new You()
 //		this.bubbles = UFX.random.seedmethod(777, "spread", 40, 0.8, this.R, 600, 0, -300).map(([x, y]) => new Bubble(x, y))
 		this.bubbles = []
@@ -177,10 +196,8 @@ let world = {
 				this.balloons.push(new Powerup(x, y, name))
 			}
 		}
-		this.platforms = [
-			makesineplatform(2700, -300, 3500, 100),
-			makesineplatform(3700, 100, 4200, 0),
-		]
+		this.platforms = []
+		if ("platformspec" in level) this.platforms.push(...level.platformspec.map(spec => makesineplatform(spec)))
 		this.stars = level.stars.map(([x, y]) => new Star(x, y))
 		this.portals = []
 		for (let [x, y, name, needed] of level.portals) {
@@ -195,7 +212,26 @@ let world = {
 		}
 		this.nextlevel = null
 		this.t = 0
+	},
+	setsineground: function (seq) {
+		let wrap = ([x, y], d) => [x + d * this.D, y]
+		while (seq[0][0] < 0) {
+			seq.push(wrap(seq.shift(), 1))
+		}
+		seq.unshift(wrap(seq[seq.length - 1], -1))
+		seq.push(wrap(seq[1], 1))
+		console.log(seq)
 		
+		this.ys = []
+		for (let x = 0 ; x <= this.D ; ++x) {
+			let j1 = 0
+			while (seq[j1][0] < x) ++j1
+			let [x0, y0] = seq[j1 - 1]
+			let [x1, y1] = seq[j1]
+			let f = (x - x0) / (x1 - x0)
+			let g = 0.5 - 0.5 * Math.cos(f * Math.PI)
+			this.ys.push(y0 + (y1 - y0) * g)
+		}
 	},
 	floorat: function (x) {
 		let x0 = Math.floor(x)

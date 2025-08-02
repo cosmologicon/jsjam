@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-<title>GMTK 2025 game</title>
+<title>Level editor</title>
 <script src="UFX.js"></script>
 <script src="world.js"></script>
 <script src="progress.js"></script>
@@ -28,10 +28,6 @@ canvas.height = 900
 let context = canvas.getContext("2d")
 UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
-UFX.audio.init()
-UFX.audio.makegainnode({ name: "main", gain: 1, })
-UFX.audio.makegainnode({ name: "sfx", output: "main" })
-UFX.audio.makegainnode({ name: "music", output: "main", gain: 0.3 })
 UFX.audio.loadbuffers({
 //	select: "sound/select.ogg",
 })
@@ -69,89 +65,94 @@ UFX.scenes.load = {
 		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
-		if (this.f == 1) {
-			if (kstate.down.space || pointer.down) UFX.scene.swap("play")
-		}
+		if (this.f == 1) UFX.scene.swap("edit")
 	},
 	draw: function () {
-		let t = 0.0003 * Date.now()
-		let [r, g, b] = [0, 1/3, 2/3].map(phi => 128 + 120 * Math.sin(t + phi*tau))
-		let color = `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`
-		UFX.draw("fs", color, "f0")
-		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
-		UFX.draw("[ t 600 200 font 100px~'Viga' r -0.1",
-			"tab center middle fs black ss gray lw 1 fst0 GMTK~Jam~2025~game ]")
-		let text = this.f == 1 ? "Tap~or~press~Space~to~begin" : `Loading...~${(100 * this.f).toFixed(0)}%`
-		let grad = UFX.draw.lingrad(0, 30, 0, -30, 0, "#fff", 1, "#bbb")
-		UFX.draw("[ t", 800, 800,
-			"font 80px~'Viga' fs", grad, "ss black shadow black 4 4 2",
-			"tab center middle sft0", text, "]")
-		UFX.draw("[ t -20 600 r 1.5 z 0.4 0.4 drawimage", UFX.resource.images.test1, -984/2, -1064, "]")
-		UFX.draw("]")
+		UFX.draw("fs #123 f0")
 	},
 }
-UFX.scenes.play = {
+UFX.scenes.edit = {
 	start: function () {
 		world.init("under")
 		view.init()
+		view.z = 1400 / world.D
+		this.mode = null
+		this.mx = 0
+		this.my = 0
+		this.seq = []
 	},
 	think: function (dt) {
 		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
-		if (kstate.down.space || pointer.down) world.you.jump()
-		if (kstate.down[1]) world.you.releaseballoon(1)
-		if (kstate.down[2]) world.you.releaseballoon(2)
-		if (kstate.down[3]) world.you.releaseballoon(3)
-		if (kstate.down.esc) UFX.scene.push("pause")
-		let jumpheld = kstate.pressed.space || pointer.isdown
-		view.think(dt)
-		world.think(dt, jumpheld)
-		if (world.nextlevel !== null) UFX.scene.push("portal", world.nextlevel)
+		if (pointer.pos !== undefined) {
+			let [vx, vy] = pointer.pos
+			vx *= 1600 / canvas.width
+			vy *= 900 / canvas.height
+			this.mx = Math.round(mod((vx - 800) / view.z, world.D))
+			this.my = -Math.round((vy - 450) / view.z)
+		}
+		if (kstate.down[1]) {
+			this.mode = "ground"
+			this.seq = []
+		}
+		if (kstate.down[2]) {
+			this.mode = "platform"
+			this.seq = []
+		}
+		if (kstate.down.esc) {
+			this.mode = null
+			this.seq = []
+		}
+		if (kstate.down.enter) {
+			let seqstr = "" + this.seq.map(([x, y]) => `[${x},${y}]`)
+			if (this.mode == "ground") {
+				world.setsineground(this.seq)
+				console.log(`groundspec: [${seqstr}],`)
+			}
+			if (this.mode == "platform") {
+				world.platforms.push(makesineplatform(this.seq))
+				console.log(`[${seqstr}],`)
+			}
+			this.mode = null
+			this.seq = []
+		}
+		if (pointer.down) {
+			if (["ground", "platform"].includes(this.mode)) {
+				this.seq.push([this.mx, this.my])
+			}
+		}
+//		view.think(dt)
+//		world.think(dt, false)
 	},
 	draw: function () {
 		UFX.draw("fs", world.skycolor, "f0")
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 			world.draw()
-			UFX.draw("[ tab right bottom ss white fs black font 60px~Viga sft", `stars:~${progress.score}`, "1600 900 ]")
+			UFX.draw("[", view.look(false))
+				for (let j = 0 ; j < 2 ; ++j) {
+					if (this.seq.length >= 2) {
+						UFX.draw("b m", this.seq[0], this.seq.map(p => ["l", p]), "ss silver lw 5 s")
+					}
+					UFX.draw("fs orange", this.seq.map(p => ["b o", p, 10, "f"]))
+					UFX.draw("t", -world.D, 0)
+				}
+			UFX.draw("]")
+			UFX.draw("[", view.look(false), "fs rgba(255,0,0,0.1) fr", 0, -450, world.R, 900, "]")
+			UFX.draw("[", view.look(true), "fs rgba(0,0,255,0.1) fr", 0, -450, world.R, 900, "]")
+			let texts = [
+				"1: ground",
+				"2: platform",
+				`mode: ${this.mode}`,
+				`seq: ${this.seq.length}`,
+				`${this.mx}, ${this.my}`,
+			]
+			UFX.draw("font 20px~'Viga' tab right bottom fs white")
+			texts.reverse().forEach((text, j) => {
+				context.fillText(text, 1590, 890 - 20 * j)
+			})
 		UFX.draw("]")
 	},
 }
-
-UFX.scenes.pause = {
-	start: function () {
-		this.t = 0
-	},
-	think: function (dt) {
-		this.t += dt
-		let kstate = UFX.key.state()
-		if (kstate.down.space || kstate.down.esc) {
-			UFX.scene.pop()
-		}
-	},
-	draw: function () {
-		UFX.scenes.play.draw()
-		let alpha = Math.min(2 * this.t, 0.7)
-		UFX.draw("[ alpha", alpha, "fs gray f0 ]")
-	},
-}
-
-UFX.scenes.portal = {
-	start: function (to) {
-		this.from = world.levelname
-		this.to = to
-		world.init(this.to, this.from)
-		view.init()
-	},
-	think: function (dt) {
-		UFX.pointer.scale = UFX.maximize.scale.LD
-		let pointer = UFX.pointer(canvas)
-		let kstate = UFX.key.state()
-		UFX.scene.pop()
-	},
-}
-
-
-
 </script>
 
