@@ -12,25 +12,44 @@ let WorldBound = {
 }
 
 let Circular = {
-	within: function (obj) {
-		let dx0 = zmod(this.x - obj.x, world.D), dy0 = this.y - obj.y
+	within: function (obj, dy) {
+		let dx0 = zmod(this.x - obj.x, world.D), dy0 = this.y - (obj.y + (dy || 0))
 		let dx1 = zmod(this.x - obj.x + world.R, world.D), dy1 = this.y + obj.y
 		return Math.hypot(dx0, dy0) <= this.r || Math.hypot(dx1, dy1) <= this.r
 	},
+	draw: function (flip) {
+		UFX.draw("[ b o", view.mod(this.x, flip), this.y, this.r, "ss white lw 1 s ]")
+	},
 }
+
+let Rectangular = {
+	// Returns 1 if colliding with same orientation, -1 if colliding with opposite orientations.
+	within: function (obj) {
+		let w = obj.w + this.w, h = obj.h + this.h
+		let dx0 = zmod(this.x - obj.x, world.D), dy0 = this.y - obj.y
+		if (Math.abs(dx0) < w && Math.abs(dy0) < h) return 1
+		let dx1 = zmod(this.x - obj.x + world.R, world.D), dy1 = this.y + obj.y
+		if (Math.abs(dx1) < w && Math.abs(dy1) < h) return -1
+		return 0
+	},
+	draw: function (flip) {
+		UFX.draw("[ lw 1 ss white sr", view.mod(this.x, flip) - this.w, this.y - this.h, 2 * this.w, 2 * this.h, "]")
+	},
+}
+
 
 let FloatsToCeiling = {
 	checkland: function (x0, y0) {
 		if (this.landed) return
 			for (let platform of world.platforms) {
-				if (platform.catches(x0 + world.R, -y0, this.x + world.R, -this.y)) {
-					this.y = -platform.heightat(this.x + world.R) - this.r
+				if (platform.catches(x0 + world.R, -y0 - this.h, this.x + world.R, -this.y - this.h)) {
+					this.y = -platform.heightat(this.x + world.R) - this.h
 					this.landed = true
 					return
 				}
 			}
-		if (this.y + this.r >= world.ceilingat(this.x)) {
-			this.y = world.ceilingat(this.x) - this.r
+		if (this.y + this.h >= world.ceilingat(this.x)) {
+			this.y = world.ceilingat(this.x) - this.h
 			this.landed = true
 		}
 	},
@@ -58,6 +77,16 @@ let Repoppable = {
 	},
 }
 
+let Collectible = {
+	collectible: function () {
+		return this.alive
+	},
+	collect: function () {
+		this.alive = false
+		progress.score += 1
+	},
+}
+
 
 function You() {
 	this.grounded = true
@@ -66,17 +95,19 @@ function You() {
 	this.vx0 = 200
 	this.vx = this.vx0
 	this.vy = 0
-	this.r = 30
+	this.w = 20
+	this.h = 40
 	this.model = UFX.random.choice([1, 2, 3])
 	this.platform = null
 }
 You.prototype = UFX.Thing()
 	.addcomp(WorldBound)
+	.addcomp(Rectangular)
 	.addcomp({
 		jump: function () {
 			if (!this.grounded) return
 			this.grounded = false
-			this.vy = 800
+			this.vy = 600
 		},
 		releaseballoon: function (n) {
 			let Balloon = {
@@ -84,17 +115,24 @@ You.prototype = UFX.Thing()
 				2: UpBalloon,
 				3: ForwardBalloon,
 			}[n]
-			world.balloons.push(new Balloon(this.x, this.y + 2 * this.r))
+			world.balloons.push(new Balloon(this.x, this.y + this.h))
 		},
 		interact: function (bubbles) {
-			if (this.grounded) return
-			if (this.vy > 0) return
+//			if (this.grounded) return
+//			if (this.vy > 0) return
 			// Can potentially hit two bubbles in one frame.
 			bubbles.forEach(bubble => {
 				if (bubble.ready() && bubble.within(this)) {
 					bubble.pop()
 					this.vx = bubble.launchvx
 					this.vy = bubble.launchvy
+				}
+			})
+		},
+		collect: function (stars) {
+			stars.forEach(star => {
+				if (star.collectible() && star.within(this, this.R)) {
+					star.collect()
 				}
 			})
 		},
@@ -111,19 +149,19 @@ You.prototype = UFX.Thing()
 		checkland: function (x0, y0) {
 			if (this.grounded) return
 			if (this.vy > 0) {
-				if (this.y + 2 * this.r >= world.ceilingat(this.x)) {
+				if (this.y + this.h >= world.ceilingat(this.x)) {
 					this.vy = 0
 					return
 				}
 			} else {
 				for (let platform of world.platforms) {
-					if (platform.catches(x0, y0, this.x, this.y)) {
+					if (platform.catches(x0, y0 - this.h, this.x, this.y - this.h)) {
 						this.grounded = true
 						this.platform = platform
 						return
 					}
 				}
-				if (this.y <= world.floorat(this.x)) {
+				if (this.y - this.h <= world.floorat(this.x)) {
 					this.grounded = true
 					this.platform = null
 				}
@@ -149,15 +187,15 @@ You.prototype = UFX.Thing()
 					this.platform = null
 					this.vy = 0
 				} else {
-					this.y = this.heightat()
+					this.y = y + this.h
 				}
 				this.vy = 0
 			}
 		},
 		draw0: function () {
 			let f = 1 + 0.0007 * clamp(this.vy, -200, 200)
-			let [ax0, ay0] = [78, 276]  // Position of anchor within image
-			let scale = 3 * this.r / 304
+			let [ax0, ay0] = [78, 152]  // Position of anchor within image
+			let scale = 2.4 * this.h / 304
 			let frame = Math.floor(this.x / 30) % 4
 			let imgname = `you${this.model}run${frame}`
 			let r = -0.2 + 0.1 * this.slopeat()
@@ -171,12 +209,13 @@ function Bubble(x, y) {
 	this.y = y
 	this.Tpop = 2
 	this.tpop = 0
-	this.r = 30
+	this.w = 30
+	this.h = 30
 	this.launchvy = 800
 }
 Bubble.prototype = UFX.Thing()
 	.addcomp(WorldBound)
-	.addcomp(Circular)
+	.addcomp(Rectangular)
 	.addcomp(Repoppable)
 	.addcomp({
 		draw0: function () {
@@ -187,7 +226,7 @@ Bubble.prototype = UFX.Thing()
 
 let Balloon = {
 	draw0: function () {
-		return ["b o 0 0", this.r, "lw 4 ss", this.color, "s"]
+		return ["b o 0 0", Math.hypot(this.w, this.h), "lw 4 ss", this.color, "s"]
 	},
 	ready: function () {
 		return true
@@ -201,7 +240,8 @@ function UpBalloon(x, y) {
 	this.x = x
 	this.y = y
 	this.vy = 0
-	this.r = 30
+	this.w = 30
+	this.h = 30
 	this.launchvx = 200
 	this.launchvy = 800
 	this.landed = false
@@ -210,7 +250,7 @@ function UpBalloon(x, y) {
 }
 UpBalloon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
-	.addcomp(Circular)
+	.addcomp(Rectangular)
 	.addcomp(FloatsToCeiling)
 	.addcomp(Balloon)
 
@@ -219,7 +259,8 @@ function ForwardBalloon(x, y) {
 	this.x = x
 	this.y = y
 	this.vy = 0
-	this.r = 30
+	this.w = 30
+	this.h = 30
 	this.launchvx = 800
 	this.launchvy = 400
 	this.landed = false
@@ -228,7 +269,7 @@ function ForwardBalloon(x, y) {
 }
 ForwardBalloon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
-	.addcomp(Circular)
+	.addcomp(Rectangular)
 	.addcomp(FloatsToCeiling)
 	.addcomp(Balloon)
 
@@ -237,7 +278,8 @@ function BackBalloon(x, y) {
 	this.x = x
 	this.y = y
 	this.vy = 0
-	this.r = 30
+	this.w = 30
+	this.h = 30
 	this.launchvx = -500
 	this.launchvy = 400
 	this.landed = false
@@ -246,9 +288,52 @@ function BackBalloon(x, y) {
 }
 BackBalloon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
-	.addcomp(Circular)
+	.addcomp(Rectangular)
 	.addcomp(FloatsToCeiling)
 	.addcomp(Balloon)
+
+function Star(x, y) {
+	this.x = x
+	this.y = y
+	this.w = 20
+	this.h = 20
+	this.alive = true
+}
+Star.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Rectangular)
+	.addcomp(Collectible)
+	.addcomp({
+		draw0: function () {
+			let r0 = Math.hypot(this.w, this.h), r1 = r0 / 2
+			let drawline = ["b m", 0, r0]
+			for (let j = 0 ; j < 10 ; ++j) {
+				let r = j % 2 == 0 ? r0 : r1, theta = j / 10 * tau
+				drawline.push("l", r * Math.sin(theta), r * Math.cos(theta))
+			}
+			drawline.push(") fs yellow ss black lw 2 s f")
+			return drawline
+		},
+	})
+
+
+function Portal(x, y, name) {
+	this.x = x
+	this.y = y
+	this.name = name
+	this.w = 40
+	this.h = 40
+}
+Portal.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Rectangular)
+	.addcomp({
+		draw0: function () {
+			return ["b fs purple fr", -this.w, -this.h, 2 * this.w, 2 * this.h,
+				"tab center middle font 20px~Viga fs black ss white lw 4 vflip sft0", this.name]
+		},
+	})
+
 
 function Platform(ps) {
 	this.ps = ps
@@ -261,11 +346,11 @@ function Platform(ps) {
 	this.drawline = []
 	this.drawline.push("( m", this.x0 - this.x, -450 - this.y)
 	for (let [x, y] of ps) this.drawline.push("l", x - this.x, y - this.y)
-	this.drawline.push("l", this.x1 - this.x, -450 - this.y, ") fs #ccc f")
+	this.drawline.push("l", this.x1 - this.x, -450 - this.y, ") fs", world.groundcolor, "f")
 	
 	this.drawline.push("b m", this.x0 - this.x, this.y0 - this.y)
 	for (let [x, y] of ps) this.drawline.push("l", x - this.x, y - this.y)
-	this.drawline.push("ss white lw 10 s")
+	this.drawline.push("ss", world.edgecolor, "lw 10 s")
 }
 Platform.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -311,6 +396,10 @@ function makeplatform(x0, x1, f) {
 		ps.push([x, f(x)])
 	}
 	return new Platform(ps)
+}
+function makesineplatform(x0, y0, x1, y1) {
+	let yc = (y0 + y1) / 2, A = (y0 - y1) / 2, B = Math.PI / (x0 - x1)
+	return makeplatform(x0, x1, (x => yc + A * Math.cos(B * (x - x0))))
 }
 
 

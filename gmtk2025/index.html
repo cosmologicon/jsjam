@@ -3,12 +3,10 @@
 <title>GMTK 2025 game</title>
 <script src="UFX.js"></script>
 <script src="world.js"></script>
+<script src="progress.js"></script>
 <script src="thing.js"></script>
 <script src="view.js"></script>
-<canvas id=canvas></canvas>
-<style>
-canvas { background: black }
-</style>
+<canvas id=canvas style="background: black"></canvas>
 <script>
 "use strict"
 let DEBUG = window.location.href.includes("DEBUG")
@@ -94,7 +92,7 @@ UFX.scenes.load = {
 }
 UFX.scenes.play = {
 	start: function () {
-		world.init()
+		world.init("start")
 		view.init()
 		this.t = 0
 	},
@@ -109,14 +107,18 @@ UFX.scenes.play = {
 		this.t += dt
 		view.think(dt)
 		world.you.think(dt)
-		world.you.interact(world.bubbles)
-		world.you.interact(world.balloons)
+		if (kstate.pressed.space || pointer.isdown) {
+			world.you.interact(world.bubbles)
+			world.you.interact(world.balloons)
+		}
+		world.you.collect(world.stars)
 		world.bubbles.forEach(bubble => bubble.think(dt))
 		world.balloons.forEach(balloon => balloon.think(dt))
 		world.balloons = world.balloons.filter(balloon => balloon.alive)
+		world.stars = world.stars.filter(balloon => balloon.alive)
 	},
 	draw: function () {
-		UFX.draw("fs #77f f0")
+		UFX.draw("fs", world.skycolor, "f0")
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 			world.draw()
 		UFX.draw("]")

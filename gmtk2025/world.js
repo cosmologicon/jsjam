@@ -1,6 +1,34 @@
+let levels = {
+	start: {
+		skycolor: "#77f",
+		groundcolor: "#080",
+		edgecolor: "#4b4",
+		R: 2000,
+		signs: [
+//			[2289, -400, -0.1, "TAP~OR~SPACE:~JUMP"],
+		],
+		graphics: [
+			[700, 0, 1, 400, "castle"],
+		],
+		stars: [
+			[2400, -200],
+			[3600, 0],
+			[4400, 0],
+		],
+		portals: [
+			[1300, -300, "forest"],
+		],
+	},
+}
+
+
 let world = {
-	init: function () {
-		this.R = 2000
+	init: function (levelname, from) {
+		let level = levels[levelname]
+		this.skycolor = level.skycolor
+		this.groundcolor = level.groundcolor
+		this.edgecolor = level.edgecolor
+		this.R = level.R
 		this.D = 2 * this.R
 		this.ys = []
 		for (let x = 0 ; x <= this.D ; ++x) {
@@ -18,19 +46,23 @@ let world = {
 //		this.bubbles = UFX.random.seedmethod(777, "spread", 40, 0.8, this.R, 600, 0, -300).map(([x, y]) => new Bubble(x, y))
 		this.bubbles = []
 		this.balloons = []
-		this.signs = [
-			[800, -400, 0.2, "LOOP"],
-			[2289, -400, -0.1, "TAP~OR~SPACE:~JUMP"],
-			[3612, -400, 0.02, "BOUNCE~OFF~BUBBLES"],
-		]
-		this.graphics = [
-			[700, -160, 0.5, 400, "tree"],
-			[2260, -100, 0.5, 400, "castle"],
-		]
+		this.signs = level.signs
+		this.graphics = level.graphics
 		this.platforms = [
-			makeplatform(2700, 3200, (x => -100 - 0.001 * (x - 3000) ** 2)),
-			makeplatform(3500, 4200, (x => 100 - 0.001 * (x - 3700) ** 2)),
+			makesineplatform(2700, -300, 3500, 100),
+			makesineplatform(3700, 100, 4200, 0),
 		]
+		this.stars = level.stars.map(([x, y]) => new Star(x, y))
+		this.portals = []
+		for (let [x, y, name] of level.portals) {
+			this.portals.push(new Portal(x, y, name))
+			if (name === from) {
+				this.you.x = x
+				this.you.y = y
+			}
+		}
+		this.nextlevel = null
+		
 	},
 	floorat: function (x) {
 		let x0 = Math.floor(x)
@@ -51,6 +83,7 @@ let world = {
 				UFX.draw("[ t", view.mod(x0, flip), y0, "z", scale, -scale,
 					"drawimage", UFX.resource.images[imgname], -r, -r, "]")
 			})
+			this.portals.forEach(portal => portal.draw(flip))
 			UFX.draw("]")
 		})
 		;[false, true].forEach(flip => {
@@ -62,8 +95,10 @@ let world = {
 			UFX.draw("[", view.look(flip))
 			this.bubbles.forEach(bubble => bubble.draw(flip))
 			this.balloons.forEach(balloon => balloon.draw(flip))
+			this.stars.forEach(star => star.draw(flip))
 			UFX.draw("]")
 		})
+		// ground
 		;[false, true].forEach(flip => {
 			UFX.draw("[", view.look(flip))
 			let [x0, x1] = view.xrange(flip)
@@ -71,7 +106,7 @@ let world = {
 			for (let x = x0 ; x <= x1 ; ++x) {
 				UFX.draw("l", x, this.ys[x % this.D])
 			}
-			UFX.draw("l", x1, -500, ") fs #ccc f lw 10 ss white s")
+			UFX.draw("l", x1, -500, ") fs", this.groundcolor, "f lw 10 ss", this.edgecolor, "s")
 			UFX.draw("]")
 		})
 		UFX.draw("[", view.look(false))
