@@ -10,6 +10,7 @@ let world = {
 		this.R = level.R
 		this.D = 2 * this.R
 		this.ys = []
+		this.z = level.z || 1
 		for (let x = 0 ; x <= this.D ; ++x) {
 			let f = x / this.D
 			y = -330 + 4 * (

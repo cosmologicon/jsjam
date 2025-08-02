@@ -2,7 +2,7 @@
 
 let view = {
 	init: function () {
-		this.z = 1  // Pixels per game unit
+		this.z = world.z  // Pixels per game unit
 		this.px0 = 400  // Left edge of screen to camera anchor, in pixels.
 		this.x = world.you.x
 	},

@@ -448,6 +448,7 @@ Star.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
 	.addcomp(Collectible)
+	.addcomp(RaisesScore)
 	.addcomp({
 		draw0: function () {
 			let r0 = Math.hypot(this.w, this.h), r1 = r0 / 2

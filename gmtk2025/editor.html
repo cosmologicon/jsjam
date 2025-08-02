@@ -74,7 +74,7 @@ UFX.scenes.load = {
 }
 UFX.scenes.edit = {
 	start: function () {
-		world.init("forest")
+		world.init("ruins")
 		view.init()
 		view.z = 1400 / world.D
 		this.mode = null
@@ -151,8 +151,9 @@ UFX.scenes.edit = {
 				`seq: ${this.seq.length}`,
 				`${this.mx}, ${this.my}`,
 			]
-			UFX.draw("font 20px~'Viga' tab right bottom fs white")
+			UFX.draw("font 20px~'Viga' tab right bottom fs white ss black lw 2")
 			texts.reverse().forEach((text, j) => {
+				context.strokeText(text, 1590, 890 - 20 * j)
 				context.fillText(text, 1590, 890 - 20 * j)
 			})
 		UFX.draw("]")
