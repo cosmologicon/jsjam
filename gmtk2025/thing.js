@@ -1,4 +1,17 @@
 
+let bcolors = {
+	1: "red",
+	2: "blue",
+	3: "yellow",
+}
+let jumpvy = 500
+let blaunches = {
+	1: [-500, 400],
+	2: [200, 800],
+	3: [800, 400],
+}
+
+
 let WorldBound = {
 	onscreen: function (flip) {
 		return view.onscreen(this.x, this.w, flip)
@@ -13,6 +26,20 @@ let WorldBound = {
 		return []
 	},
 }
+
+function ysettle(x, y0) {
+	let y = world.floorat(x)
+	for (let platform of world.platforms) {
+		if (platform.within(x)) {
+			let yplatform = platform.heightat(x)
+			if (yplatform > y && yplatform <= y0) {
+				y = yplatform
+			}
+		}
+	}
+	return y
+}
+
 
 
 function Graphic(spec) {
@@ -101,7 +128,18 @@ let Collectible = {
 	},
 	collect: function () {
 		this.alive = false
+	},
+}
+
+let RaisesScore = {
+	collect: function () {
 		progress.score += 1
+	},
+}
+
+let PowersUp = {
+	collect: function () {
+		progress.unlocked[this.n] = true
 	},
 }
 
@@ -118,15 +156,24 @@ function You() {
 	this.model = UFX.random.choice([1, 2, 3])
 	this.platform = null
 	this.clear = false
+	this.thazard = 0
 }
 You.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
 	.addcomp({
-		jump: function () {
+		jump: function (balloons) {
 			if (!this.grounded) return
+			if (this.thazard > 0) return
 			this.grounded = false
-			this.vy = 600
+			this.vy = jumpvy
+			balloons.forEach(balloon => {
+				if (balloon.ready() && balloon.within(this) && this.thazard == 0) {
+					balloon.pop()
+					this.vx = balloon.launchvx
+					this.vy = balloon.launchvy
+				}
+			})
 		},
 		releaseballoon: function (n) {
 			let Balloon = {
@@ -136,17 +183,10 @@ You.prototype = UFX.Thing()
 			}[n]
 			world.balloons.push(new Balloon(this.x, this.y + this.h))
 		},
-		interact: function (balloons, portals) {
+		interact: function (portals) {
 //			if (this.grounded) return
 //			if (this.vy > 0) return
 			// Can potentially hit two bubbles in one frame.
-			balloons.forEach(balloon => {
-				if (balloon.ready() && balloon.within(this)) {
-					balloon.pop()
-					this.vx = balloon.launchvx
-					this.vy = balloon.launchvy
-				}
-			})
 			this.clear ||= !portals.some(portal => portal.within(this))
 			if (this.clear) {
 				portals.forEach(portal => {
@@ -155,6 +195,13 @@ You.prototype = UFX.Thing()
 					}
 				})
 			}
+		},
+		hithazards: function (hazards) {
+			hazards.forEach(hazard => {
+				if (hazard.within(this)) {
+					this.thazard = 1
+				}
+			})
 		},
 		collect: function (stars) {
 			stars.forEach(star => {
@@ -195,11 +242,17 @@ You.prototype = UFX.Thing()
 			}
 		},
 		think: function (dt, jumpheld) {
+			this.thazard = Math.max(this.thazard - dt, 0)
 			if (this.grounded) {
 				let vx0 = this.vx0
 				vx0 -= 120 * clamp(this.slopeat(), -1, 1)
 	//			vx0 += 0.2 * (view.x - this.x)
 				this.vx = approach(this.vx, vx0, 1000 * dt)
+				if (this.slopeat() < -1) {
+					this.grounded = false
+					this.platform = null
+					this.vy = -0.5 * this.vx
+				}
 			}
 			let x0 = this.x, y0 = this.y
 			this.x += this.vx * dt
@@ -223,6 +276,7 @@ You.prototype = UFX.Thing()
 			}
 		},
 		draw0: function () {
+			if (this.thazard > 0 && (this.thazard * 20) % 2 > 1) return []
 			let f = 1 + 0.0007 * clamp(this.vy, -200, 200)
 			let [ax0, ay0] = [78, 152]  // Position of anchor within image
 			let scale = 2.4 * this.h / 304
@@ -233,6 +287,22 @@ You.prototype = UFX.Thing()
 //				"b o 0", this.r, this.r, "ss orange lw 3 s"]
 		},
 	})
+
+function Hazard(x, y) {
+	this.x = x
+	this.y = ysettle(x, y)
+	this.w = 0
+	this.h = 0
+}
+Hazard.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Rectangular)
+	.addcomp({
+		draw0: function () {
+			return ["b o 0 0 10 fs red f"]
+		},
+	})
+
 
 function Bubble(x, y) {
 	this.x = x
@@ -262,20 +332,32 @@ let Balloon = {
 		return true
 	},
 	pop: function () {
+	},
+	think: function (dt) {
+	},
+}
+
+let DiesOnPop = {
+	pop: function () {
 		this.alive = false
 	},
 }
 
-let bcolors = {
-	1: "red",
-	2: "blue",
-	3: "yellow",
+
+function UpMushroom(x, y) {
+	this.x = x
+	this.y = ysettle(x, y)
+	this.w = 30
+	this.h = 30
+	;[this.launchvx, this.launchvy] = blaunches[2]
+	this.color = bcolors[2]
+	this.alive = true
 }
-let blaunches = {
-	1: [-500, 400],
-	2: [200, 800],
-	3: [800, 400],
-}
+UpMushroom.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Rectangular)
+	.addcomp(Balloon)
+
 
 function UpBalloon(x, y) {
 	this.x = x
@@ -293,6 +375,7 @@ UpBalloon.prototype = UFX.Thing()
 	.addcomp(Rectangular)
 	.addcomp(FloatsToCeiling)
 	.addcomp(Balloon)
+	.addcomp(DiesOnPop)
 
 
 function ForwardBalloon(x, y) {
@@ -311,6 +394,7 @@ ForwardBalloon.prototype = UFX.Thing()
 	.addcomp(Rectangular)
 	.addcomp(FloatsToCeiling)
 	.addcomp(Balloon)
+	.addcomp(DiesOnPop)
 
 
 function BackBalloon(x, y) {
@@ -329,6 +413,7 @@ BackBalloon.prototype = UFX.Thing()
 	.addcomp(Rectangular)
 	.addcomp(FloatsToCeiling)
 	.addcomp(Balloon)
+	.addcomp(DiesOnPop)
 
 function Powerup(x, y, n) {
 	this.x = x
@@ -344,10 +429,9 @@ Powerup.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
 	.addcomp(Balloon)
+	.addcomp(Collectible)
+	.addcomp(PowersUp)
 	.addcomp({
-		pop: function () {
-			progress.unlocked[this.n] = true
-		},
 		think: function (dt) {
 		},
 	})

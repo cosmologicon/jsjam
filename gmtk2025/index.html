@@ -2,6 +2,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 <title>GMTK 2025 game</title>
 <script src="UFX.js"></script>
+<script src="levels.js"></script>
 <script src="world.js"></script>
 <script src="progress.js"></script>
 <script src="thing.js"></script>
@@ -92,14 +93,14 @@ UFX.scenes.load = {
 }
 UFX.scenes.play = {
 	start: function () {
-		world.init("under")
+		world.init("forest")
 		view.init()
 	},
 	think: function (dt) {
 		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
-		if (kstate.down.space || pointer.down) world.you.jump()
+		if (kstate.down.space || pointer.down) world.you.jump(world.balloons)
 		if (kstate.down[1]) world.you.releaseballoon(1)
 		if (kstate.down[2]) world.you.releaseballoon(2)
 		if (kstate.down[3]) world.you.releaseballoon(3)

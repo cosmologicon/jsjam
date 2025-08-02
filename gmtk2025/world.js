@@ -1,165 +1,3 @@
-let levels = {
-	empty: {
-		title: "Kingdom of Starteria",
-		skycolor: "#777",
-		groundcolor: "#333",
-		edgecolor: "#bbb",
-		R: 2000,
-		signs: [],
-		graphics: [],
-		stars: [],
-		portals: [],
-		powerups: [],
-	},
-
-	start: {
-		title: "Kingdom of Starteria",
-		skycolor: "#77f",
-		groundcolor: "#080",
-		edgecolor: "#4b4",
-		R: 2000,
-		signs: [
-//			[2289, -400, -0.1, "TAP~OR~SPACE:~JUMP"],
-		],
-		graphics: [
-			[700, 0, 1, 400, "castle"],
-		],
-		stars: [
-			[2400, -200],
-			[3600, 0],
-			[4400, 0],
-		],
-		portals: [
-			[500, -300, "forest", 1],
-		],
-		powerups: [
-			[1000, -200, 2],
-		],
-	},
-	forest: {
-		title: "Forest of Mysteriousness",
-		skycolor: "#080",
-		groundcolor: "#040",
-		edgecolor: "#6a6",
-		R: 2000,
-		signs: [],
-		graphics: [],
-		stars: [
-		],
-		portals: [
-			[500, -230, "start", 1],
-			[800, -230, "ruins", 1],
-		],
-		powerups: [
-			[1000, -150, 2],
-		],
-	},
-	ruins: {
-		title: "The Forbidden Ruins",
-		skycolor: "#ccf",
-		groundcolor: "#ffc",
-		edgecolor: "#963",
-		R: 2000,
-		signs: [],
-		graphics: [],
-		stars: [
-		],
-		portals: [
-			[500, -230, "forest", 1],
-			[800, -230, "under", 1],
-			[1300, -230, "water", 1],
-		],
-		powerups: [],
-	},
-	mountain: {
-		title: "Mountaintop",
-		skycolor: "#aaf",
-		groundcolor: "#888",
-		edgecolor: "#fff",
-		R: 2000,
-		signs: [],
-		graphics: [],
-		stars: [
-		],
-		portals: [
-			[500, -230, "forest", 1],
-			[800, -230, "water", 1],
-			[1300, -230, "win", 1],
-		],
-		powerups: [],
-	},
-	water: {
-		title: "Underwater City",
-		skycolor: "#336",
-		groundcolor: "#111",
-		edgecolor: "#888",
-		R: 2000,
-		signs: [],
-		graphics: [],
-		stars: [
-		],
-		portals: [
-			[500, -230, "mountain", 1],
-			[800, -230, "ruins", 1],
-			[1300, -230, "fire", 1],
-		],
-		powerups: [],
-	},
-	under: {
-		title: "Subterrania",
-		skycolor: "#111",
-		groundcolor: "#345",
-		edgecolor: "#89a",
-		R: 2000,
-		groundspec: [[373,-17],[570,-332],[1268,-407],[1790,-200],[2223,-229],[2637,-399],[3583,-358],[3756,-71]],
-		platformspec: [
-			[[2086,-92],[2469,-249],[2844,-255],[2844,-255],[3089,-14],[3260,-37]],
-		],
-		signs: [],
-		graphics: [],
-		stars: [
-			[640, 0],
-		],
-		portals: [
-			[3470, 0, "ruins", 1],
-		],
-		powerups: [
-			[1160, -200, 3],
-		],
-	},
-	space: {
-		title: "The Mobius Dimension",
-		skycolor: "#fc8",
-		groundcolor: "#8ff",
-		edgecolor: "#000",
-		R: 2000,
-		signs: [],
-		graphics: [],
-		stars: [
-		],
-		portals: [
-			[500, -230, "mountain", 1],
-		],
-		powerups: [],
-	},
-	fire: {
-		title: "Magma Pits",
-		skycolor: "#800",
-		groundcolor: "#432",
-		edgecolor: "#000",
-		R: 2000,
-		signs: [],
-		graphics: [],
-		stars: [
-		],
-		portals: [
-			[500, -230, "water", 1],
-		],
-		powerups: [
-			[500, 0, 1],
-		],
-	},
-}
 
 
 let world = {
@@ -188,17 +26,20 @@ let world = {
 //		this.bubbles = UFX.random.seedmethod(777, "spread", 40, 0.8, this.R, 600, 0, -300).map(([x, y]) => new Bubble(x, y))
 		this.bubbles = []
 		this.balloons = []
+		this.hazards = []
 		this.signs = level.signs
 		this.graphics = level.graphics.map(spec => new Graphic(spec))
+		this.powerups = []
 		for (let [x, y, name] of level.powerups) {
 			if (!progress.unlocked[name]) {
-				console.log(name)
-				this.balloons.push(new Powerup(x, y, name))
+				this.powerups.push(new Powerup(x, y, name))
 			}
 		}
 		this.platforms = []
 		if ("platformspec" in level) this.platforms.push(...level.platformspec.map(spec => makesineplatform(spec)))
 		this.stars = level.stars.map(([x, y]) => new Star(x, y))
+		if ("hazards" in level) this.hazards.push(...level.hazards.map(([x, y]) => new Hazard(x, y)))
+		if ("mushrooms" in level) this.balloons.push(...level.mushrooms.map(([x, y]) => new UpMushroom(x, y)))
 		this.portals = []
 		for (let [x, y, name, needed] of level.portals) {
 			let portal = new Portal(x, y, name, needed)
@@ -210,6 +51,7 @@ let world = {
 				this.you.grounded = false
 			}
 		}
+		this.platforms.sort((p0, p1) => p1.y - p0.y)
 		this.nextlevel = null
 		this.t = 0
 	},
@@ -249,13 +91,17 @@ let world = {
 		this.t += dt
 		world.you.think(dt, jumpheld)
 		if (jumpheld) {
-			world.you.interact(world.balloons, world.portals)
+			world.you.interact(world.portals)
 		}
-		world.you.collect(world.stars)
-		world.bubbles.forEach(bubble => bubble.think(dt))
-		world.balloons.forEach(balloon => balloon.think(dt))
-		world.balloons = world.balloons.filter(balloon => balloon.alive)
-		world.stars = world.stars.filter(balloon => balloon.alive)
+		world.you.hithazards(world.hazards)
+		world.you.collect(world.stars.concat(world.powerups))
+		let think = obj => obj.think(dt)
+		world.bubbles.forEach(think)
+		world.balloons.forEach(think)
+		let checkalive = obj => obj.alive
+		world.balloons = world.balloons.filter(checkalive)
+		world.stars = world.stars.filter(checkalive)
+		world.powerups = world.powerups.filter(checkalive)
 	},
 	drawobjs: function (objs) {
 		;[false, true].forEach(flip => {
@@ -265,9 +111,11 @@ let world = {
 		})
 	},
 	draw: function () {
-		this.drawobjs(this.graphics.concat(this.portals))
+		this.drawobjs(this.graphics)
 		this.drawobjs(this.platforms)
+		this.drawobjs(this.portals)
 		this.drawobjs(this.bubbles.concat(this.balloons, this.stars))
+		this.drawobjs(this.powerups)
 		// ground
 		;[false, true].forEach(flip => {
 			UFX.draw("[", view.look(flip))
@@ -280,6 +128,7 @@ let world = {
 			UFX.draw("l", x1, -depth, ") fs", this.groundcolor, "f lw 10 ss", this.edgecolor, "s")
 			UFX.draw("]")
 		})
+		this.drawobjs(this.hazards)
 		this.drawobjs([this.you])
 		;[false, true].forEach(flip => {
 			UFX.draw("[", view.look(flip))
