@@ -41,6 +41,8 @@ let world = {
 		this.stars = level.stars.map(([x, y]) => new Star(x, y))
 		if ("hazards" in level) this.hazards.push(...level.hazards.map(([x, y]) => new Hazard(x, y)))
 		if ("mushrooms" in level) this.balloons.push(...level.mushrooms.map(([x, y]) => new UpMushroom(x, y)))
+		this.NPCs = []
+		if ("NPCs" in level) this.NPCs.push(...level.NPCs.map(([x, y, name]) => new NPC(x, y, name)))
 		this.portals = []
 		for (let [x, y, name, needed] of level.portals) {
 			let portal = new Portal(x, y, name, needed)
@@ -99,6 +101,7 @@ let world = {
 		let think = obj => obj.think(dt)
 		world.bubbles.forEach(think)
 		world.balloons.forEach(think)
+		world.NPCs.forEach(think)
 		let checkalive = obj => obj.alive
 		world.balloons = world.balloons.filter(checkalive)
 		world.stars = world.stars.filter(checkalive)
@@ -130,6 +133,7 @@ let world = {
 			UFX.draw("]")
 		})
 		this.drawobjs(this.hazards)
+		this.drawobjs(this.NPCs)
 		this.drawobjs([this.you])
 		;[false, true].forEach(flip => {
 			UFX.draw("[", view.look(flip))

@@ -40,6 +40,9 @@ let levels = {
 		],
 		powerups: [
 		],
+		NPCs: [
+			[700, -200, "tojump"],
+		],
 	},
 	forest: {
 		title: "Forest of Mysteriousness",
@@ -72,7 +75,7 @@ let levels = {
 		],
 		portals: [
 			[3700, -250, "start", 0],
-			[2170, -300, "ruins", 1],
+			[2170, -300, "ruins", 2],
 			[160, 0, "mountain", 0],
 		],
 		powerups: [

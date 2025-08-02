@@ -19,10 +19,10 @@ let WorldBound = {
 	draw: function (flip) {
 		let xs = view.mods(this.x, this.w, flip)
 		if (xs.length == 0) return
-		let drawline = this.draw0()
+		let drawline = this.draw0(flip)
 		xs.forEach(x => UFX.draw("[ t", x, this.y, drawline, "]"))
 	},
-	draw0: function () {
+	draw0: function (flip) {
 		return []
 	},
 }
@@ -78,7 +78,9 @@ let Rectangular = {
 		return 0
 	},
 	draw: function (flip) {
-		UFX.draw("[ lw 1 ss white sr", view.mod(this.x, flip) - this.w, this.y - this.h, 2 * this.w, 2 * this.h, "]")
+		if (DEBUG) {
+			UFX.draw("[ lw 1 ss white sr", view.mod(this.x, flip) - this.w, this.y - this.h, 2 * this.w, 2 * this.h, "]")
+		}
 	},
 }
 
@@ -291,6 +293,44 @@ You.prototype = UFX.Thing()
 		},
 	})
 
+
+
+
+function NPC(x, y, name) {
+	this.x = x
+	this.y = ysettle(x, y)
+	this.name = name
+	this.w = 100
+	this.h = 0
+	this.t = 0
+}
+NPC.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp({
+		think: function (dt) {
+			this.t += dt
+		},
+		gettext: function (flip) {
+			if (progress.tutorial.mushroom) {
+				return "You must collect\nat least one star\nto visit the forest."
+			} else {
+				return flip ? "How did you\nget up there?" : "Tap to jump. Use the\nmushrooms to\njump higher."
+			}
+		},
+		draw0: function (flip) {
+			let text = this.gettext(flip)
+			let drawline = ["b o 0 0 10 fs gray f"]
+			if (!text) return drawline
+			let lines = text.split("\n").reverse()
+			drawline.push("t 0 40 b rr -110 0 220", 30 + 20 * lines.length, "10 fs white f")
+			drawline.push("vflip font 20px~'Viga' tab center middle fs black")
+			for (let line of lines) {
+				drawline.push(["t 0 -20 ft0", line.replaceAll(" ", "~")])
+			}
+			return drawline
+		},
+	})
+
 function Hazard(x, y) {
 	this.x = x
 	this.y = ysettle(x, y)
@@ -360,6 +400,11 @@ UpMushroom.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
 	.addcomp(Balloon)
+	.addcomp({
+		pop: function () {
+			progress.tutorial.mushroom = true
+		},
+	})
 
 
 function UpBalloon(x, y) {
