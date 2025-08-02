@@ -56,6 +56,9 @@ for (let model of [1, 2, 3]) {
 	for (let frame of [0, 1, 2, 3]) {
 		toload[`you${model}run${frame}`] = `img/run${model}-${frame}.png`
 	}
+	for (let frame of [0, 1]) {
+		toload[`balloon${model}${frame}`] = `img/balloon-${model}-${frame}.png`
+	}
 }
 UFX.resource.load(toload)
 UFX.resource.onload = () => {
@@ -100,7 +103,7 @@ UFX.scenes.load = {
 }
 UFX.scenes.play = {
 	start: function () {
-		world.init("start")
+		world.init("forest")
 		view.init()
 	},
 	think: function (dt) {

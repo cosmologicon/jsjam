@@ -23,6 +23,7 @@ let world = {
 			this.ys.push(y)
 		}
 		if ("groundspec" in level) this.setsineground(level.groundspec)
+		if ("peakspec" in level) this.setpeakground(level.peakspec)
 		this.you = new You()
 //		this.bubbles = UFX.random.seedmethod(777, "spread", 40, 0.8, this.R, 600, 0, -300).map(([x, y]) => new Bubble(x, y))
 		this.bubbles = []
@@ -38,6 +39,7 @@ let world = {
 		}
 		this.platforms = []
 		if ("platformspec" in level) this.platforms.push(...level.platformspec.map(spec => makesineplatform(spec)))
+		if ("peakplatformspec" in level) this.platforms.push(...level.peakplatformspec.map(spec => makelinearplatform(spec)))
 		this.stars = level.stars.map(([x, y]) => new Star(x, y))
 		if ("hazards" in level) this.hazards.push(...level.hazards.map(([x, y]) => new Hazard(x, y)))
 		if ("mushrooms" in level) this.balloons.push(...level.mushrooms.map(([x, y]) => new UpMushroom(x, y)))
@@ -65,7 +67,6 @@ let world = {
 		}
 		seq.unshift(wrap(seq[seq.length - 1], -1))
 		seq.push(wrap(seq[1], 1))
-		console.log(seq)
 		
 		this.ys = []
 		for (let x = 0 ; x <= this.D ; ++x) {
@@ -75,6 +76,25 @@ let world = {
 			let [x1, y1] = seq[j1]
 			let f = (x - x0) / (x1 - x0)
 			let g = 0.5 - 0.5 * Math.cos(f * Math.PI)
+			this.ys.push(y0 + (y1 - y0) * g)
+		}
+	},
+	setpeakground: function (seq) {
+		let wrap = ([x, y], d) => [x + d * this.D, y]
+		while (seq[0][0] < 0) {
+			seq.push(wrap(seq.shift(), 1))
+		}
+		seq.unshift(wrap(seq[seq.length - 1], -1))
+		seq.push(wrap(seq[1], 1))
+		
+		this.ys = []
+		for (let x = 0 ; x <= this.D ; ++x) {
+			let j1 = 0
+			while (seq[j1][0] < x) ++j1
+			let [x0, y0] = seq[j1 - 1]
+			let [x1, y1] = seq[j1]
+			let f = (x - x0) / (x1 - x0)
+			let g = f
 			this.ys.push(y0 + (y1 - y0) * g)
 		}
 	},

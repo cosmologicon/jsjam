@@ -16,6 +16,7 @@ let WorldBound = {
 	onscreen: function (flip) {
 		return view.onscreen(this.x, this.w, flip)
 	},
+	
 	draw: function (flip) {
 		let xs = view.mods(this.x, this.w, flip)
 		if (xs.length == 0) return
@@ -99,6 +100,9 @@ let FloatsToCeiling = {
 			this.y = world.ceilingat(this.x) - this.h
 			this.landed = true
 		}
+	},
+	ready: function () {
+		return this.landed
 	},
 	think: function (dt) {
 		if (!this.landed) {
@@ -379,6 +383,14 @@ let Balloon = {
 	think: function (dt) {
 	},
 }
+let DrawBalloon = {
+	draw0: function () {
+		let frame = mod(Math.round(this.y / 50), 2)
+		let imgname = `balloon${this.n}${frame}`
+		let scale = this.w / 60
+		return ["[ z", scale, -scale, "drawimage", UFX.resource.images[imgname], -90, -90, "]"]
+	},
+}
 
 let DiesOnPop = {
 	pop: function () {
@@ -392,6 +404,7 @@ function UpMushroom(x, y) {
 	this.y = ysettle(x, y)
 	this.w = 30
 	this.h = 30
+	this.n = 2
 	;[this.launchvx, this.launchvy] = blaunches[2]
 	this.color = bcolors[2]
 	this.alive = true
@@ -413,6 +426,7 @@ function UpBalloon(x, y) {
 	this.vy = 0
 	this.w = 30
 	this.h = 30
+	this.n = 2
 	;[this.launchvx, this.launchvy] = blaunches[2]
 	this.landed = false
 	this.alive = true
@@ -421,8 +435,9 @@ function UpBalloon(x, y) {
 UpBalloon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
-	.addcomp(FloatsToCeiling)
 	.addcomp(Balloon)
+	.addcomp(DrawBalloon)
+	.addcomp(FloatsToCeiling)
 	.addcomp(DiesOnPop)
 
 
@@ -432,6 +447,7 @@ function ForwardBalloon(x, y) {
 	this.vy = 0
 	this.w = 30
 	this.h = 30
+	this.n = 3
 	;[this.launchvx, this.launchvy] = blaunches[3]
 	this.landed = false
 	this.alive = true
@@ -440,8 +456,9 @@ function ForwardBalloon(x, y) {
 ForwardBalloon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
-	.addcomp(FloatsToCeiling)
 	.addcomp(Balloon)
+	.addcomp(DrawBalloon)
+	.addcomp(FloatsToCeiling)
 	.addcomp(DiesOnPop)
 
 
@@ -451,6 +468,7 @@ function BackBalloon(x, y) {
 	this.vy = 0
 	this.w = 30
 	this.h = 30
+	this.n = 1
 	;[this.launchvx, this.launchvy] = blaunches[1]
 	this.landed = false
 	this.alive = true
@@ -459,8 +477,9 @@ function BackBalloon(x, y) {
 BackBalloon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
-	.addcomp(FloatsToCeiling)
 	.addcomp(Balloon)
+	.addcomp(DrawBalloon)
+	.addcomp(FloatsToCeiling)
 	.addcomp(DiesOnPop)
 
 function Powerup(x, y, n) {
@@ -474,9 +493,18 @@ function Powerup(x, y, n) {
 	this.alive = true
 }
 Powerup.prototype = UFX.Thing()
+	.addcomp({
+		draw: function (flip) {
+			let xs = view.mods(this.x, this.w, flip)
+			for (let x of xs) {
+				UFX.draw("[ b m", x, this.y, "l", x, world.floorat(this.x), "lw 6 ss black s lw 2 ss silver s ]")
+			}
+		}
+	})
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
 	.addcomp(Balloon)
+	.addcomp(DrawBalloon)
 	.addcomp(Collectible)
 	.addcomp(PowersUp)
 	.addcomp({
@@ -620,4 +648,20 @@ function makesineplatform(ps) {
 	return makeplatform(xmin, xmax, f)
 }
 
+function makelinearplatform(ps) {
+	let [xmin, ymin] = ps[0]
+	let [xmax, ymax] = ps[ps.length - 1]
+	function f(x) {
+		if (x <= xmin) return ymin
+		if (x >= xmax) return ymax
+		let j1 = 0
+		while (ps[j1][0] < x) ++j1
+		let [x0, y0] = ps[j1 - 1]
+		let [x1, y1] = ps[j1]
+		let f = (x - x0) / (x1 - x0)
+		let g = f
+		return y0 + (y1 - y0) * g
+	}
+	return makeplatform(xmin, xmax, f)
+}
 

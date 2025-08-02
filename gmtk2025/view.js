@@ -3,8 +3,7 @@
 let view = {
 	init: function () {
 		this.z = world.z  // Pixels per game unit
-		this.px0 = 400  // Left edge of screen to camera anchor, in pixels.
-		this.x = world.you.x
+		this.x = world.you.x + 300 / this.z
 	},
 	// Half-width and half-height of the screen, in game units
 	screenw: function () {
@@ -14,7 +13,7 @@ let view = {
 		return 450 / this.z
 	},
 	think: function (dt) {
-		this.x = world.you.x
+		this.x = world.you.x + 300 / this.z
 	},
 	xcenter: function (flip) {
 		return this.x + (flip ? world.R : 0)
