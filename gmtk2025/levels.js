@@ -13,7 +13,7 @@ let levels = {
 	},
 
 	start: {
-		title: "Kingdom of Starteria",
+		title: "Kingdom of Tutoria",
 		skycolor: "#77f",
 		groundcolor: "#080",
 		edgecolor: "#4b4",
@@ -88,7 +88,7 @@ let levels = {
 		],
 	},
 	ruins: {
-		title: "The Forbidden Ruins",
+		title: "The Soundless Expanse",
 		skycolor: "#ccf",
 		groundcolor: "#ffc",
 		edgecolor: "#963",
@@ -127,7 +127,7 @@ let levels = {
 		powerups: [],
 	},
 	mountain: {
-		title: "Mountaintop",
+		title: "Soroche Ridge",
 		skycolor: "#aaf",
 		groundcolor: "#888",
 		edgecolor: "#fff",
@@ -160,7 +160,7 @@ let levels = {
 		powerups: [],
 	},
 	water: {
-		title: "Underwater City",
+		title: "The Depths of Despair",
 		skycolor: "#336",
 		groundcolor: "#aa4",
 		edgecolor: "#550",
@@ -190,7 +190,7 @@ let levels = {
 		powerups: [],
 	},
 	under: {
-		title: "Subterrania",
+		title: "Canarybane Mines",
 		skycolor: "#111",
 		groundcolor: "#345",
 		edgecolor: "#89a",
@@ -243,7 +243,7 @@ let levels = {
 		powerups: [],
 	},
 	fire: {
-		title: "Mount Scalding",
+		title: "Scaldera Pyroduct",
 		skycolor: "#800",
 		groundcolor: "#432",
 		edgecolor: "#000",

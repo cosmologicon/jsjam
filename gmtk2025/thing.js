@@ -166,7 +166,7 @@ function You() {
 	this.vy = 0
 	this.w = 20
 	this.h = 40
-	this.model = UFX.random.choice([1, 2, 3])
+	this.model = UFX.random.seedmethod(world.levelname, "choice", [1, 2, 3])
 	this.platform = null
 	this.clear = false
 	this.thazard = 0

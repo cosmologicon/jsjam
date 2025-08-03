@@ -111,19 +111,19 @@ UFX.scenes.load = {
 		let color = `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`
 		UFX.draw("fs", color, "f0")
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
-		UFX.draw("[ t 500 140 font 120px~'Bokor' r -0.1",
+		UFX.draw("[ t 600 140 font 120px~'Bokor' shadow white 3 3 3 r -0.1",
 			"tab center middle",
-			"fs", UFX.draw.lingrad(0, -30, 0, 200, 0, "#505", 1, "black"),
+			"fs", UFX.draw.lingrad(0, -30, 0, 200, 0, "#909", 1, "black"),
 			"ss white lw 3 sft0 Mobius~Trip",
-			"fs #404 font 50px~'Bokor' lw 1",
+			"fs #808 font 40px~'Langar' lw 1 shadow white 1 1 1",
 			"t 0 90 sft0 by~Christopher~Night",
-			't 0 60 sft0 graphics~by~Sam~Thompson,~"Derpy_Feesh"',
+			't 0 60 sft0 illustrations~by~Sam~Thompson,~"Derpy_Feesh"',
 			't 0 60 sft0 music~by~Kevin~MacLeod',
 			"]")
 		let text = this.f == 1 ? "Press~Space~to~begin" : `Loading...~${(100 * this.f).toFixed(0)}%`
 		let grad = UFX.draw.lingrad(0, 30, 0, -30, 0, "#fff", 1, "#bbb")
 		UFX.draw("[ t", 1000, 800,
-			"font 80px~'Langar' fs", grad, "ss black shadow black 4 4 2",
+			"font 120px~'Langar' fs", grad, "ss black shadow black 4 4 2",
 			"tab center middle sft0", text, "]")
 		UFX.draw("[ t 250 700 hflip r 0 z 2 2 drawimage", UFX.resource.images.up2, -171/2, -307/2, "]")
 		UFX.draw("[ t 1250 200 hflip vflip r 0 z 2 2 drawimage", UFX.resource.images.up2, -171/2, -307/2, "]")
@@ -207,10 +207,10 @@ UFX.scenes.play = {
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 			world.draw()
 			let info = `Speed:~${this.speed}%${this.speedmessage}`
-			UFX.draw("[ tab center bottom ss black fs white font 30px~Langar sft", info, "800 890 ]")
+			UFX.draw("[ tab center bottom ss black fs white lw 2 font 30px~Langar sft", info, "800 890 ]")
 			info = `${progress.score}x`
-			UFX.draw("[ tab right bottom ss black fs white font 30px~Viga sft", info, "1550 890 ]")
-			UFX.draw("[ t 1575 875 z 0.3 0.3 drawimage", UFX.resource.images.star0, "-60 -60 ]")
+			UFX.draw("[ tab right bottom ss black fs white lw 2 font 30px~Viga sft", info, "1550 890 ]")
+			UFX.draw("[ t 1570 870 z 0.3 0.3 drawimage", UFX.resource.images.star0, "-60 -60 ]")
 			UFX.draw("font 20px~'Viga' tab left bottom fs white ss black lw 2")
 			let texts = [
 				"Space: jump/enter door",
@@ -280,9 +280,10 @@ UFX.scenes.pause = {
 			context.strokeText(text, 0, 0)
 			context.fillText(text, 0, 0)
 			let img = imgs[j]
+			let flip = text.includes("bius") ? "vflip" : []
 			if (img !== null) {
 				UFX.draw("t -38 12 b o 0 0 25 fs #666 f b o 0 0 23 fs #bbb f",
-					"z 0.35 0.35 drawimage", img, -img.width / 2, -img.height / 2)
+					flip, "z 0.35 0.35 drawimage", img, -img.width / 2, -img.height / 2)
 			}
 			UFX.draw("]")
 		})
