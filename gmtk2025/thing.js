@@ -396,7 +396,7 @@ let DrawBalloon = {
 	draw0: function () {
 		let frame = mod(Math.round(this.y / 50), 2)
 		let imgname = `balloon${this.n}${frame}`
-		let scale = this.w / 60
+		let scale = this.w / 70
 		return ["[ z", scale, -scale, "drawimage", UFX.resource.images[imgname], -90, -90, "]"]
 	},
 }
@@ -410,13 +410,14 @@ let DiesOnPop = {
 
 function UpMushroom(x, y) {
 	this.x = x
-	this.y = ysettle(x, y)
+	this.y = ysettle(x, y) + 10
 	this.w = 30
 	this.h = 30
 	this.n = 2
 	;[this.launchvx, this.launchvy] = blaunches[2]
 	this.color = bcolors[2]
 	this.alive = true
+	this.t = 0
 }
 UpMushroom.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -425,6 +426,13 @@ UpMushroom.prototype = UFX.Thing()
 	.addcomp({
 		pop: function () {
 			progress.tutorial.mushroom = true
+			this.twobble = 1
+		},
+		draw0: function (flip) {
+			let imgname = "mushroom0"
+			let img = UFX.resource.images[imgname]
+			let w = img.width
+			return ["z 0.7 -0.7 drawimage", img, -w / 2, -80]
 		},
 	})
 

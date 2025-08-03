@@ -55,6 +55,9 @@ let toload = {
 	star0: "img/star0.png",
 	star1: "img/star1.png",
 	star2: "img/star2.png",
+	mushroom0: "img/mushroom0.png",
+	mushroom1: "img/mushroom1.png",
+	mushroom2: "img/mushroom2.png",
 }
 for (let model of [1, 2, 3]) {
 	toload[`up${model}`] = `img/up${model}.png`
@@ -156,6 +159,18 @@ UFX.scenes.play = {
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 			world.draw()
 			let info = `Speed:~${this.speed}%~~Coins:~${progress.score}`
+			let texts = [
+				"Space: jump",
+				"Hold left/right: adjust speed",
+				`Tap up/down: adjust speed`,
+				`F11: fullscreen`,
+				"Esc: pause/view progress",
+			]
+			UFX.draw("font 20px~'Viga' tab left bottom fs white ss black lw 2")
+			texts.reverse().forEach((text, j) => {
+				context.strokeText(text, 10, 890 - 20 * j)
+				context.fillText(text, 10, 890 - 20 * j)
+			})
 			UFX.draw("[ tab right bottom ss white fs black font 30px~Viga sft", info, "1600 900 ]")
 		UFX.draw("]")
 	},
@@ -176,6 +191,20 @@ UFX.scenes.pause = {
 		UFX.scenes.play.draw()
 		let alpha = Math.min(2 * this.t, 0.7)
 		UFX.draw("[ alpha", alpha, "fs gray f0 ]")
+
+		let lines = ["Coins collected:"]
+		for (let levelname in levels) {
+			if (levelname in progress.levelstars) {
+				lines.push(`${levels[levelname].title}: ${progress.got[levelname]}/${progress.levelstars[levelname]}`)
+			}
+		}
+		lines.push(`Total: ${progress.score}`)
+		UFX.draw("font 45px~'Bokor' tab left top fs white ss black lw 2")
+		lines.forEach((text, j) => {
+			context.strokeText(text, 50, 50 + 50 * j)
+			context.fillText(text, 50, 50 + 50 * j)
+		})
+
 	},
 }
 

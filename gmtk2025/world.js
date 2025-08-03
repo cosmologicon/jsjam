@@ -165,7 +165,6 @@ let world = {
 		let ps = this.platforms.concat(this.portals)
 		ps.sort((p0, p1) => p1.y - p0.y)
 		this.drawobjs(ps)
-		this.drawobjs(this.bubbles.concat(this.balloons, this.stars))
 		this.drawobjs(this.powerups)
 		// ground
 		;[false, true].forEach(flip => {
@@ -179,6 +178,7 @@ let world = {
 			UFX.draw("l", x1, -depth, ") fs", this.groundcolor, "f lw 10 ss", this.edgecolor, "s")
 			UFX.draw("]")
 		})
+		this.drawobjs(this.bubbles.concat(this.balloons, this.stars))
 		this.drawobjs(this.hazards)
 		this.drawobjs(this.NPCs)
 		this.drawobjs([this.you])
