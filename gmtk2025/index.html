@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-<title>GMTK 2025 game</title>
+<title>Mobius Trip</title>
 <script src="UFX.js"></script>
 <script src="levels.js"></script>
 <script src="world.js"></script>
@@ -38,21 +38,20 @@ UFX.audio.init()
 UFX.audio.makegainnode({ name: "main", gain: 1, })
 UFX.audio.makegainnode({ name: "sfx", output: "main" })
 UFX.audio.makegainnode({ name: "music", output: "main", gain: 0.3 })
-UFX.audio.loadbuffers({
-//	select: "sound/select.ogg",
-})
+let sfx = ["coin", "hazard", "hop", "launch", "mushroom", "no", "pop", "portal", "powerup", "start"]
+let sfxtoload = {}
+for (let s of sfx) {
+	sfxtoload[s] = `sound/${s}.ogg`
+}
+UFX.audio.loadbuffers(sfxtoload)
 function playsound(sname) {
 	UFX.audio.playbuffer(sname, { output: "sfx", gain: 1, })
 }
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "F1", "1", "2", "3", "esc"]
+UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "1", "2", "3", "esc"]
 UFX.resource.loadwebfonts("Viga", "Bokor", "Langar")
 let toload = {
-	test0: "img/test-0.jpg",
-	test1: "img/test-1.png",
-	tree: "img/tree.png",
-	tower: "img/tower.png",
 	castle: "img/castle.png",
 	portalclosed: "img/portal-closed.png",
 	portalopen: "img/portal-open.png",
@@ -94,7 +93,8 @@ UFX.scenes.load = {
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
 		if (this.f == 1) {
-			if (kstate.down.space || pointer.down) UFX.scene.swap("play")
+//			if (kstate.down.space || pointer.down) UFX.scene.swap("play")
+			if (kstate.down.space) UFX.scene.swap("play")
 		}
 	},
 	draw: function () {
@@ -103,16 +103,18 @@ UFX.scenes.load = {
 		let color = `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`
 		UFX.draw("fs", color, "f0")
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
-		UFX.draw("[ t 500 140 font 100px~'Bokor' r -0.1",
-			"tab center middle fs black ss gray lw 1 fst0 GMTK~Jam~2025~game",
-			"font 50px~'Bokor'",
-			"t 0 90 fst0 by~Christopher~Night",
-			't 0 60 fst0 graphics~by~Sam~Thompson,~"Derpy_Feesh"',
+		UFX.draw("[ t 500 140 font 120px~'Bokor' r -0.1",
+			"tab center middle",
+			"fs", UFX.draw.lingrad(0, -30, 0, 200, 0, "#505", 1, "black"),
+			"ss white lw 3 sft0 Mobius~Trip",
+			"fs #404 font 50px~'Bokor' lw 1",
+			"t 0 90 sft0 by~Christopher~Night",
+			't 0 60 sft0 graphics~by~Sam~Thompson,~"Derpy_Feesh"',
 			"]")
-		let text = this.f == 1 ? "Tap~or~press~Space~to~begin" : `Loading...~${(100 * this.f).toFixed(0)}%`
+		let text = this.f == 1 ? "Press~Space~to~begin" : `Loading...~${(100 * this.f).toFixed(0)}%`
 		let grad = UFX.draw.lingrad(0, 30, 0, -30, 0, "#fff", 1, "#bbb")
 		UFX.draw("[ t", 1000, 800,
-			"font 80px~'Viga' fs", grad, "ss black shadow black 4 4 2",
+			"font 80px~'Langar' fs", grad, "ss black shadow black 4 4 2",
 			"tab center middle sft0", text, "]")
 		UFX.draw("[ t 250 700 hflip r 0 z 2 2 drawimage", UFX.resource.images.up2, -171/2, -307/2, "]")
 		UFX.draw("[ t 1250 200 hflip vflip r 0 z 2 2 drawimage", UFX.resource.images.up2, -171/2, -307/2, "]")
@@ -141,8 +143,8 @@ UFX.scenes.play = {
 		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
 		let kstate = UFX.key.state()
-		if (kstate.down.space || pointer.down) world.you.jump(world.balloons)
-		if (kstate.down.space || pointer.down) world.you.interact(world.portals)
+		if (kstate.down.space) world.you.jump(world.balloons)
+		if (kstate.down.space) world.you.interact(world.portals)
 		if (kstate.down[1]) world.you.releaseballoon(1)
 		if (kstate.down[2]) world.you.releaseballoon(2)
 		if (kstate.down[3]) world.you.releaseballoon(3)
@@ -157,7 +159,7 @@ UFX.scenes.play = {
 		if (kstate.pressed.left) dt /= 3
 		if (kstate.pressed.right) dt *= 3
 
-		let jumpheld = kstate.pressed.space || pointer.isdown
+		let jumpheld = kstate.pressed.space
 
 		view.think(dt)
 		world.think(dt, jumpheld)
