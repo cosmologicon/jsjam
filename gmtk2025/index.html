@@ -42,7 +42,7 @@ function playsound(sname) {
 UFX.key.init()
 UFX.key.remaparrows(true)
 UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "F1", "1", "2", "3", "esc"]
-UFX.resource.loadwebfonts("Viga", "Bokor")
+UFX.resource.loadwebfonts("Viga", "Bokor", "Langar")
 let toload = {
 	test0: "img/test-0.jpg",
 	test1: "img/test-1.png",
@@ -172,6 +172,21 @@ UFX.scenes.play = {
 				context.fillText(text, 10, 890 - 20 * j)
 			})
 			UFX.draw("[ tab right bottom ss white fs black font 30px~Viga sft", info, "1600 900 ]")
+		for (let n of [1, 2, 3]) {
+			UFX.draw("[ t", 1600 - 60 - 3 * 110 + 110 * n, 60,
+				"b o 0 0 50 fs #885 f",
+				"b o 0 0 48 fs #aa6 f",
+				"b o 0 0 46 fs #885 f",
+				"b o 0 0 44 fs #bbb f")
+			if (world.you.cooldown[n]) {
+				let f = world.you.cooldown[n]
+				UFX.draw("( m 0 0 arc 0 0 44 0", tau * f, "l 0 0 ) fs gray f")
+			}
+			UFX.draw(
+				"[ z 0.4 0.4 drawimage", UFX.resource.images[`balloon${n}0`], -90, -90, "]",
+				"tab center middle font 30px~'Langar' fs #ccf ss black lw 3 sft0", ""+n,
+				"]")
+		}
 		UFX.draw("]")
 	},
 }

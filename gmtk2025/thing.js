@@ -166,6 +166,7 @@ function You() {
 	this.platform = null
 	this.clear = false
 	this.thazard = 0
+	this.cooldown = {}
 }
 You.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -185,12 +186,15 @@ You.prototype = UFX.Thing()
 			})
 		},
 		releaseballoon: function (n) {
+			if (this.thazard > 0) return
+			if (this.cooldown[n]) return
 			let Balloon = {
 				1: BackBalloon,
 				2: UpBalloon,
 				3: ForwardBalloon,
 			}[n]
 			world.balloons.push(new Balloon(this.x, this.y + this.h))
+			this.cooldown[n] = 1
 		},
 		interact: function (portals) {
 //			if (this.grounded) return
@@ -255,6 +259,11 @@ You.prototype = UFX.Thing()
 		},
 		think: function (dt, jumpheld) {
 			this.thazard = Math.max(this.thazard - dt, 0)
+			for (let n of [1, 2, 3]) {
+				if (this.cooldown[n]) {
+					this.cooldown[n] = Math.max(this.cooldown[n] - 0.5 * dt, 0)
+				}
+			}
 			if (this.grounded) {
 				let vx0 = this.vx0
 				vx0 -= 120 * clamp(this.slopeat(), -1, 1)
