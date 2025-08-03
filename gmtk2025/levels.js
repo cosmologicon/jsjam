@@ -41,7 +41,7 @@ let levels = {
 		powerups: [
 		],
 		NPCs: [
-			[700, -200, "tojump"],
+			[900, -200, "tojump"],
 		],
 	},
 	forest: {
