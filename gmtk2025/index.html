@@ -11,6 +11,7 @@
 <script>
 "use strict"
 let DEBUG = window.location.href.includes("DEBUG")
+if (window.location.href.includes("RESET")) reset()
 let level0 = "start"
 for (let piece of window.location.search.split("&")) {
 	if (piece[0] == "?") piece = piece.slice(1)
@@ -36,10 +37,10 @@ UFX.maximize.fill(canvas, "aspect")
 UFX.draw.setcontext(context)
 UFX.audio.init()
 UFX.audio.makegainnode({ name: "main", gain: 1, })
-UFX.audio.makegainnode({ name: "sfx", output: "main" })
-UFX.audio.makegainnode({ name: "music", output: "main", gain: 0.3 })
+UFX.audio.makegainnode({ name: "sfx", output: "main", gain: 2 })
+UFX.audio.makegainnode({ name: "music", output: "main", gain: 1 })
 let sfx = ["coin", "hazard", "hop", "launch", "mushroom", "no", "pop", "portal", "powerup", "start"]
-let sfxtoload = {}
+let sfxtoload = { "loopster": "sound/loopster.ogg" }
 for (let s of sfx) {
 	sfxtoload[s] = `sound/${s}.ogg`
 }
@@ -63,6 +64,8 @@ let toload = {
 	mushroom1: "img/mushroom1.png",
 	mushroom2: "img/mushroom2.png",
 	hazard: "img/hazard.png",
+	gnombert0: "img/gnombert0.png",
+	gnombert1: "img/gnombert1.png",
 }
 for (let stage of ["start", "forest", "ruins", "under", "mountain", "water", "fire", "win"]) {
 	toload[`symbol${stage}`] = `img/symbol-${stage}.png`
@@ -94,7 +97,12 @@ UFX.scenes.load = {
 		let kstate = UFX.key.state()
 		if (this.f == 1) {
 //			if (kstate.down.space || pointer.down) UFX.scene.swap("play")
-			if (kstate.down.space) UFX.scene.swap("play")
+			if (kstate.down.space) {
+				UFX.scene.swap("play")
+				UFX.audio.context.resume()
+				UFX.audio.playbuffer("loopster", { name: "loopster", output: "music", loop: true, gain: 1 })
+				playsound("start")
+			}
 		}
 	},
 	draw: function () {
@@ -110,6 +118,7 @@ UFX.scenes.load = {
 			"fs #404 font 50px~'Bokor' lw 1",
 			"t 0 90 sft0 by~Christopher~Night",
 			't 0 60 sft0 graphics~by~Sam~Thompson,~"Derpy_Feesh"',
+			't 0 60 sft0 music~by~Kevin~MacLeod',
 			"]")
 		let text = this.f == 1 ? "Press~Space~to~begin" : `Loading...~${(100 * this.f).toFixed(0)}%`
 		let grad = UFX.draw.lingrad(0, 30, 0, -30, 0, "#fff", 1, "#bbb")
@@ -134,10 +143,13 @@ function speeddown(current) {
 
 UFX.scenes.play = {
 	start: function () {
-		world.init(level0)
+		load()
+		world.init(progress.lastlevel)
 		view.init()
 		this.speed = 100
 		this.marquee = []
+		this.dtaccum = 0
+		this.selected = 2
 	},
 	think: function (dt) {
 		UFX.pointer.scale = UFX.maximize.scale.LD
@@ -145,9 +157,17 @@ UFX.scenes.play = {
 		let kstate = UFX.key.state()
 		if (kstate.down.space) world.you.jump(world.balloons)
 		if (kstate.down.space) world.you.interact(world.portals)
-		if (kstate.down[1]) world.you.releaseballoon(1)
-		if (kstate.down[2]) world.you.releaseballoon(2)
-		if (kstate.down[3]) world.you.releaseballoon(3)
+		if (kstate.down[1] && progress.unlocked[1]) world.you.releaseballoon(1)
+		if (kstate.down[2] && progress.unlocked[2]) world.you.releaseballoon(2)
+		if (kstate.down[3] && progress.unlocked[3]) world.you.releaseballoon(3)
+		if (kstate.down.tab) {
+			if (progress.unlocked[1]) {
+				this.selected = {1: 2, 2: 3, 3: 1}[this.selected]
+			} else if (progress.unlocked[3]) {
+				this.selected = {2: 3, 3: 2}[this.selected]
+			}
+		}
+		if (kstate.down.enter && progress.unlocked[this.selected]) world.you.releaseballoon(this.selected)
 		if (kstate.down.esc) UFX.scene.push("pause")
 		if (kstate.down.up) {
 			this.speed = speedup(this.speed)
@@ -156,34 +176,59 @@ UFX.scenes.play = {
 			this.speed = speeddown(this.speed)
 		}
 		dt *= this.speed / 100
-		if (kstate.pressed.left) dt /= 3
-		if (kstate.pressed.right) dt *= 3
+		this.speedmessage = ""
+		if (kstate.pressed.left) {
+			dt /= 3
+			this.speedmessage = "~(x1/3)"
+		}
+		if (kstate.pressed.right) {
+			dt *= 3
+			this.speedmessage = "~(x3)"
+		}
+
 
 		let jumpheld = kstate.pressed.space
-
-		view.think(dt)
-		world.think(dt, jumpheld)
-		if (world.nextlevel !== null) UFX.scene.push("portal", world.nextlevel)
+		this.dtaccum += dt
+		while (this.dtaccum > 0) {
+			this.dtaccum -= 1/120
+			view.think(1/120)
+			world.think(1/120, jumpheld)
+		}
+		if (world.nextlevel !== null) {
+			if (world.nextlevel == "win") {
+				UFX.scene.push("win")
+			} else {
+				UFX.scene.push("portal", world.nextlevel)
+			}
+		}
 	},
 	draw: function () {
 		UFX.draw("fs", world.skycolor, "f0")
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 			world.draw()
-			let info = `Speed:~${this.speed}%~~Coins:~${progress.score}`
+			let info = `Speed:~${this.speed}%${this.speedmessage}`
+			UFX.draw("[ tab center bottom ss black fs white font 30px~Langar sft", info, "800 890 ]")
+			info = `${progress.score}x`
+			UFX.draw("[ tab right bottom ss black fs white font 30px~Viga sft", info, "1550 890 ]")
+			UFX.draw("[ t 1575 875 z 0.3 0.3 drawimage", UFX.resource.images.star0, "-60 -60 ]")
+			UFX.draw("font 20px~'Viga' tab left bottom fs white ss black lw 2")
 			let texts = [
-				"Space: jump",
+				"Space: jump/enter door",
 				"Hold left/right: adjust speed",
 				`Tap up/down: adjust speed`,
 				`F11: fullscreen`,
 				"Esc: pause/view progress",
 			]
-			UFX.draw("font 20px~'Viga' tab left bottom fs white ss black lw 2")
+			if (progress.unlocked[2]) {
+				texts.push("1/2/3 or enter: launch balloon")
+				texts.push("Tab: select balloon")
+			}
 			texts.reverse().forEach((text, j) => {
 				context.strokeText(text, 10, 890 - 20 * j)
 				context.fillText(text, 10, 890 - 20 * j)
 			})
-			UFX.draw("[ tab right bottom ss white fs black font 30px~Viga sft", info, "1600 900 ]")
 		for (let n of [1, 2, 3]) {
+			if (!progress.unlocked[n]) continue
 			UFX.draw("[ t", 1600 - 60 - 3 * 110 + 110 * n, 60,
 				"b o 0 0 50 fs #885 f",
 				"b o 0 0 48 fs #aa6 f",
@@ -191,12 +236,13 @@ UFX.scenes.play = {
 				"b o 0 0 44 fs #bbb f")
 			if (world.you.cooldown[n]) {
 				let f = world.you.cooldown[n]
-				UFX.draw("( m 0 0 arc 0 0 44 0", tau * f, "l 0 0 ) fs gray f")
+				UFX.draw("( m 0 0 antiarc 0 0 44", tau * (f - 1/4), tau * 3/4, "l 0 0 ) fs gray f")
 			}
 			UFX.draw(
 				"[ z 0.4 0.4 drawimage", UFX.resource.images[`balloon${n}0`], -90, -90, "]",
-				"tab center middle font 30px~'Langar' fs #ccf ss black lw 3 sft0", ""+n,
-				"]")
+				"tab center middle font 30px~'Langar' fs #ccf ss black lw 3 sft0", ""+n)
+			if (n != this.selected) UFX.draw("b o 0 0 50 fs rgba(0,0,0,0.5) f")
+			UFX.draw("]")
 		}
 		UFX.draw("]")
 	},
@@ -216,19 +262,29 @@ UFX.scenes.pause = {
 	draw: function () {
 		UFX.scenes.play.draw()
 		let alpha = Math.min(2 * this.t, 0.7)
-		UFX.draw("[ alpha", alpha, "fs gray f0 ]")
+		UFX.draw("[ alpha", alpha, "fs #444 f0 ]")
 
-		let lines = ["Coins collected:"]
+		let lines = [`Coins collected: ${progress.score}`], imgs = [null]
 		for (let levelname in levels) {
 			if (levelname in progress.levelstars) {
 				lines.push(`${levels[levelname].title}: ${progress.got[levelname]}/${progress.levelstars[levelname]}`)
+				let imgname = levelname == "space" ? "symbolwin" : `symbol${levelname}`
+				imgs.push(UFX.resource.images[imgname])
 			}
 		}
-		lines.push(`Total: ${progress.score}`)
+		lines.push(`Damage received: ${progress.damage}`)
+		imgs.push(null)
 		UFX.draw("font 45px~'Bokor' tab left top fs white ss black lw 2")
 		lines.forEach((text, j) => {
-			context.strokeText(text, 50, 50 + 50 * j)
-			context.fillText(text, 50, 50 + 50 * j)
+			UFX.draw("[ t", 100, 50 + 60 * j)
+			context.strokeText(text, 0, 0)
+			context.fillText(text, 0, 0)
+			let img = imgs[j]
+			if (img !== null) {
+				UFX.draw("t -38 12 b o 0 0 25 fs #666 f b o 0 0 23 fs #bbb f",
+					"z 0.35 0.35 drawimage", img, -img.width / 2, -img.height / 2)
+			}
+			UFX.draw("]")
 		})
 
 	},
@@ -239,6 +295,7 @@ UFX.scenes.portal = {
 		this.from = world.levelname
 		this.to = to
 		world.init(this.to, this.from)
+		save()
 		view.init()
 	},
 	think: function (dt) {
@@ -249,6 +306,36 @@ UFX.scenes.portal = {
 	},
 }
 
+UFX.scenes.win = {
+	think: function (dt) {
+		UFX.pointer.scale = UFX.maximize.scale.LD
+		let pointer = UFX.pointer(canvas)
+		let kstate = UFX.key.state()
+	},
+	draw: function () {
+		let t = 0.0003 * Date.now()
+		let [r, g, b] = [0, 1/3, 2/3].map(phi => 128 + 120 * Math.sin(t + phi*tau))
+		let color = `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`
+		UFX.draw("fs", color, "f0")
+		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
+		UFX.draw("[ t 500 140 font 120px~'Bokor' r -0.1",
+			"tab center middle",
+			"fs", UFX.draw.lingrad(0, -30, 0, 200, 0, "#505", 1, "black"),
+			"ss white lw 3 sft0 Mobius~Trip",
+			"fs #404 font 50px~'Bokor' lw 1",
+			"t 0 90 sft0 The~End",
+			't 0 60 sft0 Thank~you~for~playing!',
+			"]")
+		let text = `Total~damage~taken:~${progress.damage}`
+		let grad = UFX.draw.lingrad(0, 30, 0, -30, 0, "#fff", 1, "#bbb")
+		UFX.draw("[ t", 1000, 800,
+			"font 80px~'Langar' fs", grad, "ss black shadow black 4 4 2",
+			"tab center middle sft0", text, "]")
+		UFX.draw("[ t 250 700 hflip r 0 z 2 2 drawimage", UFX.resource.images.up2, -171/2, -307/2, "]")
+		UFX.draw("[ t 1250 200 hflip vflip r 0 z 2 2 drawimage", UFX.resource.images.up2, -171/2, -307/2, "]")
+		UFX.draw("]")
+	},
+}
 
 
 </script>

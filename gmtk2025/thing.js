@@ -18,7 +18,8 @@ let WorldBound = {
 	},
 	
 	draw: function (flip) {
-		let xs = view.mods(this.x, this.w, flip)
+		let wfactor = this.wfactor || 1
+		let xs = view.mods(this.x, this.w * wfactor, flip)
 		if (xs.length == 0) return
 		let drawline = this.draw0(flip)
 //		console.log(xs, this.y, drawline)
@@ -144,12 +145,14 @@ let RaisesScore = {
 		progress.score += 1
 		progress.got[[this.x, this.y, world.levelname]] = true
 		progress.got[world.levelname] += 1
+		save()
 	},
 }
 
 let PowersUp = {
 	collect: function () {
 		progress.unlocked[this.n] = true
+		save()
 	},
 }
 
@@ -176,19 +179,34 @@ You.prototype = UFX.Thing()
 		jump: function (balloons) {
 			if (!this.grounded) return
 			if (this.thazard > 0) return
+			this.y += 0.1
 			this.grounded = false
+			progress.tutorial.jump = true
 			this.vy = jumpvy
+			let bpop = null
 			balloons.forEach(balloon => {
 				if (balloon.ready() && balloon.within(this) && this.thazard == 0) {
+					bpop = balloon
 					balloon.pop()
 					this.vx = balloon.launchvx
 					this.vy = balloon.launchvy
 				}
 			})
+			if (bpop === null) {
+				playsound("hop")
+			} else if (bpop instanceof UpMushroom) {
+				playsound("mushroom")
+			} else {
+				playsound("pop")
+			}
 		},
 		releaseballoon: function (n) {
 			if (this.thazard > 0) return
-			if (this.cooldown[n]) return
+			if (this.cooldown[n]) {
+				playsound("no")
+				return
+			}
+			progress.tutorial["release" + n] = true
 			let Balloon = {
 				1: BackBalloon,
 				2: UpBalloon,
@@ -196,6 +214,7 @@ You.prototype = UFX.Thing()
 			}[n]
 			world.balloons.push(new Balloon(this.x, this.y + this.h))
 			this.cooldown[n] = 1
+			playsound("launch")
 		},
 		interact: function (portals) {
 //			if (this.grounded) return
@@ -207,7 +226,8 @@ You.prototype = UFX.Thing()
 					if (portal.within(this)) {
 						let flip = portal.within(this) == -1
 						if (portal.ready(flip)) {
-							portal.enter()
+							portal.enter(flip)
+							playsound("portal")
 						}
 					}
 				})
@@ -216,6 +236,10 @@ You.prototype = UFX.Thing()
 		hithazards: function (hazards) {
 			hazards.forEach(hazard => {
 				if (hazard.within(this)) {
+					if (this.thazard == 0) {
+						playsound("hazard")
+						progress.damage += 1
+					}
 					this.thazard = 1
 				}
 			})
@@ -224,6 +248,8 @@ You.prototype = UFX.Thing()
 			stars.forEach(star => {
 				if (star.collectible() && star.within(this, this.R)) {
 					star.collect()
+					if (star instanceof Star) playsound("coin")
+					if (star instanceof Powerup) playsound("powerup")
 				}
 			})
 		},
@@ -244,18 +270,17 @@ You.prototype = UFX.Thing()
 					this.vy = 0
 					return
 				}
-			} else {
-				for (let platform of world.platforms) {
-					if (platform.catches(x0, y0 - this.h, this.x, this.y - this.h)) {
-						this.grounded = true
-						this.platform = platform
-						return
-					}
-				}
-				if (this.y - this.h <= world.floorat(this.x)) {
+			}
+			for (let platform of world.platforms) {
+				if (platform.catches(x0, y0 - this.h, this.x, this.y - this.h)) {
 					this.grounded = true
-					this.platform = null
+					this.platform = platform
+					return
 				}
+			}
+			if (this.y - this.h <= world.floorat(this.x)) {
+				this.grounded = true
+				this.platform = null
 			}
 		},
 		think: function (dt, jumpheld) {
@@ -319,6 +344,7 @@ You.prototype = UFX.Thing()
 function NPC(x, y, name) {
 	this.x = x
 	;[this.y, this.platform] = ysettle(x, y)
+	this.tilt = Math.atan(this.platform ? this.platform.slopeat(this.x) : world.slopeat(this.x))
 	this.name = name
 	this.w = 100
 	this.h = 0
@@ -331,21 +357,77 @@ NPC.prototype = UFX.Thing()
 			this.t += dt
 		},
 		gettext: function (flip) {
-			if (flip) {
-				return "How did you\nget up there?"
+			if (this.name == "tojump") {
+				if (flip) {
+					return "How did you\nget up there?"
+				} else if (!progress.tutorial.jump) {
+					return "Tap Space to jump"
+				} else if (!progress.tutorial.mushroom) {
+					return "Tap Space at\na mushroom to\nbounce off it"
+				} else if (!progress.levelstars.forest) {
+					return "You must collect\nat least one coin\nto visit the forest"
+				} else {
+					return "Welcome back!"
+				}
 			}
-			if (progress.tutorial.mushroom) {
-				return "You must collect\nat least one coin\nto visit the forest."
-			} else {
-				return "Tap to jump. Use the\nmushrooms to\njump higher."
+			if (this.name == "forest") {
+				if (flip) return null
+				if (!progress.unlocked[2]) {
+					return "Get that balloon!"
+				} else if (!progress.tutorial.release2) {
+					return "Press 2 to\nlaunch a balloon!"
+				} else if (progress.score < 4) {
+					return "Watch your\ncooldown in\nthe upper right"
+				} else {
+					return "Press Esc to see\nwhich lands still\nhave coins!"
+				}
+			}
+			if (this.name == "ruins") {
+				if (flip) return null
+				if (progress.score < 6) {
+					return "Arrows or WASD\nto adjust speed"
+				} else {
+					return "Legend says there\nwere 15 coins"
+				}
+			}
+			if (this.name == "under") {
+				if (flip) return null
+				if (!progress.unlocked[3]) {
+					return "Another balloon!\nI suggest you nab it!"
+				} else if (!progress.tutorial.release3) {
+					return "Press 3 to\nlaunch a balloon!"
+				} else {
+					return "You can select\nballoons with Tab\nand Enter"
+				}
+			}
+			if (this.name == "mountain") {
+				if (flip) {
+					if (progress.score < 15 && progress.score >= 12) {
+						return "Huh? Why is\nthe door open?"
+					}
+					return null
+				} else if (progress.score < 15) {
+					return "Legend says you'll\nbeat the game\nthrough the W door"
+				} else {
+					return "The W door is open!\nThanks for playing!"
+				}
+			}
+			if (this.name == "water") {
+				if (flip) return null
+				return "Legend says the magic\ncoins come from\nthe Mobius Dimension"
+			}
+			if (this.name == "fire") {
+				if (flip) return null
+				return "The path to the\nMobius Dimension\nwas forgotten long ago"
 			}
 		},
 		draw0: function (flip) {
 			let text = this.gettext(flip)
-			let drawline = ["b o 0 0 10 fs gray f"]
+			let img = UFX.resource.images.gnombert0
+			let drawline = ["[ r", -0.18 + this.tilt, "z 0.4 -0.4 drawimage", img, -103, -202, "]"]
 			if (!text) return drawline
 			let lines = text.split("\n").reverse()
-			drawline.push("t 0 40 b rr -110 0 220", 30 + 20 * lines.length, "10 fs white f")
+			drawline.push("t 0 80 b rr -110 0 220", 23 + 20 * lines.length, "10 fs white f")
 			drawline.push("vflip font 20px~'Viga' tab center middle fs black")
 			for (let line of lines) {
 				drawline.push(["t 0 -20 ft0", line.replaceAll(" ", "~")])
@@ -367,7 +449,6 @@ Hazard.prototype = UFX.Thing()
 	.addcomp(Rectangular)
 	.addcomp({
 		draw0: function () {
-			
 			return ["r", this.tilt, "z", 0.3 * (this.hflip ? -1 : 1), -0.3,
 				"drawimage", UFX.resource.images.hazard, -132, -157]
 		},
@@ -425,6 +506,7 @@ let DiesOnPop = {
 function UpMushroom(x, y) {
 	this.x = x
 	;[this.y, this.platform] = ysettle(x, y)
+	this.tilt = Math.atan(this.platform ? this.platform.slopeat(this.x) : world.slopeat(this.x))
 	this.y += 10
 	this.w = 30
 	this.h = 30
@@ -432,7 +514,7 @@ function UpMushroom(x, y) {
 	;[this.launchvx, this.launchvy] = blaunches[2]
 	this.color = bcolors[2]
 	this.alive = true
-	this.t = 0
+	this.twobble = 0
 }
 UpMushroom.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -441,13 +523,18 @@ UpMushroom.prototype = UFX.Thing()
 	.addcomp({
 		pop: function () {
 			progress.tutorial.mushroom = true
+			save()
 			this.twobble = 1
+		},
+		think: function (dt) {
+			this.twobble = Math.max(this.twobble - dt, 0)
 		},
 		draw0: function (flip) {
 			let imgname = "mushroom0"
 			let img = UFX.resource.images[imgname]
 			let w = img.width
-			return ["z 0.7 -0.7 drawimage", img, -w / 2, -80]
+			let f = 1 + 0.3 * this.twobble * Math.sin((1 - this.twobble) * 20)
+			return ["r", this.tilt, "z", f, 1/f, "z 0.7 -0.7 drawimage", img, -w / 2, -80]
 		},
 	})
 
@@ -579,6 +666,7 @@ function Portal(x, y, name, needed) {
 	this.needed = needed
 	this.w = 40
 	this.h = 40
+	this.wfactor = 4
 }
 Portal.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -589,7 +677,7 @@ Portal.prototype = UFX.Thing()
 		},
 		draw0: function (flip) {
 			let imgname = this.ready(flip) ? "portalopen" : "portalclosed"
-			let drawline = ["[ z 0.25 -0.25 drawimage", UFX.resource.images[imgname], -256, -230, "]"]
+			let drawline = ["[ z 0.64 -0.64 drawimage", UFX.resource.images[imgname], -100, -90, "]"]
 			if (this.needed > 0) {
 				drawline.push("[ t 100 0 z 0.6 -0.6 drawimage", UFX.resource.images.sign, -118, -30,
 					"tab right middle fs black font 40px~'Viga' ft", this.needed + "x", 0, 8,
@@ -601,17 +689,16 @@ Portal.prototype = UFX.Thing()
 			drawline.push("[ t 0 60 b o 0 0 25 fs #666 f b o 0 0 23 fs #bbb f",
 				"z 0.35 -0.35 drawimage", img, -img.width / 2, -img.height / 2, "]")
 			return drawline
-
-			return ["b fs purple fr", -this.w, -this.h, 2 * this.w, 2 * this.h,
-				"tab center middle font 20px~Viga fs black ss white lw 4 vflip sft", this.name, 0, -10,
-				"sft", `${this.needed}`, 0, 10]
 		},
 		ready: function (flip) {
-			let needed = flip && this.needed == 15 ? 12 : this.needed
+			let needed = this.needed
+			if (flip && this.needed == 2) needed = 5
+			if (flip && this.needed == 6) needed = 9
+			if (flip && this.needed == 15) needed = 12
 			return progress.score >= needed
 		},
-		enter: function () {
-			world.nextlevel = this.name
+		enter: function (flip) {
+			world.nextlevel = (this.name == "win" && flip) ? "space" : this.name
 		},
 	})
 

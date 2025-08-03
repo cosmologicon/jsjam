@@ -2,6 +2,7 @@
 
 let world = {
 	init: function (levelname, from) {
+		progress.lastlevel = levelname
 		this.levelname = levelname
 		let level = levels[levelname]
 		this.skycolor = level.skycolor
@@ -62,6 +63,7 @@ let world = {
 		this.t = 0
 	},
 	setnoiseground: function () {
+		this.ys = []
 		for (let x = 0 ; x <= this.D ; ++x) {
 			let f = x / this.D
 			y = -330 + 4 * (
@@ -75,6 +77,7 @@ let world = {
 		}
 	},
 	setwaterground: function () {
+		this.ys = []
 		for (let x = 0 ; x <= this.D ; ++x) {
 			let f = x / this.D
 			y = -230 + 4 * (

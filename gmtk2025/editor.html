@@ -40,11 +40,22 @@ UFX.key.remaparrows(true)
 UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "F1", "1", "2", "3", "esc"]
 UFX.resource.loadwebfonts("Viga", "Bokor")
 let toload = {
-	test0: "img/test-0.jpg",
-	test1: "img/test-1.png",
-	tree: "img/tree.png",
-	tower: "img/tower.png",
 	castle: "img/castle.png",
+	portalclosed: "img/portal-closed.png",
+	portalopen: "img/portal-open.png",
+	sign: "img/sign.png",
+	star0: "img/star0.png",
+	star1: "img/star1.png",
+	star2: "img/star2.png",
+	mushroom0: "img/mushroom0.png",
+	mushroom1: "img/mushroom1.png",
+	mushroom2: "img/mushroom2.png",
+	hazard: "img/hazard.png",
+	gnombert0: "img/gnombert0.png",
+	gnombert1: "img/gnombert1.png",
+}
+for (let stage of ["start", "forest", "ruins", "under", "mountain", "water", "fire", "win"]) {
+	toload[`symbol${stage}`] = `img/symbol-${stage}.png`
 }
 for (let model of [1, 2, 3]) {
 	toload[`up${model}`] = `img/up${model}.png`
@@ -79,7 +90,7 @@ UFX.scenes.load = {
 }
 UFX.scenes.edit = {
 	start: function () {
-		world.init("space")
+		world.init("water")
 		view.init()
 		view.z = Math.min(1400 / world.D, world.z)
 		this.mode = null
