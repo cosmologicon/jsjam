@@ -31,7 +31,17 @@ let world = {
 		this.platforms = []
 		if ("platformspec" in level) this.platforms.push(...level.platformspec.map(spec => makesineplatform(spec)))
 		if ("peakplatformspec" in level) this.platforms.push(...level.peakplatformspec.map(spec => makelinearplatform(spec)))
-		this.stars = level.stars.map(([x, y]) => new Star(x, y))
+		if (!(levelname in progress.levelstars)) {
+			progress.levelstars[levelname] = level.stars.length
+			progress.got[levelname] = 0
+		}
+		this.stars = []
+		for (let [x, y] of level.stars) {
+			let key = [x, y, levelname]
+			if (!progress.got[key]) {
+				this.stars.push(new Star(x, y))
+			}
+		}
 		if ("hazards" in level) this.hazards.push(...level.hazards.map(([x, y]) => new Hazard(x, y)))
 		if ("mushrooms" in level) this.balloons.push(...level.mushrooms.map(([x, y]) => new UpMushroom(x, y)))
 		this.NPCs = []
@@ -152,8 +162,9 @@ let world = {
 	},
 	draw: function () {
 		this.drawobjs(this.graphics)
-		this.drawobjs(this.platforms)
-		this.drawobjs(this.portals)
+		let ps = this.platforms.concat(this.portals)
+		ps.sort((p0, p1) => p1.y - p0.y)
+		this.drawobjs(ps)
 		this.drawobjs(this.bubbles.concat(this.balloons, this.stars))
 		this.drawobjs(this.powerups)
 		// ground

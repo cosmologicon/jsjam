@@ -21,6 +21,7 @@ let WorldBound = {
 		let xs = view.mods(this.x, this.w, flip)
 		if (xs.length == 0) return
 		let drawline = this.draw0(flip)
+//		console.log(xs, this.y, drawline)
 		xs.forEach(x => UFX.draw("[ t", x, this.y, drawline, "]"))
 	},
 	draw0: function (flip) {
@@ -140,6 +141,8 @@ let Collectible = {
 let RaisesScore = {
 	collect: function () {
 		progress.score += 1
+		progress.got[[this.x, this.y, world.levelname]] = true
+		progress.got[world.levelname] += 1
 	},
 }
 
@@ -196,8 +199,11 @@ You.prototype = UFX.Thing()
 			this.clear ||= !portals.some(portal => portal.within(this))
 			if (this.clear) {
 				portals.forEach(portal => {
-					if (portal.ready() && portal.within(this)) {
-						portal.enter()
+					if (portal.within(this)) {
+						let flip = portal.within(this) == -1
+						if (portal.ready(flip)) {
+							portal.enter()
+						}
 					}
 				})
 			}
@@ -315,10 +321,13 @@ NPC.prototype = UFX.Thing()
 			this.t += dt
 		},
 		gettext: function (flip) {
+			if (flip) {
+				return "How did you\nget up there?"
+			}
 			if (progress.tutorial.mushroom) {
-				return "You must collect\nat least one star\nto visit the forest."
+				return "You must collect\nat least one coin\nto visit the forest."
 			} else {
-				return flip ? "How did you\nget up there?" : "Tap to jump. Use the\nmushrooms to\njump higher."
+				return "Tap to jump. Use the\nmushrooms to\njump higher."
 			}
 		},
 		draw0: function (flip) {
@@ -527,13 +536,14 @@ Star.prototype = UFX.Thing()
 	.addcomp(RaisesScore)
 	.addcomp({
 		draw0: function () {
-			let r0 = Math.hypot(this.w, this.h), r1 = r0 / 2
-			let drawline = ["b m", 0, r0]
-			for (let j = 0 ; j < 10 ; ++j) {
-				let r = j % 2 == 0 ? r0 : r1, theta = j / 10 * tau
-				drawline.push("l", r * Math.sin(theta), r * Math.cos(theta))
-			}
-			drawline.push(") fs yellow ss black lw 2 s f")
+			let scale = 8 / this.w
+			let t = Date.now() * 0.001
+			let r = 0.2 * Math.sin(2 * t)
+			let frame = [0, 1, 2, 1][mod(Math.floor(6 * t), 4)]
+			let imgname = `star${frame}`
+			let drawline = [
+				"z", scale, scale, "r", r,
+				"drawimage", UFX.resource.images[imgname], -60, -60]
 			return drawline
 		},
 	})
@@ -552,15 +562,20 @@ Portal.prototype = UFX.Thing()
 	.addcomp(Rectangular)
 	.addcomp({
 		getplatform: function () {
-			return new Platform([[this.x - this.w * 1.2, this.y - this.w], [this.x + this.w * 1.2, this.y - this.w]])
+			return new Platform([[this.x - this.w * 1.2, this.y - this.w], [this.x + this.w * 1.2, this.y - this.w]], true)
 		},
-		draw0: function () {
+		draw0: function (flip) {
+			let imgname = this.ready(flip) ? "portalopen" : "portalclosed"
+			return ["z 0.25 -0.25 drawimage", UFX.resource.images[imgname], -256, -230
+				]
+
 			return ["b fs purple fr", -this.w, -this.h, 2 * this.w, 2 * this.h,
 				"tab center middle font 20px~Viga fs black ss white lw 4 vflip sft", this.name, 0, -10,
 				"sft", `${this.needed}`, 0, 10]
 		},
-		ready: function () {
-			return progress.score >= this.needed
+		ready: function (flip) {
+			let needed = flip && this.needed == 15 ? 12 : this.needed
+			return progress.score >= needed
 		},
 		enter: function () {
 			world.nextlevel = this.name
@@ -568,7 +583,7 @@ Portal.prototype = UFX.Thing()
 	})
 
 
-function Platform(ps) {
+function Platform(ps, invisible) {
 	this.ps = ps
 	;[this.x0, this.y0] = ps[0]
 	;[this.x1, this.y1] = ps[ps.length - 1]
@@ -576,16 +591,19 @@ function Platform(ps) {
 	this.y = (this.y0 + this.y1) / 2
 	this.w = (this.x1 - this.x0) / 2
 	this.h = 1000
+	this.invisible = invisible
 	
 	this.drawline = []
-	let y0 = 450 / world.z
-	this.drawline.push("( m", this.x0 - this.x, -y0 - this.y)
-	for (let [x, y] of ps) this.drawline.push("l", x - this.x, y - this.y)
-	this.drawline.push("l", this.x1 - this.x, -y0 - this.y, ") fs", world.groundcolor, "f")
-	
-	this.drawline.push("b m", this.x0 - this.x, this.y0 - this.y)
-	for (let [x, y] of ps) this.drawline.push("l", x - this.x, y - this.y)
-	this.drawline.push("ss", world.edgecolor, "lw 10 s")
+	if (!this.invisible) {
+		let y0 = 450 / world.z
+		this.drawline.push("( m", this.x0 - this.x, -y0 - this.y)
+		for (let [x, y] of ps) this.drawline.push("l", x - this.x, y - this.y)
+		this.drawline.push("l", this.x1 - this.x, -y0 - this.y, ") fs", world.groundcolor, "f")
+		
+		this.drawline.push("b m", this.x0 - this.x, this.y0 - this.y)
+		for (let [x, y] of ps) this.drawline.push("l", x - this.x, y - this.y)
+		this.drawline.push("ss", world.edgecolor, "lw 10 s")
+	}
 }
 Platform.prototype = UFX.Thing()
 	.addcomp(WorldBound)

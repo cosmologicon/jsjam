@@ -49,6 +49,11 @@ let toload = {
 	tree: "img/tree.png",
 	tower: "img/tower.png",
 	castle: "img/castle.png",
+	portalclosed: "img/portal-closed.png",
+	portalopen: "img/portal-open.png",
+	star0: "img/star0.png",
+	star1: "img/star1.png",
+	star2: "img/star2.png",
 }
 for (let model of [1, 2, 3]) {
 	toload[`up${model}`] = `img/up${model}.png`
@@ -103,7 +108,7 @@ UFX.scenes.load = {
 }
 UFX.scenes.play = {
 	start: function () {
-		world.init("space")
+		world.init("start")
 		view.init()
 	},
 	think: function (dt) {
