@@ -590,6 +590,10 @@ Portal.prototype = UFX.Thing()
 					"t 30 0 z 0.4 0.4 drawimage", UFX.resource.images.star1, -60, -60,
 					"]")
 			}
+			imgname = `symbol${this.name}`
+			let img = UFX.resource.images[imgname]
+			drawline.push("[ t 0 60 b o 0 0 25 fs #666 f b o 0 0 23 fs #bbb f",
+				"z 0.35 -0.35 drawimage", img, -img.width / 2, -img.height / 2, "]")
 			return drawline
 
 			return ["b fs purple fr", -this.w, -this.h, 2 * this.w, 2 * this.h,

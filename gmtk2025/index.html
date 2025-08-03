@@ -11,6 +11,11 @@
 <script>
 "use strict"
 let DEBUG = window.location.href.includes("DEBUG")
+let level0 = "start"
+for (let piece of window.location.search.split("&")) {
+	if (piece[0] == "?") piece = piece.slice(1)
+	if (piece.slice(0, 6) == "level=") level0 = piece.slice(6)
+}
 let tau = 2 * Math.PI
 let clamp = (x, a, b) => x < a ? a : x > b ? b : x
 // Fixed mod function to behave like in Python.
@@ -58,6 +63,10 @@ let toload = {
 	mushroom0: "img/mushroom0.png",
 	mushroom1: "img/mushroom1.png",
 	mushroom2: "img/mushroom2.png",
+	hazard: "img/hazard.png",
+}
+for (let stage of ["start", "forest", "ruins", "under", "mountain", "water", "fire", "win"]) {
+	toload[`symbol${stage}`] = `img/symbol-${stage}.png`
 }
 for (let model of [1, 2, 3]) {
 	toload[`up${model}`] = `img/up${model}.png`
@@ -123,7 +132,7 @@ function speeddown(current) {
 
 UFX.scenes.play = {
 	start: function () {
-		world.init("start")
+		world.init(level0)
 		view.init()
 		this.speed = 100
 		this.marquee = []
