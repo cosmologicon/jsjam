@@ -122,7 +122,7 @@ let levels = {
 		portals: [
 			[840, -400, "forest", 2],
 			[3000, -540, "under", 3],
-			[5400, -150, "water", 0],
+			[5550, -150, "water", 0],
 		],
 		powerups: [],
 	},

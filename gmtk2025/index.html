@@ -50,7 +50,7 @@ function playsound(sname) {
 }
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "1", "2", "3", "esc"]
+UFX.key.watchlist = ["tab", "space", "enter", "left", "right", "up", "down", "1", "2", "3", "esc", "P"]
 UFX.resource.loadwebfonts("Viga", "Bokor", "Langar")
 let toload = {
 	castle: "img/castle.png",
@@ -168,7 +168,7 @@ UFX.scenes.play = {
 			}
 		}
 		if (kstate.down.enter && progress.unlocked[this.selected]) world.you.releaseballoon(this.selected)
-		if (kstate.down.esc) UFX.scene.push("pause")
+		if (kstate.down.esc || kstate.down.P) UFX.scene.push("pause")
 		if (kstate.down.up) {
 			this.speed = speedup(this.speed)
 		}
@@ -217,7 +217,7 @@ UFX.scenes.play = {
 				"Hold left/right: adjust speed",
 				`Tap up/down: adjust speed`,
 				`F11: fullscreen`,
-				"Esc: pause/view progress",
+				"Esc/P: pause/view progress",
 			]
 			if (progress.unlocked[2]) {
 				texts.push("1/2/3 or enter: launch balloon")
@@ -251,18 +251,21 @@ UFX.scenes.play = {
 UFX.scenes.pause = {
 	start: function () {
 		this.t = 0
+		UFX.audio.setgain("main", 0)
 	},
 	think: function (dt) {
 		this.t += dt
 		let kstate = UFX.key.state()
-		if (kstate.down.space || kstate.down.esc) {
+		if (kstate.down.space || kstate.down.esc || kstate.down.P) {
 			UFX.scene.pop()
+			UFX.audio.setgain("main", 1)
 		}
 	},
 	draw: function () {
 		UFX.scenes.play.draw()
 		let alpha = Math.min(2 * this.t, 0.7)
 		UFX.draw("[ alpha", alpha, "fs #444 f0 ]")
+		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 
 		let lines = [`Coins collected: ${progress.score}`], imgs = [null]
 		for (let levelname in levels) {
@@ -287,7 +290,7 @@ UFX.scenes.pause = {
 			}
 			UFX.draw("]")
 		})
-
+		UFX.draw("]")
 	},
 }
 

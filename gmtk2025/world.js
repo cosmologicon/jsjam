@@ -57,6 +57,11 @@ let world = {
 				this.you.y = y
 				this.you.grounded = false
 			}
+			if (name == "win" && from == "space") {
+				this.you.x = x + this.R
+				this.you.y = -y
+				this.you.grounded = false
+			}
 		}
 		this.platforms.sort((p0, p1) => p1.y - p0.y)
 		this.nextlevel = null
@@ -197,7 +202,7 @@ let world = {
 		if (alpha > 0) {
 			let grad = UFX.draw.lingrad(0, -40, 0, 100, 0, this.skycolor, 1, "black")
 			UFX.draw("[ t 800 840 tab center middle font 90px~'Bokor' lw 4",
-				"ss black fs", grad, "alpha", alpha,
+				"ss black fs", grad, "shadow black 4 4 4 alpha", alpha,
 				"sft0", levels[this.levelname].title.replaceAll(" ", "~"),
 //				"t 0 40 scale 1 -0.3 alpha", alpha / 2,
 //				"sft0", levels[this.levelname].title.replaceAll(" ", "~"),

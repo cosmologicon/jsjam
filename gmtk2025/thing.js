@@ -379,7 +379,7 @@ NPC.prototype = UFX.Thing()
 				} else if (progress.score < 4) {
 					return "Watch your\ncooldown in\nthe upper right"
 				} else {
-					return "Press Esc to see\nwhich lands still\nhave coins!"
+					return "Esc or P to see\nwhich lands still\nhave coins!"
 				}
 			}
 			if (this.name == "ruins") {
