@@ -30,16 +30,17 @@ let WorldBound = {
 }
 
 function ysettle(x, y0) {
-	let y = world.floorat(x)
+	let y = world.floorat(x), on = null
 	for (let platform of world.platforms) {
 		if (platform.within(x)) {
 			let yplatform = platform.heightat(x)
 			if (yplatform > y && yplatform <= y0) {
 				y = yplatform
+				on = platform
 			}
 		}
 	}
-	return y
+	return [y, on]
 }
 
 
@@ -317,7 +318,7 @@ You.prototype = UFX.Thing()
 
 function NPC(x, y, name) {
 	this.x = x
-	this.y = ysettle(x, y)
+	;[this.y, this.platform] = ysettle(x, y)
 	this.name = name
 	this.w = 100
 	this.h = 0
@@ -355,16 +356,20 @@ NPC.prototype = UFX.Thing()
 
 function Hazard(x, y) {
 	this.x = x
-	this.y = ysettle(x, y)
+	;[this.y, this.platform] = ysettle(x, y)
 	this.w = 0
 	this.h = 0
+	this.hflip = UFX.random.seedmethod([this.x, this.y], "flip")
+	this.tilt = Math.atan(this.platform ? this.platform.slopeat(this.x) : world.slopeat(this.x))
 }
 Hazard.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Rectangular)
 	.addcomp({
 		draw0: function () {
-			return ["b o 0 0 10 fs red f"]
+			
+			return ["r", this.tilt, "z", 0.3 * (this.hflip ? -1 : 1), -0.3,
+				"drawimage", UFX.resource.images.hazard, -132, -157]
 		},
 	})
 
@@ -419,7 +424,8 @@ let DiesOnPop = {
 
 function UpMushroom(x, y) {
 	this.x = x
-	this.y = ysettle(x, y) + 10
+	;[this.y, this.platform] = ysettle(x, y)
+	this.y += 10
 	this.w = 30
 	this.h = 30
 	this.n = 2
