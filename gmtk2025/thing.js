@@ -566,8 +566,11 @@ Portal.prototype = UFX.Thing()
 		},
 		draw0: function (flip) {
 			let imgname = this.ready(flip) ? "portalopen" : "portalclosed"
-			return ["z 0.25 -0.25 drawimage", UFX.resource.images[imgname], -256, -230
-				]
+			let drawline = ["[ z 0.25 -0.25 drawimage", UFX.resource.images[imgname], -256, -230, "]"]
+			if (this.needed > 0) {
+//				drawline.push("[ t 50 0 z 0.25 -0.25 drawimage ]")
+			}
+			return drawline
 
 			return ["b fs purple fr", -this.w, -this.h, 2 * this.w, 2 * this.h,
 				"tab center middle font 20px~Viga fs black ss white lw 4 vflip sft", this.name, 0, -10,

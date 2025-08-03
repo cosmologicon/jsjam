@@ -106,10 +106,23 @@ UFX.scenes.load = {
 		UFX.draw("]")
 	},
 }
+
+let speeds = [33, 40, 48, 58, 70, 83, 100, 120, 145, 175, 210, 250, 300]
+function speedup(current) {
+	if (current >= speeds[speeds.length - 1]) return speeds[speeds.length - 1]
+	return speeds[speeds.indexOf(current) + 1]
+}
+function speeddown(current) {
+	if (current <= speeds[0]) return speeds[0]
+	return speeds[speeds.indexOf(current) - 1]
+}
+
 UFX.scenes.play = {
 	start: function () {
 		world.init("start")
 		view.init()
+		this.speed = 100
+		this.marquee = []
 	},
 	think: function (dt) {
 		UFX.pointer.scale = UFX.maximize.scale.LD
@@ -121,7 +134,18 @@ UFX.scenes.play = {
 		if (kstate.down[2]) world.you.releaseballoon(2)
 		if (kstate.down[3]) world.you.releaseballoon(3)
 		if (kstate.down.esc) UFX.scene.push("pause")
+		if (kstate.down.up) {
+			this.speed = speedup(this.speed)
+		}
+		if (kstate.down.down) {
+			this.speed = speeddown(this.speed)
+		}
+		dt *= this.speed / 100
+		if (kstate.pressed.left) dt /= 3
+		if (kstate.pressed.right) dt *= 3
+
 		let jumpheld = kstate.pressed.space || pointer.isdown
+
 		view.think(dt)
 		world.think(dt, jumpheld)
 		if (world.nextlevel !== null) UFX.scene.push("portal", world.nextlevel)
@@ -130,7 +154,8 @@ UFX.scenes.play = {
 		UFX.draw("fs", world.skycolor, "f0")
 		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
 			world.draw()
-			UFX.draw("[ tab right bottom ss white fs black font 60px~Viga sft", `stars:~${progress.score}`, "1600 900 ]")
+			let info = `Speed:~${this.speed}%~~Coins:~${progress.score}`
+			UFX.draw("[ tab right bottom ss white fs black font 30px~Viga sft", info, "1600 900 ]")
 		UFX.draw("]")
 	},
 }
