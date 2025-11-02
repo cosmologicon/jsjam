@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<title>Genetics</title>
+<style>
+canvas {
+	background: #040404;
+}
+</style>
+<script src="//ufx.space/UFX.js"></script>
+<canvas id=canvas></canvas>
+<script>
+"use strict"
+let EASY = window.location.href.includes("EASY")
+let tau = 2 * Math.PI
+let canvas = document.getElementById("canvas")
+canvas.width = 1600
+canvas.height = 900
+let context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+
+
+let pos = null
+let cursorj = 20
+let j0 = 20
+
+let code = []
+for (let j = 0 ; j < 40 ; ++j) {
+	code.push(UFX.random.choice("AGCT"))
+}
+let colors = {
+	"A": "#4df",
+	"C": "#a4f",
+	"G": "#da4",
+	"T": "#f4a",
+}
+let next = {
+	"A": "C",
+	"C": "G",
+	"G": "T",
+	"T": "A",
+}
+
+
+function getmatches(j0) {
+	if (j0 == 0 || j0 == code.length - 1) return []
+	let ret = []
+	for (let j = 0 ; j < code.length ; ++j) {
+		if (code[j - 1] == code[j0 - 1] && code[j] == code[j0] && code[j + 1] == code[j0 + 1]) {
+			ret.push(j)
+		}
+	}
+	return ret
+}
+
+function won() {
+	let seen = {}
+	for (let j = 0 ; j < code.length - 2 ; ++j) {
+		let codon = code[j] + code[j + 1] + code[j + 2]
+		if (seen[codon]) return false
+		seen[codon] = true
+	}
+	return true
+}
+
+
+function drawdna() {
+	let x = {}, hi = {}, lo = {}
+	for (let j = -1 ; j < code.length + 1 ; ++j) {
+		x[j] = 40 * j + 20
+		let S = Math.cos(tau / 30 * (j + 30/8 - j0))
+		hi[j] = 550 - 200 * S
+		S = Math.cos(tau / 30 * (j + 3*30/8 - j0))
+		lo[j] = 550 - 200 * S
+	}
+	for (let j = 0 ; j < code. length ; ++j) {
+		let color = colors[code[j]]
+		UFX.draw("[ b m", x[j], hi[j], "l", x[j], lo[j],
+			"lw 12 ss #333 s lw 8 ss", color, "s ]")
+		if (j == cursorj) {
+			UFX.draw("[ b m", x[j], hi[j], "l", x[j], lo[j],
+				"lw 12 ss white alpha 0.5 s ]")
+		}
+	}
+	UFX.draw("[ b m", x[-1], hi[-1])
+	for (let j = 0 ; j < code.length + 1 ; ++j) UFX.draw("l", x[j], hi[j])
+	UFX.draw("ss #aad lw 8 s ]")
+	UFX.draw("[ b m", x[-1], lo[-1])
+	for (let j = 0 ; j < code.length + 1 ; ++j) UFX.draw("l", x[j], lo[j])
+	UFX.draw("ss #aad lw 8 s ]")
+	
+	for (let j = 0 ; j < code.length ; ++j) {		
+		UFX.draw("[ t", x[j], hi[j], "b o 0 0 14 fs #aad f ]")
+		UFX.draw("[ t", x[j], lo[j], "b o 0 0 14 fs #aad f ]")
+	}
+	UFX.draw("[ t", 20 + 40 * cursorj, 550 - 180, "z 1 -1",
+		"( m 0 0 q 20 20 20 40 l -20 40 q -20 20 0 0 ) fs orange f ]")
+	UFX.draw("[ t", 20 + 40 * cursorj, 550 + 180,
+		"( m 0 0 q 20 20 20 40 l -20 40 q -20 20 0 0 ) fs orange f ]")
+	getmatches(cursorj).forEach(j => {
+		UFX.draw("[ t", x[j], 820, "tr -62 -40 124 80 lw 5 ss red s ]")
+	})
+	for (let j = 0 ; j < code.length ; ++j) {
+		let color = colors[code[j]]
+		let fsize = j == cursorj ? "80" : "50"
+		UFX.draw("[ t", x[j], 820, "tab center middle font " + fsize + "px~'Boogaloo'",
+			"ss black fs", color, "lw 4 sft0", code[j], "]")
+	}
+}
+
+
+function think(dt) {
+	UFX.pointer.scale = UFX.maximize.scale.LD
+	let pstate = UFX.pointer(canvas)
+	pos = pstate.pos ? pstate.pos : [-100, -100]
+	cursorj = Math.floor(pos[0] / 40)
+	j0 += (cursorj - j0) * Math.min(10 * dt, 1)
+    if (pstate.down && cursorj in code) {
+    	code[cursorj] = next[code[cursorj]]
+    }
+}
+
+
+function draw() {
+
+	let bgcolor = won() ? "#49a" : "#134"
+	UFX.draw("fs", bgcolor, "f0")
+	UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
+
+	let message = won() ? "YOU~WON!" : "No~sequence~of~3~may~appear~more~than~once"
+
+	UFX.draw("[ t 500 100 r -0.2 tab center middle alpha 0.5",
+		"font 80px~'Passion~One' fs white ft0 Genetics",
+		"font 60px~'Passion~One' t 0 70 fs #7ff ft0 by~Christopher~Night",
+		"font 40px~'Passion~One' t 0 50 fs #7ff ft0 made~in~zero~hours,",
+		"font 40px~'Passion~One' t 0 40 fs #7ff ft0 2am~EDT~-~2am~EST,~2~Nov~2025",
+		"font 60px~'Passion~One' t 0 60 fs #7ff ft0 Click~to~change~base~pair",
+		"font 60px~'Passion~One' t 0 60 fs #7ff ft0", message,
+	"]")
+	if (pos !== null) {
+    	UFX.draw("[ t", pos, "b o 0 0 4 fs orange f ]")
+    }
+	drawdna()
+	UFX.draw("]")
+	canvas.style.cursor = "none"
+}
+UFX.resource.loadwebfonts("Boogaloo", "Passion One")
+UFX.resource.onload = function () {
+	UFX.ticker.init(think, draw, {
+		ups: 120,
+		maxupf: 12,
+	})
+}
+</script>
