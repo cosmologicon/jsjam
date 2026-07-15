@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<title>GTMK 2026 game</title>
+<script src="UFX.js"></script>
+<canvas id=canvas style="background: black"></canvas>
+<script>
+"use strict"
+let DEBUG = window.location.href.includes("DEBUG")
+if (window.location.href.includes("RESET")) reset()
+let level0 = "start"
+for (let piece of window.location.search.split("&")) {
+	if (piece[0] == "?") piece = piece.slice(1)
+	if (piece.slice(0, 6) == "level=") level0 = piece.slice(6)
+}
+let tau = 2 * Math.PI
+let clamp = (x, a, b) => x < a ? a : x > b ? b : x
+// Fixed mod function to behave like in Python.
+let mod = (x, z) => (x % z + z) % z
+// The value equal to x (mod z) that's closest to 0
+let zmod = (x, z) => mod(x + z / 2, z) - z / 2
+// The value equal to x (mod z) that's closest to x0
+let cmod = (x, z, x0) => x0 + zmod(x - x0, z)
+let approach = (x, target, dx) => x < target ? Math.min(x + dx, target) : Math.max(x - dx, target)
+window.onerror = function (error, url, line) {
+	document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
+}
+let canvas = document.getElementById("canvas")
+canvas.width = 1600
+canvas.height = 900
+let context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "aspect")
+UFX.draw.setcontext(context)
+UFX.audio.init()
+UFX.audio.makegainnode({ name: "main", gain: 1, })
+UFX.audio.makegainnode({ name: "sfx", output: "main", gain: 1 })
+UFX.audio.makegainnode({ name: "music", output: "main", gain: 1 })
+let sfx = []
+let sfxtoload = {}
+for (let s of sfx) {
+	sfxtoload[s] = `sound/${s}.ogg`
+}
+UFX.audio.loadbuffers(sfxtoload)
+function playsound(sname) {
+	UFX.audio.playbuffer(sname, { output: "sfx", gain: 1, })
+}
+UFX.key.init()
+UFX.key.remaparrows(true)
+// UFX.key.watchlist = ["space", "enter", "left", "right", "up", "down"]
+UFX.resource.loadwebfonts("Viga")
+let toload = {
+	test: "img/test.png",
+}
+UFX.resource.load(toload)
+UFX.resource.onload = () => {
+}
+UFX.scene.push("load")
+UFX.scene.init({ minups: 10, maxups: 120 })
+UFX.resource.onloading = (f) => {
+	UFX.scenes.load.f = f
+}
+UFX.scenes.load = {
+	f: 0,
+	tdot: 0,
+	start: function () {
+		this.w = 1600 - 300
+		this.h = 900 - 300
+		this.v0 = 300
+		this.v1 = 360
+		this.x = UFX.random(this.w)
+		this.y = UFX.random(this.h)
+		this.vx = this.pickv()
+		this.vy = this.pickv()
+	},
+	pickv: function () {
+		this.setcolor()
+		return UFX.random(this.v0, this.v1)
+	},
+	setcolor: function () {
+		this.color = "#" + UFX.random.word(6, "3456")
+	},
+	think: function (dt) {
+		UFX.pointer.scale = UFX.maximize.scale.LD
+		let pointer = UFX.pointer(canvas)
+		let kstate = UFX.key.state()
+		this.x += this.vx * dt
+		this.y += this.vy * dt
+		if (this.x <= 0 && this.vx < 0) this.vx = this.pickv()
+		if (this.x > this.w && this.vx > 0) this.vx = -this.pickv()
+		if (this.y <= 0 && this.vy < 0) this.vy = this.pickv()
+		if (this.y > this.h && this.vy > 0) this.vy = -this.pickv()
+	},
+	draw: function () {
+		UFX.draw("fs", this.color, "f0")
+		UFX.draw("[ z", canvas.width / 1600, canvas.height / 900)
+		if (this.f == 1) {
+			UFX.draw("[ t", this.x, this.y, "z", 300 / 928, 300 / 937,
+				"drawimage0", UFX.resource.images.test, "]")
+		}
+		UFX.draw("]")
+	},
+}
+</script>
+
