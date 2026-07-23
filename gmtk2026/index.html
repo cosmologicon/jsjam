@@ -30,6 +30,9 @@ let approach2 = function ([x, y], [targetx, targety], dx) {
 	if (d <= dx) return [targetx, targety]
 	return [x + (targetx - x) * dx / d, y + (targety - y) * dx / d]
 }
+let CS = A => [Math.cos(A), Math.sin(A)]
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from#sequence_generator_range
+let range = (start, stop, step) => Array.from({ length: Math.ceil((stop - start) / step) }, (_, i) => start + i * step)
 window.onerror = function (error, url, line) {
 	document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
 }
@@ -52,8 +55,8 @@ UFX.audio.loadbuffers(sfxtoload)
 function playsound(sname) {
 	UFX.audio.playbuffer(sname, { output: "sfx", gain: 1, })
 }
-UFX.key.init()
-UFX.key.remaparrows(true)
+//UFX.key.init()
+//UFX.key.remaparrows(true)
 // UFX.key.watchlist = ["space", "enter", "left", "right", "up", "down"]
 UFX.resource.loadwebfonts("Viga")
 let toload = {

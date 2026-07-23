@@ -34,13 +34,13 @@ let view = {
 		let [xG, yG] = posG
 		let [xG0, yG0] = this.cameraG0
 		let [xA0, yA0] = this.cameraA0
-		return [xA0 + this.AscaleG * (xG - xG0), yA0 - this.AscaleG * (yG - yG0)]
+		return [xA0 + this.AscaleG * (xG - xG0), yA0 - 0.5 * this.AscaleG * (yG - yG0)]
 	},
 	GconvertA: function (posA) {
 		let [xA, yA] = posA
 		let [xG0, yG0] = this.cameraG0
 		let [xA0, yA0] = this.cameraA0
-		return [xG0 + (xA - xA0) / this.AscaleG, yG0 - (yA - yA0) / this.AscaleG]
+		return [xG0 + (xA - xA0) / this.AscaleG, yG0 - (yA - yA0) / this.AscaleG / 0.5]
 	},
 	DconvertG: function (posG) {
 		return this.DconvertA(this.AconvertG(posG))
