@@ -2,6 +2,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 <title>GTMK 2026 game</title>
 <script src="UFX.js"></script>
+<script src="view.js"></script>
+<script src="graphics.js"></script>
+<script src="thing.js"></script>
+<script src="play.js"></script>
 <canvas id=canvas style="background: black"></canvas>
 <script>
 "use strict"
@@ -88,6 +92,7 @@ UFX.scenes.load = {
 		if (this.x > this.w && this.vx > 0) this.vx = -this.pickv()
 		if (this.y <= 0 && this.vy < 0) this.vy = this.pickv()
 		if (this.y > this.h && this.vy > 0) this.vy = -this.pickv()
+		if (this.f == 1) UFX.scene.swap("play")
 	},
 	draw: function () {
 		UFX.draw("fs", this.color, "f0")
