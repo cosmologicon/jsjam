@@ -12,6 +12,13 @@ UFX.scenes.play = {
 		})
 	},
 	think: function (dt) {
+		UFX.pointer.scale = UFX.maximize.scale.LD
+		let pointer = UFX.pointer(canvas)
+		if (pointer.down) {
+			this.monks[0].settarget(view.GconvertL(pointer.pos))
+//			console.log(view.GconvertD(pointer.pos))
+		}
+		this.monks.forEach(monk => monk.think(dt))
 	},
 	draw: function () {
 		UFX.draw("fs #444 f0")

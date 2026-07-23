@@ -25,6 +25,11 @@ let zmod = (x, z) => mod(x + z / 2, z) - z / 2
 // The value equal to x (mod z) that's closest to x0
 let cmod = (x, z, x0) => x0 + zmod(x - x0, z)
 let approach = (x, target, dx) => x < target ? Math.min(x + dx, target) : Math.max(x - dx, target)
+let approach2 = function ([x, y], [targetx, targety], dx) {
+	let d = Math.hypot(x - targetx, y - targety)
+	if (d <= dx) return [targetx, targety]
+	return [x + (targetx - x) * dx / d, y + (targety - y) * dx / d]
+}
 window.onerror = function (error, url, line) {
 	document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
 }
@@ -53,6 +58,7 @@ UFX.key.remaparrows(true)
 UFX.resource.loadwebfonts("Viga")
 let toload = {
 	test: "img/test.png",
+	guy: "img/guy-S-0.png",
 }
 UFX.resource.load(toload)
 UFX.resource.onload = () => {
