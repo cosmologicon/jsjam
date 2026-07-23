@@ -42,15 +42,47 @@ let Selectable = {
 		UFX.draw("[", view.lookG(this.pos), "( m 0 -2 l -0.2 -2.5 l 0.2 -2.5 ) fs orange ss black lw 0.1 f s ]")
 	},
 }
+let WalkCycle = {
+	init: function () {
+		this.twalk = 0
+		this.walkfps = 14
+		this.walkjframe = 0
+	},
+	think: function (dt) {
+		this.twalk = this.target === null ? 0 : this.twalk + dt
+		let jframe = mod(Math.floor(this.twalk * this.walkfps), 4)
+		this.walkjframe = [0, 1, 0, 2][jframe]
+	},
+}
+let FaceOrdinal = {
+	init: function () {
+		this.Afacing = tau / 2
+		this.facing = "S"
+		this.facesprite = "S"
+		this.faceflip = false
+	},
+	think: function () {
+		if (this.target === null) return
+		if ("" + this.pos == this.target) return
+		this.Afacing = this.Ato(this.target)
+		let j = mod(Math.round(this.Afacing / (tau / 8)), 8)
+		this.facing = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][j]
+		this.facesprite = this.facing.replace(/W/, "E")
+		this.faceflip = this.facing.includes("W")
+	},
+}
+
 
 function Monk(pos) {
 	this.setpossize(pos, 1)
-	this.target = null
+	this.settarget(null)
 	this.bounce = 0
 	this.t = 0
 }
 Monk.prototype = UFX.Thing()
 	.addcomp(WorldRound)
+	.addcomp(WalkCycle)
+	.addcomp(FaceOrdinal)
 	.addcomp({
 		settarget: function (target) {
 			this.target = target
@@ -67,14 +99,10 @@ Monk.prototype = UFX.Thing()
 		},
 		draw: function () {
 			let scale = 1 / 360
-			UFX.draw("[", view.lookG(this.pos),
-				"[",
-				"t", 0, -this.bounce * 0.1,
-				"z", scale, scale, "t", -362, -720,
-				"drawimage0", UFX.resource.images.guy,
-				"]",
-//				"b o 0 0 0.1 fs orange f",
-				"]")
+			let fname = `monk${this.facesprite}${this.walkjframe}`
+			UFX.draw("[", view.lookG(this.pos),	"z", scale, scale)
+			if (this.faceflip) UFX.draw("hflip")
+			UFX.draw("t", -362, -720, "drawimage0", UFX.resource.images[fname], "]")
 		},
 	})
 	.addcomp(Selectable)

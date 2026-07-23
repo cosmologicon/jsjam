@@ -43,6 +43,7 @@ UFX.scenes.play = {
 		})
 	},
 	think: function (dt) {
+		dt /= SLOW
 		control.think(dt)
 		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
