@@ -20,9 +20,24 @@ let WorldRound = {
 		return dx == 0 && dy == 0 ? 0 : Math.atan2(dx, dy)
 	},
 	draw: function () {
-		graphics.drawcircleG(this.pos, this.r, "rgba(0,0,0,0.3)")
-//		console.log("[ t", this.pos, "z", 2 * rA, rA, "b o 0 0 1 fs", this.color, "f ]")
-		
+		graphics.fillcircleG(this.pos, this.r, "rgba(0,0,0,0.3)")
+	},
+}
+let backtofront = (obj0, obj1) => obj1.pos[1] - obj0.pos[1]
+let fronttoback = (obj0, obj1) => backtofront(obj1, obj0)
+
+let Selectable = {
+	collidepoint: function (posG) {
+		let [x, y] = posG
+		let [x0, y0] = this.pos
+		return Math.hypot(x0 - x, 0.5 * (y0 + 2 - y)) < 1
+	},
+	onclick: function () {
+		control.select(this)
+	},
+	draw: function () {
+		if (control.selected !== this) return
+		UFX.draw("[", view.lookG(this.pos), "( m 0 -2 l -0.2 -2.5 l 0.2 -2.5 ) fs orange ss black lw 0.1 f s ]")
 	},
 }
 
@@ -60,6 +75,7 @@ Monk.prototype = UFX.Thing()
 				"]")
 		},
 	})
+	.addcomp(Selectable)
 
 let GearLogic = {
 	setsize: function (r) {
