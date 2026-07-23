@@ -71,19 +71,40 @@ let FaceOrdinal = {
 		this.faceflip = this.facing.includes("W")
 	},
 }
+let StationWorker = {
+	start: function () {
+		this.station = null
+	},
+	settarget: function () {
+		if (this.station !== null) this.station.monk = null
+		this.station = null
+	},
+	setstation: function (station) {
+		this.settarget(station.pos)
+		this.station = station
+	},
+	think: function (dt) {
+		this.atstation = this.station !== null && this.target === null
+		if (this.atstation) this.station.work(dt)
+	},
+}
 
 
 function Monk(pos) {
+	this.start()
 	this.setpossize(pos, 1)
-	this.settarget(null)
 	this.bounce = 0
 	this.t = 0
 }
 Monk.prototype = UFX.Thing()
 	.addcomp(WorldRound)
+	.addcomp(StationWorker)
 	.addcomp(WalkCycle)
 	.addcomp(FaceOrdinal)
 	.addcomp({
+		start: function () {
+			this.target = null
+		},
 		settarget: function (target) {
 			this.target = target
 		},
@@ -160,6 +181,17 @@ let GearLogic = {
 	},
 }
 
+let HasChildren = {
+	start: function () {
+		this.children = []
+	},
+	addchild: function (child) {
+		this.children.push(child)
+		child.parent = this
+	},
+}
+
+
 let DrawGear = {
 	draw: function () {
 		graphics.drawgearG(this.pos, this.r, this.Ntooth, this.A, this.color)
@@ -192,6 +224,7 @@ GoGear.prototype = UFX.Thing()
 	})
 
 function PushGear(pos, r) {
+	this.start()
 	this.setpossize(pos, r)
 	this.A = 0
 	this.color = "gray"
@@ -200,6 +233,7 @@ function PushGear(pos, r) {
 PushGear.prototype = UFX.Thing()
 	.addcomp(WorldRound)
 	.addcomp(GearLogic)
+	.addcomp(HasChildren)
 	.addcomp(DrawGear)
 	.addcomp({
 		collidepoint: function (pos) {
@@ -235,4 +269,32 @@ FollowGear.prototype = UFX.Thing()
 			this.alignto(this.parent)
 		},
 	})
+
+function Station(pos, gear) {
+	this.setpossize(pos, 1)
+	gear.addchild(this)
+	this.monk = null
+}
+Station.prototype = UFX.Thing()
+	.addcomp(WorldRound)
+	.addcomp({
+		collidepoint: function (pos) {
+			return this.infootprint(pos)
+		},
+		onclick: function () {
+			console.log(this.monk, control.selected)
+			if (this.monk) {
+				if (this.monk.atstation) this.monk.onclick()
+			} else if (control.selected && control.selected.setstation) {
+				control.selected.setstation(this)
+			}
+		},
+		work: function (dt) {
+			this.parent.Atarget += dt
+		},
+		draw: function () {
+			graphics.fillcircleG(this.pos, this.r, "rgba(255,0,0,0.5)")
+		},
+	})
+
 
