@@ -4,12 +4,13 @@ let state = {
 	init: function () {
 		this.monks = []
 		this.gears = []
+		this.counters = []
 	},
 	thinkers: function () {
-		return [].concat(this.monks, this.gears)
+		return [].concat(this.monks, this.gears, this.counters)
 	},
 	drawers: function () {
-		let objs = [].concat(this.monks, this.gears)
+		let objs = [].concat(this.monks, this.gears, this.counters)
 		objs.sort(backtofront)
 		return objs
 	},
@@ -25,7 +26,9 @@ UFX.scenes.play = {
 	start: function () {
 		state.init()
 		state.monks.push(new Monk([5, 5]), new Monk([8, -8]))
-		state.gears.push(new GoGear([0, 0], 6, 0.1))
+		state.counters.push(new Counter([0, 10], 1000))
+		state.gears.push(new PushGear([0, 0], 6))
+		state.gears[0].attachsignal(state.counters[0])
 		;[1, 2, 3].forEach(j => {
 			let r = 1 + j, R = r + state.gears[0].r + 1, [C, S] = CS(1.5 * j)
 			let gear = new FollowGear([R * S, R * C], r, state.gears[0])

@@ -14,8 +14,11 @@ let WorldRound = {
 		this.setpos(pos)
 		this.setsize(r)
 	},
-	Ato: function (pos) {
-		let [x0, y0] = this.pos, [x1, y1] = pos
+	infootprint: function (pos) {
+		return distance(pos, this.pos) <= this.r
+	},
+	Ato: function ([x1, y1]) {
+		let [x0, y0] = this.pos
 		let dx = x1 - x0, dy = y1 - y0
 		return dx == 0 && dy == 0 ? 0 : Math.atan2(dx, dy)
 	},
@@ -27,8 +30,7 @@ let backtofront = (obj0, obj1) => obj1.pos[1] - obj0.pos[1]
 let fronttoback = (obj0, obj1) => backtofront(obj1, obj0)
 
 let Selectable = {
-	collidepoint: function (posG) {
-		let [x, y] = posG
+	collidepoint: function ([x, y]) {
 		let [x0, y0] = this.pos
 		return Math.hypot(x0 - x, 0.5 * (y0 + 2 - y)) < 1
 	},
@@ -77,6 +79,30 @@ Monk.prototype = UFX.Thing()
 	})
 	.addcomp(Selectable)
 
+
+function Counter(pos, N) {
+	this.setpossize(pos, 0.2)
+	this.N = N
+}
+Counter.prototype = UFX.Thing()
+	.addcomp(WorldRound)
+	.addcomp({
+		think: function (dt) {
+		},
+		tick: function () {
+			this.N -= 1
+		},
+		draw: function () {
+			UFX.draw("[", view.lookG(this.pos),
+				"lw 0.4 b m 0 0 l 0 -1 ss black s",
+				"fs gray ss black lw 0.1 sfr -2 -2 4 1",
+				"t 0 -1.5 font 0.6px~'Viga' tab center middle",
+				"fs white ss black lw 0.1 sft0 " + this.N,
+				"]")
+		},
+	})
+
+
 let GearLogic = {
 	setsize: function (r) {
 		this.Ntooth = Math.round((r + 0.5) * 2.3)
@@ -90,7 +116,19 @@ let GearLogic = {
 		let ftooth = 0.5 + gear.ftooth(A + tau/2)
 		this.A = A + ftooth / this.Ntooth * tau
 	},
+	attachsignal: function (obj) {
+		this.signals ||= []
+		this.signals.push(obj)
+	},
+	normA: function (N) {
+		this.A -= tau * N
+	},
 	think: function (dt) {
+		let N = Math.floor(this.A / tau)
+		if (N) {
+			this.normA(N)
+			if (this.signals) this.signals.forEach(obj => obj.tick(N))
+		}
 	},
 }
 
@@ -122,6 +160,35 @@ GoGear.prototype = UFX.Thing()
 	.addcomp({
 		think: function (dt) {
 			this.A += this.omega * dt
+		},
+	})
+
+function PushGear(pos, r) {
+	this.setpossize(pos, r)
+	this.A = 0
+	this.color = "gray"
+	this.Atarget = 0
+}
+PushGear.prototype = UFX.Thing()
+	.addcomp(WorldRound)
+	.addcomp(GearLogic)
+	.addcomp(DrawGear)
+	.addcomp({
+		collidepoint: function (pos) {
+			return this.infootprint(pos)
+		},
+		think: function (dt) {
+			this.A = softapproach(this.A, this.Atarget, 10 * dt)
+		},
+		onclick: function () {
+			this.Atarget += 2
+		},
+		normA: function (N) {
+			this.Atarget -= N * tau
+		},
+		draw: function () {
+			UFX.draw("[", view.lookG(this.pos), "z", this.r, this.r / 2, "z 0.01 0.01",
+				"r", this.A, "( m 0 -90 l 10 -70 l -10 -70 ) fs red ss black lw 5 s f ]")
 		},
 	})
 
