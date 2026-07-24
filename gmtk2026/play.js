@@ -8,7 +8,7 @@ let state = {
 		this.stations = []
 	},
 	thinkers: function () {
-		return [].concat(this.monks, this.gears, this.counters)
+		return [].concat(this.monks, this.gears, this.counters).filter(obj => obj.think)
 	},
 	drawers: function () {
 		let objs = [].concat(this.monks, this.gears, this.counters)
@@ -27,6 +27,12 @@ UFX.scenes.play = {
 	start: function () {
 		state.init()
 		state.monks.push(new Monk([5, 5]), new Monk([8, -8]))
+		let recruitcounter = new RecruitCounter([-10, 4])
+		state.counters.push(recruitcounter)
+		let recruitgear = new CounterGear([-10, 0], 4, recruitcounter)
+		recruitgear.placestations(4)
+		state.gears.push(recruitgear)
+/*
 		state.counters.push(new Counter([0, 10], 1000))
 		state.gears.push(new PushGear([0, 0], 6))
 		state.gears[0].attachsignal(state.counters[0])
@@ -37,6 +43,7 @@ UFX.scenes.play = {
 			let gear = new FollowGear([R * S, R * C], r, state.gears[0])
 			state.gears.push(gear)
 		})
+*/
 		this.stones = UFX.random.spread(100, 0.15, 32, 36, -16, -18).map(pos => {
 			let r = UFX.random(4, 6)
 			let R = UFX.random.rand(100, 140)

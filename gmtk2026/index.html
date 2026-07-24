@@ -48,9 +48,32 @@ let toload = {
 	test: "img/test.png",
 	guy: "img/guy-S-0.png",
 }
-let monkdirs = ["N", "NE", "E", "SE", "S"], monkjframes = ["0", "1", "2"]
+let monkdirs = ["N", "NE", "E", "SE", "S"], monkjframes = ["0", "1", "2", "work"]
 let monkfnames = monkdirs.map(dir => monkjframes.map(jframe => `monk${dir}${jframe}`)).flat()
 monkfnames.forEach(fname => toload[fname] = `img/${fname}.png`)
+let monkimgoffsets = {
+	monkE0: [377, 2],
+	monkE1: [376, 2],
+	monkE2: [375, 2],
+	monkEwork: [375, 2],
+	monkN0: [362, 2],
+	monkN1: [362, 2],
+	monkN2: [362, 2],
+	monkNE0: [354, 2],
+	monkNE1: [356, 2],
+	monkNE2: [357, 2],
+	monkNEwork: [657, 87],
+	monkNwork: [721, 2],
+	monkS0: [363, 2],
+	monkS1: [362, 2],
+	monkS2: [362, 2],
+	monkSE0: [366, 2],
+	monkSE1: [367, 2],
+	monkSE2: [365, 2],
+	monkSEwork: [673, 73],
+	monkSwork: [717, 2],
+}
+
 UFX.resource.load(toload)
 UFX.resource.onload = () => {
 }
