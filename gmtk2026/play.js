@@ -68,6 +68,8 @@ UFX.scenes.play = {
 		UFX.pointer.scale = UFX.maximize.scale.LD
 		let pointer = UFX.pointer(canvas)
 		if (pointer.click) control.onclick(pointer.pos)
+		if (pointer.move) control.onmove(pointer.move.dpos)
+		if (pointer.wheel.dy) control.onwheel(pointer.wheel.dy)
 		state.thinkers().forEach(obj => obj.think(dt))
 	},
 	draw: function () {
@@ -75,6 +77,10 @@ UFX.scenes.play = {
 		UFX.draw("[ alpha 0.2")
 		this.stones.forEach(([pos, r, color]) => graphics.fillcircleG(pos, r, color))
 		UFX.draw("]")
+		let scale = 1/270
+		range(-20, 20, 4).forEach(x =>
+			UFX.draw("[", view.lookG([x, 12]), "z", scale, scale, "drawimage", UFX.resource.images.wallh, "0 -1080 ]")
+		)
 		state.drawers().forEach(obj => obj.draw())
 	},
 }

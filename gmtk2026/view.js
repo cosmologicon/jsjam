@@ -54,6 +54,17 @@ let view = {
 	GconvertL: function (posL) {
 		return this.GconvertA(this.AconvertL(posL))
 	},
+	scootL: function ([dxL, dyL]) {
+		let [LscalexA, LscaleyA] = UFX.maximize.scale.LA
+		let [xG0, yG0] = this.cameraG0
+		xG0 -= dxL / LscalexA / this.AscaleG
+		yG0 += dyL / LscaleyA / this.AscaleG / 0.5
+		this.cameraG0 = [xG0, yG0]
+	},
+	zoom: function (dz, posL0) {
+		this.AscaleG *= Math.exp(dz)
+		this.AscaleG = clamp(this.AscaleG, 10, 100)
+	},
 	lookG: function (posG) {
 		let [LscalexA, LscaleyA] = UFX.maximize.scale.LA
 		return ["t", this.LconvertG(posG), "z", LscalexA * this.AscaleG, LscaleyA * this.AscaleG]

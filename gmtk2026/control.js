@@ -27,6 +27,12 @@ let control = {
 		}
 		target.onclick()
 	},
+	onmove: function (dposL) {
+		view.scootL(dposL)
+	},
+	onwheel: function (dy, posL) {
+		view.zoom(-0.001 * dy, posL)
+	},
 }
 control.init()
 
