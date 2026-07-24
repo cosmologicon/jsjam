@@ -124,7 +124,7 @@ Monk.prototype = UFX.Thing()
 		},
 		getframe: function () {
 			if (this.atstation) {
-				let [dir, flip] = facespec(mod(Math.round(-1.6 * this.t * this.speed + 2), 8))
+				let [dir, flip] = facespec(mod(Math.round(-1.6 * this.station.gear.getmultiplier() * this.t * this.speed + 2), 8))
 				return [`monk${dir}work`, flip]
 			} else {
 				let [dir, flip] = facespec(this.jface)
@@ -199,6 +199,60 @@ RecruitCounter.prototype = UFX.Thing()
 		},
 	})
 
+
+let MultipliesGear = {
+	start: function () {
+		this.gear = null
+		this.multiplier = 1
+	},
+	setgear: function (gear) {
+		this.gear = gear
+		gear.addmultiplier(this)
+	},
+	complete: function () {
+		this.multiplier += 1
+	},
+}
+let HasMultipliers = {
+	start: function () {
+		this.multipliers = []
+	},
+	addmultiplier: function (multiplier) {
+		this.multipliers.push(multiplier)
+	},
+	getmultiplier: function () {
+		let m = 1
+		this.multipliers.forEach(multiplier => m *= multiplier.multiplier)
+		return m
+	},
+}
+
+
+
+function MultiplierCounter(pos, gear) {
+	this.start()
+	this.setpossize(pos, 0.2)
+	this.setgear(gear)
+}
+MultiplierCounter.prototype = UFX.Thing()
+	.addcomp(WorldRound)
+	.addcomp(Countdown)
+	.addcomp(ExponentialIntervals)
+	.addcomp(MultipliesGear)
+	.addcomp({
+		draw: function () {
+			UFX.draw("[", view.lookG(this.pos),
+				"rr -1 -2.3 2 1.2 0.3 fs #886 ss #330 lw 0.1 s f",
+				"tab center middle ss black",
+				"t 0 -2",
+				"font 0.4px~'Viga' fs #ffc lw 0.04 sft0", `${this.multiplier}x`,
+				"t 0 0.5",
+				"font 0.6px~'Viga' fs #ccf lw 0.04 sft0", `${this.N}`,
+				"]")
+		},
+	})
+
+
 /*
 function Counter(pos, N) {
 	this.setpossize(pos, 0.2)
@@ -244,7 +298,7 @@ let GearLogic = {
 		this.signals.push(obj)
 	},
 	advance: function (dA) {
-		this.A += dA
+		this.A += dA * this.getmultiplier()
 	},
 	radvance: function (dr) {
 		this.advance(dr / this.r)
@@ -330,6 +384,7 @@ function CounterGear(pos, r, counter) {
 CounterGear.prototype = UFX.Thing()
 	.addcomp(WorldRound)
 	.addcomp(GearLogic)
+	.addcomp(HasMultipliers)
 	.addcomp(HasStations)
 	.addcomp(HasSignals)
 	.addcomp(DrawGear)

@@ -27,7 +27,7 @@ let softapproach = function (x, target, dlogx) {
 let CS = A => [Math.cos(A), Math.sin(A)]
 let polaroff = ([x0, y0], r, A) => {
 	let [C, S] = CS(A)
-	return [x0 + S * r, y0 - C * r]
+	return [x0 + S * r, y0 + C * r]
 }
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from#sequence_generator_range
 let range = (start, stop, step) => Array.from({ length: Math.ceil((stop - start) / step) }, (_, i) => start + i * step)
